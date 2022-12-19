@@ -87,7 +87,7 @@ class TestKinesisSimulatorDevice:
             return qml.expval(qml.Projector([1], wires=[0]))
 
         assert np.isclose(circ(0), 0, atol=1e-2)
-        assert np.isclose(circ(np.pi / 4), 0.5, atol=1e-2)
+        assert np.isclose(circ(np.pi / 4), 0.5, atol=2e-2)
         assert np.isclose(circ(np.pi / 2), 1, atol=1e-2)
 
     def test_device_qnode_probs(self, interface):
@@ -100,7 +100,7 @@ class TestKinesisSimulatorDevice:
             return qml.probs(wires=[0])
 
         assert np.allclose(circ(0), [1, 0], atol=1e-2)
-        assert np.allclose(circ(np.pi / 4), [0.5, 0.5], atol=1e-2)
+        assert np.allclose(circ(np.pi / 4), [0.5, 0.5], atol=2e-2)
         assert np.allclose(circ(np.pi / 2), [0, 1], atol=1e-2)
 
     def test_device_qnode_samples(self, interface):
