@@ -39,4 +39,4 @@ jobs:
           pip install pytest
       - name: Run pytest
         run: |
-          pytest
+          python -m pytest
