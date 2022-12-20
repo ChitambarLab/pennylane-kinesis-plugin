@@ -1,5 +1,5 @@
 # Pennylane-Kinesis Plugin
-A PennyLane device plugin for controlling rotational stages using Thorlabs Kinesis Software 
+A PennyLane device plugin for controlling rotational stages using Thorlabs Kinesis Software.
 
 ## Development Environment
 
