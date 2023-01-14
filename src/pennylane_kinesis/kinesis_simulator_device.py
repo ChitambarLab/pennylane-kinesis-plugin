@@ -6,15 +6,19 @@ from .version import __version__
 
 
 class KinesisSimulatorDevice(QubitDevice):
-    """ """
+    """A PennyLane plugin device for simulating the integration with the ThorLabs Kinesis software.
+
+    This plugin device performs a simple state vector simulation of optical qubits passing
+    through components on rotational stages controlled by the Kinesis software.
+    """
 
     name = "Kinesis Simulator Device"
     short_name = "kinesis.simulator"
-    pennylane_requires = "0.27.0"
+    pennylane_requires = "0.28.0"
     version = __version__
     author = "Brian Doolittle"
 
-    operations = {"PauliZ", "PhaseShift", "S", "RY", "RZ"}
+    operations = {"PauliZ", "PhaseShift", "S", "RY", "RZ", "HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
 
     incidence_rate = 100000
