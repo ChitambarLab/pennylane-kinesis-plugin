@@ -7,7 +7,7 @@ import sys
 import time
 import System
 
-import ttag
+from pennylane_kinesis import ttag
 import time
 from datetime import datetime
 
@@ -57,8 +57,8 @@ class KinesisCageRotatorDevice(QubitDevice):
     operations = {"HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
 
-    incidence_rate = 100000
-    # init_state = np.array([1, 0])
+    integration_time = 1
+    init_state = np.array([1, 0]) # placeholder
 
     def __init__(
         self,
@@ -70,7 +70,65 @@ class KinesisCageRotatorDevice(QubitDevice):
         analytic=None,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
-        # self._state = self.init_state
+            
+        #Initialize device list
+        self.deviceList()
+
+        #Connect and initlaize devices 
+        print()
+        print("Status Updates:")
+        print("----------------------------------------------")
+
+        print("Reading configuration file...")
+        print()
+
+        configFile = "./src/pennylane_kinesis/2022_02_21_colin_wp_config.txt"
+
+        with open(configFile) as f:
+            linesConfig = f.readlines()
+
+        wpDetails = [['','','',''],['','','',''], ['','','',''], ['','','',''], ['','','','']]
+
+        i=0
+        for line in linesConfig:
+            entries = linesConfig[i].split("\t")
+            wpDetails[i][0] = entries[0]
+            wpDetails[i][1] = entries[1]
+            wpDetails[i][2] = entries[2]
+            wpDetails[i][3] = entries[3][:-1] #remove newline at end of line
+            i += 1
+
+        print("Configuration File:")
+        print("----------------------------------------------")
+        for line in wpDetails:
+            print(*line)
+        print()
+
+        self.aHWPsn = wpDetails[1][1]
+        self.aQWPsn = wpDetails[2][1]
+        self.bHWPsn = wpDetails[3][1]
+        self.bQWPsn = wpDetails[4][1]
+
+        self.aHWPoff = float(wpDetails[1][2])
+        self.aQWPoff = float(wpDetails[2][2])
+        self.bHWPoff = float(wpDetails[3][2])
+        self.bQWPoff = float(wpDetails[4][2])
+
+        self.aHWP, self.aHWPConfig = self.deviceSetup(self.aHWPsn) #a waveplates are 1550
+        self.aQWP, self.aQWPConfig = self.deviceSetup(self.aQWPsn)
+
+        # Home all devices
+        print("Homing all devices...")
+        self.deviceHome(self.aHWP)
+        self.deviceHome(self.aQWP)
+        print()
+
+        self.buffer = ttag.TTBuffer(0) # Default buffer number is 0
+        print("Properties of buffer:")
+        print("Channels: ", self.buffer.channels)
+        print("Resolution: ", self.buffer.resolution)
+        print("Datapoints: ", self.buffer.datapoints)
+
 
     def deviceList(self):
         """Builds device list and prints detected devices.
@@ -196,7 +254,14 @@ class KinesisCageRotatorDevice(QubitDevice):
         device.MoveTo(System.Decimal(angle), 60000) #Moves to position in degrees
         print("Moved device S/N " + deviceSN + " to position " + str(angle) + "\u00B0")
 
+    def disconnect(self):
+        # Code must gracefully disconnect from device at its conclusion.
+        # Otherwise, the Connect() method will throw an error when the code is rerun
+        self.aHWP.Disconnect(False) #Disconnects the device. If argument is True, shuts down device. 
+        self.aQWP.Disconnect(False)
+
     def reset(self):
+        # pass
         super().reset()
         self._state = self.init_state
 
@@ -214,82 +279,71 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
-        for operation in all_ops:
-            mat = qml.matrix(operation)
-            self._state = mat @ self._state
+        for op in all_ops:
+            print("op names")
+            if op.name == "HWPRotStage":
+                print("moving HWP Rot Stage setting: ", op.parameters[0] * 360 / (2*np.pi))
+                self.deviceMoveToAngle(self.aHWP, op.parameters[0] * 360 / (2*np.pi) % 360)
+            elif op.name == "QWPRotStage":
+                print("moving QWP Rot Stage setting : ", op.parameters[0] * 360 / (2*np.pi))
+                self.deviceMoveToAngle(self.aQWP, op.parameters[0] * 360 / (2*np.pi) % 360)
+            else:
+                print("Operation : ", op.name, ", is not supported")
 
     def generate_samples(self):
-        p0 = np.linalg.norm(self._state[0]) ** 2
+        self.integration_time = 1.0 # The integration time for a timetagger measurement, in seconds
+        time.sleep(self.integration_time) # give the buffer time to fill up, otherwise buffer will throw a warning 
+        singles_array = self.buffer.singles(self.integration_time)
 
-        return np.random.choice([0, 1], size=(self.shots, 1), p=[p0, 1 - p0])
+        print()
+        print("Measured Singles:")
+        print(singles_array)
+
+        p1 = singles_array[0] / self.shots
+
+        return np.random.choice([0, 1], size=(self.shots, 1), p=[1 - p1, p1])
+        
+
 
 
 if __name__=="__main__":
-    dev = KinesisCageRotatorDevice(wires=[0])
+    import pennylane as qml
+    from pennylane import numpy as qnp
+    import pennylane_kinesis as pk
+    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=20000)
+
+    @qml.qnode(dev, diff_method="parameter-shift")
+    def circ(settings):
+        pk.HWPRotStage(settings[0], wires=dev.wires[0])
+        pk.QWPRotStage(settings[1], wires=dev.wires[0])
+
+        # return qml.probs(wires=dev.wires[0])
+        return qml.expval(qml.Projector([1], wires=[0]))
+    
+    out = circ([0.5,0.5])
+
+    qml.grad(circ)(qnp.array([0.5,0.5], requires_grad=True))
+
+
+    print(out)
 
     #Initialize device list
     dev.deviceList()
-
-    #Connect and initlaize devices 
-    print()
-    print("Status Updates:")
-    print("----------------------------------------------")
-
-    print("Reading configuration file...")
-    print()
-
-    configFile = "./src/pennylane_kinesis/2022_02_21_colin_wp_config.txt"
-
-    with open(configFile) as f:
-        linesConfig = f.readlines()
-
-    wpDetails = [['','','',''],['','','',''], ['','','',''], ['','','',''], ['','','','']]
-
-    i=0
-    for line in linesConfig:
-        entries = linesConfig[i].split("\t")
-        wpDetails[i][0] = entries[0]
-        wpDetails[i][1] = entries[1]
-        wpDetails[i][2] = entries[2]
-        wpDetails[i][3] = entries[3][:-1] #remove newline at end of line
-        i += 1
-
-    print("Configuration File:")
-    print("----------------------------------------------")
-    for line in wpDetails:
-        print(*line)
-    print()
-
-    aHWPsn = wpDetails[1][1]
-    aQWPsn = wpDetails[2][1]
-    bHWPsn = wpDetails[3][1]
-    bQWPsn = wpDetails[4][1]
-
-    aHWPoff = float(wpDetails[1][2])
-    aQWPoff = float(wpDetails[2][2])
-    bHWPoff = float(wpDetails[3][2])
-    bQWPoff = float(wpDetails[4][2])
-
-    aHWP, aHWPConfig = dev.deviceSetup(aHWPsn) #a waveplates are 1550
-    aQWP, aQWPConfig = dev.deviceSetup(aQWPsn)
-
+   
     # Home all devices
     print("Homing all devices...")
-    dev.deviceHome(aHWP)
-    dev.deviceHome(aQWP)
+    dev.deviceHome(dev.aHWP)
+    dev.deviceHome(dev.aQWP)
     print()
 
     # Move HWP and QWP to desired angles (degrees)
     aHWPAngle = 0
     aQWPAngle = 0
-    dev.deviceMoveToAngle(aHWP, aHWPAngle)
-    dev.deviceMoveToAngle(aQWP, aQWPAngle)
+    dev.deviceMoveToAngle(dev.aHWP, aHWPAngle)
+    dev.deviceMoveToAngle(dev.aQWP, aQWPAngle)
 
     #######################################################
     # End of Program
     #######################################################
 
-    # Code must gracefully disconnect from device at its conclusion.
-    # Otherwise, the Connect() method will throw an error when the code is rerun
-    aHWP.Disconnect(False) #Disconnects the device. If argument is True, shuts down device. 
-    aQWP.Disconnect(False) 
+    dev.disconnect()
