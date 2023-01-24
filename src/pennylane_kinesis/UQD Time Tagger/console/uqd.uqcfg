@@ -1,0 +1,32 @@
+#NOTE: To find available options, run UQDInterface --help
+#Set channel voltage and edge:
+#cXv=Channel X threshold voltage
+#cXe=Channel X edge (1=rising,0=falling)
+
+c1v=1.0
+c1e=1
+
+c2v=1.0
+c2e=1
+
+c3v=1.0
+c3e=1
+
+c4v=1.0
+c4e=1
+
+c5v=1.0
+c5e=1
+
+c6v=1.0
+c6e=1
+
+#Whether or not to use the 10MHz reference 1=use 10MHz reference, 0=Don't (default)
+reference=0
+
+#The size of the buffer to which data is streamed. At least 100 million is preferred
+buffer=100000000
+
+
+#Whether or not to start acquisition automatically 1=start acquisition, 0=Don't (default)
+autostart=0
