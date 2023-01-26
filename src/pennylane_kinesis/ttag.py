@@ -243,20 +243,11 @@ Direct access to libTTag's functions:
 """
 # Author: Daniel Kumor
 
-from pathlib import Path
-
-print(str(Path.cwd()) + "/src/pennylane_kinesis/UQD_Time_Tagger/x64/libTTag.dll")
-
-
 import sys
 import os
 import ctypes
 import numpy
 import numpy.ctypeslib
-
-
-print(sys.maxsize > 2**32)
-print(os.path.exists(str(Path.cwd()) + "/src/pennylane_kinesis/UQD_Time_Tagger/x64/libTTag.dll"))
 
 ##################################################################################
 # Simple Ctypes interface
@@ -267,7 +258,7 @@ print(os.path.exists(str(Path.cwd()) + "/src/pennylane_kinesis/UQD_Time_Tagger/x
 libttag = None
 if sys.maxsize > 2**32:
     libttag = numpy.ctypeslib.load_library(
-        ".\\src\\pennylane_kinesis\\UQD_Time_Tagger\\x64\\libTTag.dll", "."
+        "src\\pennylane_kinesis\\UQD_Time_Tagger\\x64\\libTTag.dll", "."
     )
 else:
     libttag = numpy.ctypeslib.load_library("libttag32", ".")
