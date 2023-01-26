@@ -40,7 +40,9 @@ try:
     from Thorlabs.MotionControl.DeviceManagerCLI import *
 
     # importing the local time-tagger library
-    from .ttag import *
+    # from .ttag import *
+    # from .ttag import *
+    from . import ttag
 
 except BaseException as ex:
     msg_template = "An exception of type {0} occurred. Arguments:\n{1!r}"
@@ -71,8 +73,6 @@ class KinesisCageRotatorDevice(QubitDevice):
     integration_time = 1
     init_state = np.array([1, 0])  # placeholder
 
-    test_mode = _TEST_MODE
-
     def __init__(
         self,
         wires,
@@ -81,8 +81,10 @@ class KinesisCageRotatorDevice(QubitDevice):
         r_dtype=np.float64,
         c_dtype=np.complex128,
         analytic=None,
+        test_mode=_TEST_MODE,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
+        self.test_mode = test_mode
 
         # Initialize device list
         self.device_list()
@@ -241,16 +243,17 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     def detector_setup(self):
         if self.test_mode:
+            print("detector in stest mode")
             buffer = {}
-
+            return buffer
         else:
-            buffer = ttag.TTBuffer(0)  # Default buffer number is 0
+            buffer = ttag.TTBuffer(0)  # , create=True)  # Default buffer number is 0
             print("Properties of buffer:")
             print("Channels: ", buffer.channels)
             print("Resolution: ", buffer.resolution)
             print("Datapoints: ", buffer.datapoints)
 
-        return buffer
+            return buffer
 
     # Inputs: CageRotator object device
     # Outputs: None
@@ -346,9 +349,12 @@ class KinesisCageRotatorDevice(QubitDevice):
 
         counts = singles_array[0]
 
+        print("num counts : ", counts)
+        print("shots : ", self.shots)
+
         return np.concatenate(
             (
-                np.ones((min(counts, self.shots), 1), dtype=int),
-                np.zeros((max(self.shots - counts, 0), 1), dtype=int),
+                np.ones((int(min(counts, self.shots)), 1), dtype=int),
+                np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
             )
         )

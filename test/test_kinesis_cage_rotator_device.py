@@ -14,15 +14,15 @@ def _setup_device(interface):
     dev = None
 
     if interface == "class":
-        dev = pk.KinesisCageRotatorDevice(shots=shots, wires=wires)
+        dev = pk.KinesisCageRotatorDevice(shots=shots, wires=wires, test_mode=True)
     elif interface == "pennylane":
-        dev = qml.device("kinesis.cage.rotator", shots=shots, wires=wires)
+        dev = qml.device("kinesis.cage.rotator", shots=shots, wires=wires, test_mode=True)
     else:
         raise ValueError(
             "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
         )
 
-    dev.test_mode = True
+    print("Dev test mode : ", dev.test_mode)
 
     return dev
 
