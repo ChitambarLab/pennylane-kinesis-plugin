@@ -52,9 +52,10 @@ class TestKinesisSimulatorDevice:
         assert dev.operations == {
             "PauliZ",
             "PhaseShift",
-            "S",
+            "RX",
             "RY",
             "RZ",
+            "S",
             "HWPRotStage",
             "QWPRotStage",
         }
@@ -113,6 +114,8 @@ class TestKinesisSimulatorDevice:
 
     def test_device_qnode_samples(self, interface):
 
+        np.random.seed(41)
+
         dev = _setup_device(interface)
 
         @qml.qnode(dev)
@@ -122,7 +125,7 @@ class TestKinesisSimulatorDevice:
 
         samples = circ(np.pi / 4)
 
-        assert len(samples) == 10000
+        assert len(samples) == 9924
         assert all([s == 0 or s == 1 for s in samples])
 
     def test_device_parameter_shift_opt(self, interface):

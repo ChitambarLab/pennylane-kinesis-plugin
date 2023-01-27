@@ -18,7 +18,7 @@ class KinesisSimulatorDevice(QubitDevice):
     version = __version__
     author = "Brian Doolittle"
 
-    operations = {"PauliZ", "PhaseShift", "S", "RY", "RZ", "HWPRotStage", "QWPRotStage"}
+    operations = {"PauliZ", "PhaseShift", "RX", "RY", "RZ", "S", "HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
 
     incidence_rate = 100000
@@ -61,4 +61,6 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        return np.random.choice([0, 1], size=(self.shots, 1), p=[p0, 1 - p0])
+        poisson_shots = np.random.poisson(self.shots, size=1)[0]
+
+        return np.random.choice([0, 1], size=(poisson_shots, 1), p=[p0, 1 - p0])
