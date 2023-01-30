@@ -326,10 +326,10 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             if op.name == "HWPRotStage":
                 print("moving HWP Rot Stage setting: ", angle)
-                self.device_move_to_angle(self.dev_a_hwp, angle % 360)
+                self.device_move_to_angle(self.dev_a_hwp, angle % 90)
             elif op.name == "QWPRotStage":
                 print("moving QWP Rot Stage setting : ", angle)
-                self.device_move_to_angle(self.dev_a_qwp, angle % 360)
+                self.device_move_to_angle(self.dev_a_qwp, angle % 180)
             else:
                 print("Operation : ", op.name, ", is not supported")
 
