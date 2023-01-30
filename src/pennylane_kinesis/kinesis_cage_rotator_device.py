@@ -169,7 +169,7 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     # Connect and initialize device with S/N SN
     # Returns a tuple: the device CageRotator object and configuration information
-    def device_setup(self, SN, wimp_mode=True):
+    def device_setup(self, SN, wimp_mode=False):
         # Set velocity
         # If waveplates are unreliable, can set velocity at near half to keep
         # current load down so not over burden the USB hub (wimp mode)
