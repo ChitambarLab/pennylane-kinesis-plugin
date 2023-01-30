@@ -1,0 +1,1174 @@
+init settings :  [1.75039071 1.95843395]
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[6039 4824    0    0 5519 2539    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  6039
+shots :  6000
+init cost :  1.0
+optimization iteration : 0
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[6004 4643    0    0 5696 2543    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  6004
+shots :  6000
+op names
+moving HWP Rot Stage setting:  122.78999999999999
+Moved device S/N 55253334 to position 32.78999999999999°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[2408 1897    0    0 5462 2619    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2408
+shots :  6000
+op names
+moving HWP Rot Stage setting:  77.79
+Moved device S/N 55253334 to position 77.79°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[3970 3174    0    0 5451 2480    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3970
+shots :  6000
+op names
+moving HWP Rot Stage setting:  167.79
+Moved device S/N 55253334 to position 77.78999999999999°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[4043 3154    0    0 5489 2550    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4043
+shots :  6000
+op names
+moving HWP Rot Stage setting:  32.790000000000006
+Moved device S/N 55253334 to position 32.790000000000006°
+op names
+moving QWP Rot Stage setting :  112.21
+Moved device S/N 55253344 to position 112.21°
+
+Measured Singles:
+[2463 2004    0    0 5703 2578    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2463
+shots :  6000
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  134.70999999999998
+Moved device S/N 55253344 to position 134.70999999999998°
+
+Measured Singles:
+[5382 4242    0    0 5518 2541    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5382
+shots :  6000
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  89.71
+Moved device S/N 55253344 to position 89.71°
+
+Measured Singles:
+[3876 3051    0    0 5389 2569    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3876
+shots :  6000
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  179.71
+Moved device S/N 55253344 to position 179.71°
+
+Measured Singles:
+[4268 3342    0    0 5596 2589    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4268
+shots :  6000
+op names
+moving HWP Rot Stage setting:  100.29000000000002
+Moved device S/N 55253334 to position 10.29000000000002°
+op names
+moving QWP Rot Stage setting :  44.709999999999994
+Moved device S/N 55253344 to position 44.709999999999994°
+
+Measured Singles:
+[4888 3843    0    0 5436 2465    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4888
+shots :  6000
+
+
+cost val :  1.0
+settings :  [tensor(1.80254524, requires_grad=True), tensor(1.91255901, requires_grad=True)] 
+
+
+
+optimization iteration : 1
+op names
+moving HWP Rot Stage setting:  103.2782347169003
+Moved device S/N 55253334 to position 13.2782347169003°
+op names
+moving QWP Rot Stage setting :  109.58155935383337
+Moved device S/N 55253344 to position 109.58155935383337°
+
+Measured Singles:
+[5473 4412    0    0 5476 2500    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5473
+shots :  6000
+op names
+moving HWP Rot Stage setting:  125.77823471690029
+Moved device S/N 55253334 to position 35.778234716900286°
+op names
+moving QWP Rot Stage setting :  109.58155935383337
+Moved device S/N 55253344 to position 109.58155935383337°
+
+Measured Singles:
+[1667 1411    0    0 5439 2618    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1667
+shots :  6000
+op names
+moving HWP Rot Stage setting:  80.7782347169003
+Moved device S/N 55253334 to position 80.7782347169003°
+op names
+moving QWP Rot Stage setting :  109.58155935383337
+Moved device S/N 55253344 to position 109.58155935383337°
+
+Measured Singles:
+[4841 3849    0    0 5423 2676    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4841
+shots :  6000
+op names
+moving HWP Rot Stage setting:  170.77823471690027
+Moved device S/N 55253334 to position 80.77823471690027°
+op names
+moving QWP Rot Stage setting :  109.58155935383337
+Moved device S/N 55253344 to position 109.58155935383337°
+
+Measured Singles:
+[4935 3883    0    0 5531 2659    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4935
+shots :  6000
+op names
+moving HWP Rot Stage setting:  35.7782347169003
+Moved device S/N 55253334 to position 35.7782347169003°
+op names
+moving QWP Rot Stage setting :  109.58155935383337
+Moved device S/N 55253344 to position 109.58155935383337°
+
+Measured Singles:
+[1709 1283    0    0 5536 2542    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1709
+shots :  6000
+op names
+moving HWP Rot Stage setting:  103.2782347169003
+Moved device S/N 55253334 to position 13.2782347169003°
+op names
+moving QWP Rot Stage setting :  132.08155935383337
+Moved device S/N 55253344 to position 132.08155935383337°
+
+Measured Singles:
+[5906 4802    0    0 5581 2589    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5906
+shots :  6000
+op names
+moving HWP Rot Stage setting:  103.2782347169003
+Moved device S/N 55253334 to position 13.2782347169003°
+op names
+moving QWP Rot Stage setting :  87.08155935383337
+Moved device S/N 55253344 to position 87.08155935383337°
+
+Measured Singles:
+[3274 2671    0    0 5444 2668    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3274
+shots :  6000
+op names
+moving HWP Rot Stage setting:  103.2782347169003
+Moved device S/N 55253334 to position 13.2782347169003°
+op names
+moving QWP Rot Stage setting :  177.08155935383334
+Moved device S/N 55253344 to position 177.08155935383334°
+
+Measured Singles:
+[3732 2843    0    0 5458 2580    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3732
+shots :  6000
+op names
+moving HWP Rot Stage setting:  103.2782347169003
+Moved device S/N 55253334 to position 13.2782347169003°
+op names
+moving QWP Rot Stage setting :  42.08155935383338
+Moved device S/N 55253344 to position 42.08155935383338°
+
+Measured Singles:
+[5602 4388    0    0 5384 2514    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5602
+shots :  6000
+
+
+cost val :  0.9121666666666667
+settings :  [tensor(1.90859908, requires_grad=True), tensor(1.82854542, requires_grad=True)] 
+
+
+
+optimization iteration : 2
+op names
+moving HWP Rot Stage setting:  109.35467219529896
+Moved device S/N 55253334 to position 19.35467219529896°
+op names
+moving QWP Rot Stage setting :  104.76793525635131
+Moved device S/N 55253344 to position 104.76793525635131°
+
+Measured Singles:
+[4170 3380    0    0 5537 2613    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4170
+shots :  6000
+op names
+moving HWP Rot Stage setting:  131.85467219529895
+Moved device S/N 55253334 to position 41.854672195298946°
+op names
+moving QWP Rot Stage setting :  104.76793525635131
+Moved device S/N 55253344 to position 104.76793525635131°
+
+Measured Singles:
+[ 864  672    0    0 5273 2554    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  864
+shots :  6000
+op names
+moving HWP Rot Stage setting:  86.85467219529895
+Moved device S/N 55253334 to position 86.85467219529895°
+op names
+moving QWP Rot Stage setting :  104.76793525635131
+Moved device S/N 55253344 to position 104.76793525635131°
+
+Measured Singles:
+[5644 4641    0    0 5384 2545    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5644
+shots :  6000
+op names
+moving HWP Rot Stage setting:  176.85467219529897
+Moved device S/N 55253334 to position 86.85467219529897°
+op names
+moving QWP Rot Stage setting :  104.76793525635131
+Moved device S/N 55253344 to position 104.76793525635131°
+
+Measured Singles:
+[5785 4487    0    0 5355 2521    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5785
+shots :  6000
+op names
+moving HWP Rot Stage setting:  41.85467219529895
+Moved device S/N 55253334 to position 41.85467219529895°
+op names
+moving QWP Rot Stage setting :  104.76793525635131
+Moved device S/N 55253344 to position 104.76793525635131°
+
+Measured Singles:
+[ 865  660    0    0 5412 2559    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  865
+shots :  6000
+op names
+moving HWP Rot Stage setting:  109.35467219529896
+Moved device S/N 55253334 to position 19.35467219529896°
+op names
+moving QWP Rot Stage setting :  127.26793525635131
+Moved device S/N 55253344 to position 127.26793525635131°
+
+Measured Singles:
+[5905 4616    0    0 5379 2496    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5905
+shots :  6000
+op names
+moving HWP Rot Stage setting:  109.35467219529896
+Moved device S/N 55253334 to position 19.35467219529896°
+op names
+moving QWP Rot Stage setting :  82.26793525635131
+Moved device S/N 55253344 to position 82.26793525635131°
+
+Measured Singles:
+[2569 2116    0    0 5489 2580    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2569
+shots :  6000
+op names
+moving HWP Rot Stage setting:  109.35467219529896
+Moved device S/N 55253334 to position 19.35467219529896°
+op names
+moving QWP Rot Stage setting :  172.2679352563513
+Moved device S/N 55253344 to position 172.2679352563513°
+
+Measured Singles:
+[3117 2448    0    0 5498 2593    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3117
+shots :  6000
+op names
+moving HWP Rot Stage setting:  109.35467219529896
+Moved device S/N 55253334 to position 19.35467219529896°
+op names
+moving QWP Rot Stage setting :  37.26793525635131
+Moved device S/N 55253344 to position 37.26793525635131°
+
+Measured Singles:
+[5944 4720    0    0 5591 2600    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5944
+shots :  6000
+
+
+cost val :  0.695
+settings :  [tensor(2.06861583, requires_grad=True), tensor(1.71983013, requires_grad=True)] 
+
+
+
+optimization iteration : 3
+op names
+moving HWP Rot Stage setting:  118.52295667005076
+Moved device S/N 55253334 to position 28.52295667005076°
+op names
+moving QWP Rot Stage setting :  98.53900801700622
+Moved device S/N 55253344 to position 98.53900801700622°
+
+Measured Singles:
+[2139 1695    0    0 5495 2581    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2139
+shots :  6000
+op names
+moving HWP Rot Stage setting:  141.02295667005075
+Moved device S/N 55253334 to position 51.022956670050746°
+op names
+moving QWP Rot Stage setting :  98.53900801700622
+Moved device S/N 55253344 to position 98.53900801700622°
+
+Measured Singles:
+[1343  999    0    0 5345 2545    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1343
+shots :  6000
+op names
+moving HWP Rot Stage setting:  96.02295667005076
+Moved device S/N 55253334 to position 6.02295667005076°
+op names
+moving QWP Rot Stage setting :  98.53900801700622
+Moved device S/N 55253344 to position 98.53900801700622°
+
+Measured Singles:
+[5102 3957    0    0 5407 2576    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5102
+shots :  6000
+op names
+moving HWP Rot Stage setting:  186.02295667005077
+Moved device S/N 55253334 to position 6.022956670050775°
+op names
+moving QWP Rot Stage setting :  98.53900801700622
+Moved device S/N 55253344 to position 98.53900801700622°
+
+Measured Singles:
+[5043 4186    0    0 5442 2547    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  5043
+shots :  6000
+op names
+moving HWP Rot Stage setting:  51.02295667005075
+Moved device S/N 55253334 to position 51.02295667005075°
+op names
+moving QWP Rot Stage setting :  98.53900801700622
+Moved device S/N 55253344 to position 98.53900801700622°
+
+Measured Singles:
+[1464 1041    0    0 5478 2633    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1464
+shots :  6000
+op names
+moving HWP Rot Stage setting:  118.52295667005076
+Moved device S/N 55253334 to position 28.52295667005076°
+op names
+moving QWP Rot Stage setting :  121.03900801700621
+Moved device S/N 55253344 to position 121.03900801700621°
+
+Measured Singles:
+[4295 3347    0    0 5567 2617    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4295
+shots :  6000
+op names
+moving HWP Rot Stage setting:  118.52295667005076
+Moved device S/N 55253334 to position 28.52295667005076°
+op names
+moving QWP Rot Stage setting :  76.03900801700622
+Moved device S/N 55253344 to position 76.03900801700622°
+
+Measured Singles:
+[3063 2442    0    0 5487 2639    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3063
+shots :  6000
+op names
+moving HWP Rot Stage setting:  118.52295667005076
+Moved device S/N 55253334 to position 28.52295667005076°
+op names
+moving QWP Rot Stage setting :  166.0390080170062
+Moved device S/N 55253344 to position 166.0390080170062°
+
+Measured Singles:
+[3011 2347    0    0 5626 2557    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3011
+shots :  6000
+op names
+moving HWP Rot Stage setting:  118.52295667005076
+Moved device S/N 55253334 to position 28.52295667005076°
+op names
+moving QWP Rot Stage setting :  31.03900801700622
+Moved device S/N 55253344 to position 31.03900801700622°
+
+Measured Singles:
+[4803 3905    0    0 5579 2567    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4803
+shots :  6000
+
+
+cost val :  0.3565
+settings :  [tensor(2.19303715, requires_grad=True), tensor(1.67602979, requires_grad=True)] 
+
+
+
+optimization iteration : 4
+op names
+moving HWP Rot Stage setting:  125.65177320718192
+Moved device S/N 55253334 to position 35.65177320718192°
+op names
+moving QWP Rot Stage setting :  96.02943358233284
+Moved device S/N 55253344 to position 96.02943358233284°
+
+Measured Singles:
+[1460 1251    0    0 5531 2546    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1460
+shots :  6000
+op names
+moving HWP Rot Stage setting:  148.15177320718195
+Moved device S/N 55253334 to position 58.15177320718195°
+op names
+moving QWP Rot Stage setting :  96.02943358233284
+Moved device S/N 55253344 to position 96.02943358233284°
+
+Measured Singles:
+[2450 1965    0    0 5744 2599    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2450
+shots :  6000
+op names
+moving HWP Rot Stage setting:  103.15177320718192
+Moved device S/N 55253334 to position 13.151773207181918°
+op names
+moving QWP Rot Stage setting :  96.02943358233284
+Moved device S/N 55253344 to position 96.02943358233284°
+
+Measured Singles:
+[4068 3297    0    0 5543 2623    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4068
+shots :  6000
+op names
+moving HWP Rot Stage setting:  193.15177320718192
+Moved device S/N 55253334 to position 13.151773207181918°
+op names
+moving QWP Rot Stage setting :  96.02943358233284
+Moved device S/N 55253344 to position 96.02943358233284°
+
+Measured Singles:
+[4165 3197    0    0 5573 2749    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  4165
+shots :  6000
+op names
+moving HWP Rot Stage setting:  58.15177320718193
+Moved device S/N 55253334 to position 58.15177320718193°
+op names
+moving QWP Rot Stage setting :  96.02943358233284
+Moved device S/N 55253344 to position 96.02943358233284°
+
+Measured Singles:
+[2515 2005    0    0 5527 2548    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2515
+shots :  6000
+op names
+moving HWP Rot Stage setting:  125.65177320718192
+Moved device S/N 55253334 to position 35.65177320718192°
+op names
+moving QWP Rot Stage setting :  118.52943358233284
+Moved device S/N 55253344 to position 118.52943358233284°
+
+Measured Singles:
+[2662 1964    0    0 5519 2576    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2662
+shots :  6000
+op names
+moving HWP Rot Stage setting:  125.65177320718192
+Moved device S/N 55253334 to position 35.65177320718192°
+op names
+moving QWP Rot Stage setting :  73.52943358233286
+Moved device S/N 55253344 to position 73.52943358233286°
+
+Measured Singles:
+[3533 2827    0    0 5480 2642    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3533
+shots :  6000
+op names
+moving HWP Rot Stage setting:  125.65177320718192
+Moved device S/N 55253334 to position 35.65177320718192°
+op names
+moving QWP Rot Stage setting :  163.52943358233284
+Moved device S/N 55253344 to position 163.52943358233284°
+
+Measured Singles:
+[3084 2472    0    0 5493 2544    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3084
+shots :  6000
+op names
+moving HWP Rot Stage setting:  125.65177320718192
+Moved device S/N 55253334 to position 35.65177320718192°
+op names
+moving QWP Rot Stage setting :  28.529433582332846
+Moved device S/N 55253344 to position 28.529433582332846°
+
+Measured Singles:
+[3192 2458    0    0 5431 2500    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3192
+shots :  6000
+
+
+cost val :  0.24333333333333335
+settings :  [tensor(2.2471267, requires_grad=True), tensor(1.70028409, requires_grad=True)] 
+
+
+
+optimization iteration : 5
+op names
+moving HWP Rot Stage setting:  128.75087573974002
+Moved device S/N 55253334 to position 38.750875739740025°
+op names
+moving QWP Rot Stage setting :  97.4191021669459
+Moved device S/N 55253344 to position 97.4191021669459°
+
+Measured Singles:
+[1328  977    0    0 5610 2588    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1328
+shots :  6000
+op names
+moving HWP Rot Stage setting:  151.25087573974002
+Moved device S/N 55253334 to position 61.250875739740025°
+op names
+moving QWP Rot Stage setting :  97.4191021669459
+Moved device S/N 55253344 to position 97.4191021669459°
+
+Measured Singles:
+[2789 2191    0    0 5639 2605    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2789
+shots :  6000
+op names
+moving HWP Rot Stage setting:  106.25087573974004
+Moved device S/N 55253334 to position 16.25087573974004°
+op names
+moving QWP Rot Stage setting :  97.4191021669459
+Moved device S/N 55253344 to position 97.4191021669459°
+
+Measured Singles:
+[3836 3070    0    0 5464 2599    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3836
+shots :  6000
+op names
+moving HWP Rot Stage setting:  196.25087573974005
+Moved device S/N 55253334 to position 16.250875739740053°
+op names
+moving QWP Rot Stage setting :  97.4191021669459
+Moved device S/N 55253344 to position 97.4191021669459°
+
+Measured Singles:
+[3823 3039    0    0 5494 2526    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3823
+shots :  6000
+op names
+moving HWP Rot Stage setting:  61.250875739740025
+Moved device S/N 55253334 to position 61.250875739740025°
+op names
+moving QWP Rot Stage setting :  97.4191021669459
+Moved device S/N 55253344 to position 97.4191021669459°
+
+Measured Singles:
+[2756 2096    0    0 5622 2542    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2756
+shots :  6000
+op names
+moving HWP Rot Stage setting:  128.75087573974002
+Moved device S/N 55253334 to position 38.750875739740025°
+op names
+moving QWP Rot Stage setting :  119.91910216694589
+Moved device S/N 55253344 to position 119.91910216694589°
+
+Measured Singles:
+[2000 1503    0    0 5458 2533    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2000
+shots :  6000
+op names
+moving HWP Rot Stage setting:  128.75087573974002
+Moved device S/N 55253334 to position 38.750875739740025°
+op names
+moving QWP Rot Stage setting :  74.91910216694589
+Moved device S/N 55253344 to position 74.91910216694589°
+
+Measured Singles:
+[3515 2739    0    0 5493 2626    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3515
+shots :  6000
+op names
+moving HWP Rot Stage setting:  128.75087573974002
+Moved device S/N 55253334 to position 38.750875739740025°
+op names
+moving QWP Rot Stage setting :  164.91910216694592
+Moved device S/N 55253344 to position 164.91910216694592°
+
+Measured Singles:
+[2941 2317    0    0 5510 2559    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2941
+shots :  6000
+op names
+moving HWP Rot Stage setting:  128.75087573974002
+Moved device S/N 55253334 to position 38.750875739740025°
+op names
+moving QWP Rot Stage setting :  29.919102166945898
+Moved device S/N 55253344 to position 29.919102166945898°
+
+Measured Singles:
+[2630 2101    0    0 5499 2711    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2630
+shots :  6000
+
+
+cost val :  0.22133333333333333
+settings :  [tensor(2.28212433, requires_grad=True), tensor(1.7449067, requires_grad=True)] 
+
+
+
+optimization iteration : 6
+op names
+moving HWP Rot Stage setting:  130.75609229317527
+Moved device S/N 55253334 to position 40.75609229317527°
+op names
+moving QWP Rot Stage setting :  99.97578935695056
+Moved device S/N 55253344 to position 99.97578935695056°
+
+Measured Singles:
+[1109  791    0    0 5717 2629    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1109
+shots :  6000
+op names
+moving HWP Rot Stage setting:  153.25609229317527
+Moved device S/N 55253334 to position 63.25609229317527°
+op names
+moving QWP Rot Stage setting :  99.97578935695056
+Moved device S/N 55253344 to position 99.97578935695056°
+
+Measured Singles:
+[2809 2194    0    0 5579 2579    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2809
+shots :  6000
+op names
+moving HWP Rot Stage setting:  108.25609229317526
+Moved device S/N 55253334 to position 18.256092293175257°
+op names
+moving QWP Rot Stage setting :  99.97578935695056
+Moved device S/N 55253344 to position 99.97578935695056°
+
+Measured Singles:
+[3735 2944    0    0 5425 2629    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3735
+shots :  6000
+op names
+moving HWP Rot Stage setting:  198.25609229317524
+Moved device S/N 55253334 to position 18.256092293175243°
+op names
+moving QWP Rot Stage setting :  99.97578935695056
+Moved device S/N 55253344 to position 99.97578935695056°
+
+Measured Singles:
+[3846 3022    0    0 5513 2590    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3846
+shots :  6000
+op names
+moving HWP Rot Stage setting:  63.25609229317526
+Moved device S/N 55253334 to position 63.25609229317526°
+op names
+moving QWP Rot Stage setting :  99.97578935695056
+Moved device S/N 55253344 to position 99.97578935695056°
+
+Measured Singles:
+[2698 2170    0    0 5503 2580    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2698
+shots :  6000
+op names
+moving HWP Rot Stage setting:  130.75609229317527
+Moved device S/N 55253334 to position 40.75609229317527°
+op names
+moving QWP Rot Stage setting :  122.47578935695057
+Moved device S/N 55253344 to position 122.47578935695057°
+
+Measured Singles:
+[1885 1466    0    0 5542 2602    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1885
+shots :  6000
+op names
+moving HWP Rot Stage setting:  130.75609229317527
+Moved device S/N 55253334 to position 40.75609229317527°
+op names
+moving QWP Rot Stage setting :  77.47578935695057
+Moved device S/N 55253344 to position 77.47578935695057°
+
+Measured Singles:
+[3439 2608    0    0 5410 2593    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3439
+shots :  6000
+op names
+moving HWP Rot Stage setting:  130.75609229317527
+Moved device S/N 55253334 to position 40.75609229317527°
+op names
+moving QWP Rot Stage setting :  167.47578935695057
+Moved device S/N 55253344 to position 167.47578935695057°
+
+Measured Singles:
+[2701 2068    0    0 5447 2626    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2701
+shots :  6000
+op names
+moving HWP Rot Stage setting:  130.75609229317527
+Moved device S/N 55253334 to position 40.75609229317527°
+op names
+moving QWP Rot Stage setting :  32.475789356950564
+Moved device S/N 55253344 to position 32.475789356950564°
+
+Measured Singles:
+[2540 1960    0    0 5475 2624    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2540
+shots :  6000
+
+
+cost val :  0.18483333333333332
+settings :  [tensor(2.3140747, requires_grad=True), tensor(1.78990669, requires_grad=True)] 
+
+
+
+optimization iteration : 7
+op names
+moving HWP Rot Stage setting:  132.58671373837066
+Moved device S/N 55253334 to position 42.58671373837066°
+op names
+moving QWP Rot Stage setting :  102.55409919267132
+Moved device S/N 55253344 to position 102.55409919267132°
+
+Measured Singles:
+[ 887  635    0    0 5698 2527    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  887
+shots :  6000
+op names
+moving HWP Rot Stage setting:  155.08671373837066
+Moved device S/N 55253334 to position 65.08671373837066°
+op names
+moving QWP Rot Stage setting :  102.55409919267132
+Moved device S/N 55253344 to position 102.55409919267132°
+
+Measured Singles:
+[2750 2171    0    0 5450 2601    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2750
+shots :  6000
+op names
+moving HWP Rot Stage setting:  110.08671373837065
+Moved device S/N 55253334 to position 20.086713738370648°
+op names
+moving QWP Rot Stage setting :  102.55409919267132
+Moved device S/N 55253344 to position 102.55409919267132°
+
+Measured Singles:
+[3876 2947    0    0 5561 2540    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3876
+shots :  6000
+op names
+moving HWP Rot Stage setting:  200.08671373837066
+Moved device S/N 55253334 to position 20.086713738370662°
+op names
+moving QWP Rot Stage setting :  102.55409919267132
+Moved device S/N 55253344 to position 102.55409919267132°
+
+Measured Singles:
+[3862 2969    0    0 5463 2518    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3862
+shots :  6000
+op names
+moving HWP Rot Stage setting:  65.08671373837065
+Moved device S/N 55253334 to position 65.08671373837065°
+op names
+moving QWP Rot Stage setting :  102.55409919267132
+Moved device S/N 55253344 to position 102.55409919267132°
+
+Measured Singles:
+[2788 2245    0    0 5450 2397    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2788
+shots :  6000
+op names
+moving HWP Rot Stage setting:  132.58671373837066
+Moved device S/N 55253334 to position 42.58671373837066°
+op names
+moving QWP Rot Stage setting :  125.05409919267129
+Moved device S/N 55253344 to position 125.05409919267129°
+
+Measured Singles:
+[1767 1450    0    0 5401 2589    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1767
+shots :  6000
+op names
+moving HWP Rot Stage setting:  132.58671373837066
+Moved device S/N 55253334 to position 42.58671373837066°
+op names
+moving QWP Rot Stage setting :  80.0540991926713
+Moved device S/N 55253344 to position 80.0540991926713°
+
+Measured Singles:
+[3111 2436    0    0 5455 2532    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3111
+shots :  6000
+op names
+moving HWP Rot Stage setting:  132.58671373837066
+Moved device S/N 55253334 to position 42.58671373837066°
+op names
+moving QWP Rot Stage setting :  170.0540991926713
+Moved device S/N 55253344 to position 170.0540991926713°
+
+Measured Singles:
+[2339 1889    0    0 5488 2483    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2339
+shots :  6000
+op names
+moving HWP Rot Stage setting:  132.58671373837066
+Moved device S/N 55253334 to position 42.58671373837066°
+op names
+moving QWP Rot Stage setting :  35.05409919267131
+Moved device S/N 55253344 to position 35.05409919267131°
+
+Measured Singles:
+[2521 1978    0    0 5432 2653    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2521
+shots :  6000
+
+
+cost val :  0.14783333333333334
+settings :  [tensor(2.35135419, requires_grad=True), tensor(1.82725744, requires_grad=True)] 
+
+
+
+optimization iteration : 8
+op names
+moving HWP Rot Stage setting:  134.72267132351382
+Moved device S/N 55253334 to position 44.72267132351382°
+op names
+moving QWP Rot Stage setting :  104.69413947974981
+Moved device S/N 55253344 to position 104.69413947974981°
+
+Measured Singles:
+[ 733  531    0    0 5412 2579    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  733
+shots :  6000
+op names
+moving HWP Rot Stage setting:  157.2226713235138
+Moved device S/N 55253334 to position 67.2226713235138°
+op names
+moving QWP Rot Stage setting :  104.69413947974981
+Moved device S/N 55253344 to position 104.69413947974981°
+
+Measured Singles:
+[2933 2190    0    0 5367 2590    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2933
+shots :  6000
+op names
+moving HWP Rot Stage setting:  112.2226713235138
+Moved device S/N 55253334 to position 22.222671323513794°
+op names
+moving QWP Rot Stage setting :  104.69413947974981
+Moved device S/N 55253344 to position 104.69413947974981°
+
+Measured Singles:
+[3596 2857    0    0 5441 2431    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3596
+shots :  6000
+op names
+moving HWP Rot Stage setting:  202.22267132351382
+Moved device S/N 55253334 to position 22.222671323513822°
+op names
+moving QWP Rot Stage setting :  104.69413947974981
+Moved device S/N 55253344 to position 104.69413947974981°
+
+Measured Singles:
+[3642 2825    0    0 5467 2523    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3642
+shots :  6000
+op names
+moving HWP Rot Stage setting:  67.22267132351381
+Moved device S/N 55253334 to position 67.22267132351381°
+op names
+moving QWP Rot Stage setting :  104.69413947974981
+Moved device S/N 55253344 to position 104.69413947974981°
+
+Measured Singles:
+[2783 2162    0    0 5384 2560    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2783
+shots :  6000
+op names
+moving HWP Rot Stage setting:  134.72267132351382
+Moved device S/N 55253334 to position 44.72267132351382°
+op names
+moving QWP Rot Stage setting :  127.19413947974981
+Moved device S/N 55253344 to position 127.19413947974981°
+
+Measured Singles:
+[1564 1230    0    0 5545 2635    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1564
+shots :  6000
+op names
+moving HWP Rot Stage setting:  134.72267132351382
+Moved device S/N 55253334 to position 44.72267132351382°
+op names
+moving QWP Rot Stage setting :  82.19413947974982
+Moved device S/N 55253344 to position 82.19413947974982°
+
+Measured Singles:
+[3005 2399    0    0 5659 2629    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3005
+shots :  6000
+op names
+moving HWP Rot Stage setting:  134.72267132351382
+Moved device S/N 55253334 to position 44.72267132351382°
+op names
+moving QWP Rot Stage setting :  172.19413947974982
+Moved device S/N 55253344 to position 172.19413947974982°
+
+Measured Singles:
+[2222 1724    0    0 5643 2671    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2222
+shots :  6000
+op names
+moving HWP Rot Stage setting:  134.72267132351382
+Moved device S/N 55253334 to position 44.72267132351382°
+op names
+moving QWP Rot Stage setting :  37.194139479749815
+Moved device S/N 55253344 to position 37.194139479749815°
+
+Measured Singles:
+[2220 1891    0    0 5709 2655    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2220
+shots :  6000
+
+
+cost val :  0.12216666666666667
+settings :  [tensor(2.37441098, requires_grad=True), tensor(1.86826622, requires_grad=True)] 
+
+
+
+optimization iteration : 9
+op names
+moving HWP Rot Stage setting:  136.04372776535388
+Moved device S/N 55253334 to position 46.04372776535388°
+op names
+moving QWP Rot Stage setting :  107.04376936125199
+Moved device S/N 55253344 to position 107.04376936125199°
+
+Measured Singles:
+[ 632  444    0    0 5508 2572    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  632
+shots :  6000
+op names
+moving HWP Rot Stage setting:  158.54372776535388
+Moved device S/N 55253334 to position 68.54372776535388°
+op names
+moving QWP Rot Stage setting :  107.04376936125199
+Moved device S/N 55253344 to position 107.04376936125199°
+
+Measured Singles:
+[2828 2276    0    0 5687 2671    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2828
+shots :  6000
+op names
+moving HWP Rot Stage setting:  113.54372776535389
+Moved device S/N 55253334 to position 23.543727765353893°
+op names
+moving QWP Rot Stage setting :  107.04376936125199
+Moved device S/N 55253344 to position 107.04376936125199°
+
+Measured Singles:
+[3775 3034    0    0 5686 2645    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3775
+shots :  6000
+op names
+moving HWP Rot Stage setting:  203.54372776535388
+Moved device S/N 55253334 to position 23.54372776535388°
+op names
+moving QWP Rot Stage setting :  107.04376936125199
+Moved device S/N 55253344 to position 107.04376936125199°
+
+Measured Singles:
+[3946 2947    0    0 5615 2715    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  3946
+shots :  6000
+op names
+moving HWP Rot Stage setting:  68.54372776535388
+Moved device S/N 55253334 to position 68.54372776535388°
+op names
+moving QWP Rot Stage setting :  107.04376936125199
+Moved device S/N 55253344 to position 107.04376936125199°
+
+Measured Singles:
+[2774 2245    0    0 5532 2494    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2774
+shots :  6000
+op names
+moving HWP Rot Stage setting:  136.04372776535388
+Moved device S/N 55253334 to position 46.04372776535388°
+op names
+moving QWP Rot Stage setting :  129.543769361252
+Moved device S/N 55253344 to position 129.543769361252°
+
+Measured Singles:
+[1617 1298    0    0 5546 2526    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1617
+shots :  6000
+op names
+moving HWP Rot Stage setting:  136.04372776535388
+Moved device S/N 55253334 to position 46.04372776535388°
+op names
+moving QWP Rot Stage setting :  84.543769361252
+Moved device S/N 55253344 to position 84.543769361252°
+
+Measured Singles:
+[2730 2127    0    0 5643 2573    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2730
+shots :  6000
+op names
+moving HWP Rot Stage setting:  136.04372776535388
+Moved device S/N 55253334 to position 46.04372776535388°
+op names
+moving QWP Rot Stage setting :  174.54376936125198
+Moved device S/N 55253344 to position 174.54376936125198°
+
+Measured Singles:
+[1960 1488    0    0 5641 2494    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  1960
+shots :  6000
+op names
+moving HWP Rot Stage setting:  136.04372776535388
+Moved device S/N 55253334 to position 46.04372776535388°
+op names
+moving QWP Rot Stage setting :  39.543769361252
+Moved device S/N 55253344 to position 39.543769361252°
+
+Measured Singles:
+[2364 1940    0    0 5634 2589    0    0    0    0    0    0    0    0
+    0    0]
+num counts :  2364
+shots :  6000
+
+
+cost val :  0.10533333333333333
+settings :  [tensor(2.40707599, requires_grad=True), tensor(1.8979609, requires_grad=True)] 
+
+
+
