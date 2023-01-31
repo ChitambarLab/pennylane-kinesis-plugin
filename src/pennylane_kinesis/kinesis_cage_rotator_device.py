@@ -40,8 +40,6 @@ try:
     from Thorlabs.MotionControl.DeviceManagerCLI import *
 
     # importing the local time-tagger library
-    # from .ttag import *
-    # from .ttag import *
     from . import ttag
 
 except BaseException as ex:
@@ -59,18 +57,31 @@ class KinesisCageRotatorDevice(QubitDevice):
     """A PennyLane plugin device for integrating with Kinesis Cage Rotational Stages.
 
     This plugin device assumes a single qubit experiment with time-tagger detector device.
+
+
+    :param wires: A single qubit wire, should be set as ``[0]``.
+    :type wires: list[int]
+
+    :param shots: The number shots desired for the experiment.
+    :type shots: int
+
+    :param shot_rate: The mean number of photons incident upon the
+                      detector per second. This quantity may want to include
+                      one or more standard deviations of error where ``std_dev = np.sqrt(shots)``.
+    :type shot_rate: int
+
+    :param wimp_mode: If ``True``, device velocities are set to one-half speed.
+    :type wimp_mode: bool
     """
 
     name = "Kinesis Cage Rotator Device"
     short_name = "kinesis.cage.rotator"
     pennylane_requires = "0.28.0"
     version = __version__
-    author = "Brian Doolittle"
+    author = "Brian Doolittle and Colin Lualdi"
 
     operations = {"HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
-
-    integration_time = 1
     init_state = np.array([1, 0])  # placeholder
 
     def __init__(
@@ -81,10 +92,16 @@ class KinesisCageRotatorDevice(QubitDevice):
         r_dtype=np.float64,
         c_dtype=np.complex128,
         analytic=None,
+        shot_rate=6000,
+        wimp_mode=False,
         test_mode=_TEST_MODE,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
+        self.wimp_mode = wimp_mode
+
+        self.shot_rate = shot_rate  # mean num photons incident upon detector per second
+        self.integration_time = shots / (self.shot_rate)
 
         # Initialize device list
         self.device_list()
@@ -167,14 +184,20 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             return devices
 
-    # Connect and initialize device with S/N SN
-    # Returns a tuple: the device CageRotator object and configuration information
-    def device_setup(self, SN, wimp_mode=False):
+    def device_setup(self, SN):
+        """Connect and initialize device with S/N ``SN``.
+
+        :param SN: Device serial number.
+        :type SN: string
+
+        :returns: A CageRotator Object and configuration information.
+        :rtype: tuple
+        """
         # Set velocity
         # If waveplates are unreliable, can set velocity at near half to keep
         # current load down so not over burden the USB hub (wimp mode)
         # Default value is 10 degrees/s, half is 5 degrees/s
-        if wimp_mode:
+        if self.wimp_mode:
             deviceVel = 5
         else:
             deviceVel = 10
@@ -229,7 +252,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             deviceConfig = device.LoadMotorConfiguration(SN)
             # aHWPSettings = aHWP.MotorDeviceSettings # Not sure what this does yet
 
-            # Set rotation mode
+            # TODO: Set rotation mode
             # device.SetRotationModes(0x01,0x00) # unlimited direction and quickest
 
             device.SetVelocityParams(System.Decimal(deviceVel), System.Decimal(deviceVel))
@@ -242,12 +265,13 @@ class KinesisCageRotatorDevice(QubitDevice):
             return device, deviceConfig
 
     def detector_setup(self):
+        """Initializes the time-tagger buffer."""
         if self.test_mode:
-            print("detector in stest mode")
+            print("detector in test mode")
             buffer = {}
             return buffer
         else:
-            buffer = ttag.TTBuffer(0)  # , create=True)  # Default buffer number is 0
+            buffer = ttag.TTBuffer(0)  # Default buffer number is 0
             print("Properties of buffer:")
             print("Channels: ", buffer.channels)
             print("Resolution: ", buffer.resolution)
@@ -255,9 +279,14 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             return buffer
 
-    # Inputs: CageRotator object device
-    # Outputs: None
     def device_home(self, device):
+        """Sends the specified device to the home position.
+
+        :param device: A cage rotaator device.
+        :type device: CageRotator object
+
+        :returns: None
+        """
         if not self.test_mode:
             deviceInfo = device.GetDeviceInfo()
             deviceSN = str(deviceInfo.SerialNumber)
@@ -279,9 +308,17 @@ class KinesisCageRotatorDevice(QubitDevice):
 
         return True
 
-    # Inputs: CageRotator object device, desired angular position (in degrees)
-    # Outputs: None
     def device_move_to_angle(self, device, angle):
+        """Rotates a device to the specified angle.
+
+        :param device: A cage rotaator device.
+        :type device: CageRotator object
+
+        :param angle: The desired angular position (in degrees)
+        :type angle: float
+
+        :returns: None
+        """
         if self.test_mode:
             print("Moved device S/N " + device["sn"] + " to position " + str(angle) + "\u00B0")
         else:
@@ -291,6 +328,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
 
     def disconnect(self):
+        """Disconnects all Kinesis devices."""
         if not self.test_mode:
             # Code must gracefully disconnect from device at its conclusion.
             # Otherwise, the Connect() method will throw an error when the code is rerun
@@ -299,14 +337,20 @@ class KinesisCageRotatorDevice(QubitDevice):
             )  # Disconnects the device. If argument is True, shuts down device.
             self.dev_a_qwp.Disconnect(False)
 
-        print("Disconnected Devices")
+        print("Devices disconnected.")
 
     def reset(self):
+        """PennyLane internal device function.
+
+        We leave this function as a passthrough because the kinesis device does not
+        store the state of the rotational polarizers.
+        """
         super().reset()
         self._state = self.init_state
 
     @classmethod
     def capabilities(self):
+        """PennyLane internal device function."""
         capabilities = super().capabilities().copy()
         capabilities.update(
             model="qubit",
@@ -318,22 +362,31 @@ class KinesisCageRotatorDevice(QubitDevice):
         return capabilities
 
     def apply(self, operations, rotations=[]):
+        """Instucts the Kinesis devices to perform the specified operations.
+
+        This function extends a built-in PennyLane device method.
+
+        :param operations: A list of operations supported by the kinesis cage rotator device.
+        :type operations: A PennyLane Operataion
+        """
         all_ops = operations + rotations if rotations else operations
         for op in all_ops:
-            print("op names")
-
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             if op.name == "HWPRotStage":
-                print("moving HWP Rot Stage setting: ", angle)
                 self.device_move_to_angle(self.dev_a_hwp, angle % 90)
             elif op.name == "QWPRotStage":
-                print("moving QWP Rot Stage setting : ", angle)
                 self.device_move_to_angle(self.dev_a_qwp, angle % 180)
             else:
                 print("Operation : ", op.name, ", is not supported")
 
     def generate_samples(self):
+        """Constructs a sequence of sampled data from the device.
+        This data can be used to construct probability distributions and expectations.
+
+        Since our measurement only detects one polarization, we estimate the total number
+        of counts to construct the relative probability distribution.
+        """
         time.sleep(
             self.integration_time
         )  # give the buffer time to fill up, otherwise buffer will throw a warning
@@ -350,7 +403,8 @@ class KinesisCageRotatorDevice(QubitDevice):
         counts = singles_array[0]
 
         print("num counts : ", counts)
-        print("shots : ", self.shots)
+        print("max_shots_allowed : ", self.shots)
+        print("detection probability : ", counts / self.shots)
 
         return np.concatenate(
             (

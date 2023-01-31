@@ -16,7 +16,7 @@ class KinesisSimulatorDevice(QubitDevice):
     short_name = "kinesis.simulator"
     pennylane_requires = "0.28.0"
     version = __version__
-    author = "Brian Doolittle"
+    author = "Brian Doolittle and Colin Lualdi"
 
     operations = {"PauliZ", "PhaseShift", "RX", "RY", "RZ", "S", "HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}

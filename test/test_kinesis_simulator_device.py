@@ -48,7 +48,7 @@ class TestKinesisSimulatorDevice:
         assert dev.short_name == "kinesis.simulator"
         assert dev.pennylane_requires == "0.28.0"
         assert dev.version == pk.__version__
-        assert dev.author == "Brian Doolittle"
+        assert dev.author == "Brian Doolittle and Colin Lualdi"
         assert dev.operations == {
             "PauliZ",
             "PhaseShift",
