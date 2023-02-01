@@ -1,7 +1,7 @@
 import pennylane as qml
 from pennylane import numpy as qnp
 
-from .file_utilities import datetime_now_string, tmp_dir, write_optimization_json
+from .file_utilities import datetime_now_string, tmp_dir, write_json
 
 
 def optimize(
@@ -93,9 +93,9 @@ def optimize(
         print(message)
 
         tmp_path = tmp_dir(filepath)
-        write_optimization_json(opt_dict, tmp_path + unique_filename)
+        write_json(opt_dict, tmp_path + unique_filename)
     else:
-        write_optimization_json(opt_dict, filepath + unique_filename)
+        write_json(opt_dict, filepath + unique_filename)
 
     return opt_dict
 

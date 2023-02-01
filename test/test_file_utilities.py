@@ -36,7 +36,7 @@ def test_tmp_dir(tmp_dir_cleanup):
 
 
 @pytest.mark.parametrize(
-    "opt_dict",
+    "json_dict",
     [
         {
             "cost_vals": [0.0, 1.0, 1.2],
@@ -49,14 +49,14 @@ def test_tmp_dir(tmp_dir_cleanup):
         {"test_key": "val", "other_key": 123456789},
     ],
 )
-def test_read_write_optimization_json(tmp_dir_cleanup, opt_dict):
+def test_read_write_json(tmp_dir_cleanup, json_dict):
     tmp_dir = pk.tmp_dir("./test/")
     filename = "test_read_write_optimization_json"
 
-    pk.write_optimization_json(opt_dict, tmp_dir + filename)
+    pk.write_json(json_dict, tmp_dir + filename)
 
     assert os.path.isfile(tmp_dir + filename + ".json")
 
-    read_opt_dict = pk.read_optimization_json(tmp_dir + filename + ".json")
+    read_json_dict = pk.read_json(tmp_dir + filename + ".json")
 
-    assert read_opt_dict == opt_dict
+    assert read_json_dict == json_dict

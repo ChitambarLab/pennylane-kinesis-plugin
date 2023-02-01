@@ -42,7 +42,7 @@ def test_simple_optimization(tmp_dir_cleanup):
 
     saved_filename = tmp_dir + filename + "_" + opt_dict["datetime"] + ".json"
     assert os.path.isfile(saved_filename)
-    assert opt_dict == pk.read_optimization_json(saved_filename)
+    assert opt_dict == pk.read_json(saved_filename)
 
     assert len(opt_dict["cost_vals"]) == 11
     assert qnp.allclose(
@@ -109,7 +109,7 @@ def test_optimization_error(tmp_dir_cleanup):
 
     saved_filename = tmp_dir + "tmp/" + filename + "_" + opt_dict["datetime"] + ".json"
     assert os.path.isfile(saved_filename)
-    assert opt_dict == pk.read_optimization_json(saved_filename)
+    assert opt_dict == pk.read_json(saved_filename)
 
     assert len(opt_dict["cost_vals"]) == 1
     assert opt_dict["cost_vals"] == [1.0]
