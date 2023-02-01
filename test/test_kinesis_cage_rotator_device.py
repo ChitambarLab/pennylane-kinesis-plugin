@@ -8,7 +8,6 @@ import pennylane_kinesis as pk
 
 
 def _setup_device(interface, wimp_mode):
-
     dev_kwargs = {
         "shots": 500,
         "shot_rate": 1000,
@@ -95,7 +94,6 @@ class TestKinesisSimulatorDevice:
         assert circ([0.5, 0.5]) == 0.5
 
     def test_device_qnode_samples(self, interface, wimp_mode):
-
         dev = _setup_device(interface, wimp_mode)
 
         @qml.qnode(dev, diff_method="parameter-shift")

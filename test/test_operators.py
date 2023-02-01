@@ -8,7 +8,6 @@ import pennylane_kinesis as pk
 
 class TestHWPRotStage:
     def test_hwp_operator_attributes(self):
-
         op = pk.HWPRotStage(0.123, wires=[0])
 
         assert isinstance(op, qml.operation.Operation)
@@ -71,7 +70,6 @@ class TestHWPRotStage:
 
 class TestQWPRotStage:
     def test_qwp_operator_attributes(self):
-
         op = pk.QWPRotStage(0.123, wires=[0])
 
         assert isinstance(op, qml.operation.Operation)

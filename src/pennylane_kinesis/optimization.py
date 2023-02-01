@@ -101,7 +101,6 @@ def optimize(
 
 
 def scan_two_param_cost(cost, x_range, y_range):
-
     cost_grid = qnp.zeros((len(x_range), len(y_range)))
 
     for i in range(len(x_range)):

@@ -27,7 +27,6 @@ def tmp_dir_cleanup():
 
 
 def test_tmp_dir(tmp_dir_cleanup):
-
     assert not os.path.exists("./test/tmp/")
 
     tmp_dir = pk.tmp_dir("./test/")
