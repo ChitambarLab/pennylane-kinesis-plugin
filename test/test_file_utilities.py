@@ -47,6 +47,11 @@ def test_tmp_dir(tmp_dir_cleanup):
             "optimizer": "GradientDescentOptimizer",
         },
         {"test_key": "val", "other_key": 123456789},
+        {
+            "x_grid": [[1, 2], [1, 2]],
+            "y_grid": [[1, 1], [2, 2]],
+            "z_grid": [[1, 2], [2, 4]],
+        },
     ],
 )
 def test_read_write_json(tmp_dir_cleanup, json_dict):
