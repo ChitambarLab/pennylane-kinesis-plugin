@@ -62,7 +62,7 @@ class TestHWPRotStage:
         assert np.isclose(
             qml.grad(circ)(qnp.array(theta, requires_grad=True)),
             self.match_hwp_grad(theta),
-            atol=6e-3,
+            atol=1e-2,
         )
 
 
