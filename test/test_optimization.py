@@ -18,13 +18,8 @@ def test_simple_optimization(tmp_dir_cleanup):
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):
-        qml.RY(-settings[0], wires=dev.wires[0])
-        qml.PauliZ(dev.wires[0])
-        qml.RY(settings[0], wires=dev.wires[0])
-
-        qml.RY(-settings[1], wires=dev.wires[0])
-        qml.S(dev.wires[0])
-        qml.RY(settings[1], wires=dev.wires[0])
+        pk.HWPRotStage(settings[0], wires=dev.wires[0])
+        pk.QWPRotStage(settings[1], wires=dev.wires[0])
 
         return qml.expval(qml.Projector([1], wires=dev.wires[0]))
 
@@ -34,64 +29,51 @@ def test_simple_optimization(tmp_dir_cleanup):
     opt_dict = pk.optimize(
         cost,
         init_settings,
-        num_steps=12,
-        step_size=0.6,
+        num_steps=10,
+        step_size=0.2,
         filepath=tmp_dir,
         filename=filename,
         init_opt_dict=None,
         **opt_meta_kwargs,
     )
 
+    print(opt_dict["cost_vals"])
+    print(opt_dict["settings_history"])
+
     saved_filename = tmp_dir + filename + "_" + opt_dict["datetime"] + ".json"
     assert os.path.isfile(saved_filename)
     assert opt_dict == pk.read_optimization_json(saved_filename)
 
-    assert len(opt_dict["cost_vals"]) == 13
+    assert len(opt_dict["cost_vals"]) == 11
     assert qnp.allclose(
         opt_dict["cost_vals"],
-        [
-            0.4987,
-            0.501,
-            0.3659,
-            0.2698,
-            0.1878,
-            0.133,
-            0.0807,
-            0.0535,
-            0.0286,
-            0.0162,
-            0.0112,
-            0.006,
-            0.0031,
-        ],
+        [0.9882, 0.9914, 0.9901, 0.9787, 0.9968, 0.9642, 0.7643, 0.1291, 0.0739, 0.0404, 0.024],
         atol=1e-3,
     )
-    assert len(opt_dict["settings_history"]) == 13
+    assert len(opt_dict["settings_history"]) == 11
 
     match_settings_history = [
-        [0.7853, 1.5707],
-        [0.7889, 1.2702],
-        [0.7368, 1.0211],
-        [0.5935, 0.8604],
-        [0.4685, 0.7057],
-        [0.3623, 0.5690],
-        [0.2789, 0.4516],
-        [0.2207, 0.3539],
-        [0.1698, 0.2736],
-        [0.1297, 0.2073],
-        [0.1035, 0.1569],
-        [0.0720, 0.1231],
-        [0.0575, 0.1023],
+        [0.7853981633974483, 1.5707963267948966],
+        [0.783927869024933, 1.5714626009648762],
+        [0.7792217672943804, 1.574007525205368],
+        [0.7646346605131938, 1.580361007169212],
+        [0.7216651273251361, 1.60841369836267],
+        [0.5927014520014546, 1.683000002118578],
+        [0.26498664969405106, 1.8693658599829543],
+        [0.1176365277609629, 1.8445056161167779],
+        [0.14340089284235247, 1.7313759104892932],
+        [0.047299816364969216, 1.717640002118578],
+        [0.08620258765069447, 1.642377575711707],
     ]
     assert qnp.all(
         [
             qnp.allclose(opt_dict["settings_history"][i], match_settings_history[i], atol=1e-3)
-            for i in range(13)
+            for i in range(11)
         ]
     )
 
-    assert opt_dict["num_steps"] == 12
-    assert opt_dict["step_size"] == 0.6
+    assert opt_dict["num_steps"] == 10
+    assert opt_dict["step_size"] == 0.2
     assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$", opt_dict["datetime"])
     assert opt_dict["test_key"] == "test_val"
 

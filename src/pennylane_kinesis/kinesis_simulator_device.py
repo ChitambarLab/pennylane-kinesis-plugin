@@ -64,7 +64,7 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        counts = np.ceil(np.random.poisson((1 - p0) * self.shots))
+        counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
 
         return np.concatenate(
             (
@@ -72,7 +72,3 @@ class KinesisSimulatorDevice(QubitDevice):
                 np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
             )
         )
-
-        # poisson_shots = np.random.poisson(self.shots, size=1)[0]
-
-        # return np.random.choice([0, 1], size=(counts 1), p=[p0, 1 - p0])
