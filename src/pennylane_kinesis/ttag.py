@@ -436,7 +436,6 @@ libttag.tt_validateBuffer.argtypes = [ctypes.POINTER(tt_buf)]
 
 
 class TTBuffer(object):
-
     # Opens a buffer given a buffer number. If create is set to True, tries to
     #   create a buffer with enough memory for the given number of datapoints
     def __init__(self, buffernumber, create=False, datapoints=50000000):
