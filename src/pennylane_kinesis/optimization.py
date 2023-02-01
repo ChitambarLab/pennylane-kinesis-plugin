@@ -100,13 +100,90 @@ def optimize(
     return opt_dict
 
 
-def scan_two_param_cost(cost, x_range, y_range):
-    cost_grid = qnp.zeros((len(x_range), len(y_range)))
+def scan_two_param_fn(
+    fn, x_range, y_range, filename="", filepath="./", init_data_dict=None, **meta_kwargs
+):
+    """Scans function ``fn`` over two paramater ranges.
 
-    for i in range(len(x_range)):
-        for j in range(len(y_range)):
-            cost_val = cost([x_range[i], y_range[j]])
+    All data is written to a JSON file upon completion. If an error occurs during the scan, then
+    the resulting data is stored in a ``"tmp/"`` directory on ``filepath``.
 
-            cost_grid[i, j] = cost_val
+    :param fn: A function called as ``fn([x,y])`` where ``x`` and ``y`` are the two parameters.
+    :type fn: function
 
-    # TODO:
+    :param x_range: The values for ``x``.
+    :type x_range: list
+
+    :param y_range: The value of ``y``.
+    :type y_range: list
+
+    :param filename: The name of the JSON file to write. Default ``""``.
+    :type filename: string
+
+    :param filepath: The path to the JSON file. Note that this
+                     string should end with a ``"/"``. Default ``"./"``.
+    :type filepath: string
+
+    :param init_data_dict: Used to warm start a scan.
+    :type init_data_dict: dictionary
+
+    :param meta_kwargs: extraneous keyword arguments that are written to the JSON file.
+
+    :returns: dictionary containing the keys
+    :rtype: dictionary
+
+    * ``x_grid``: x data for plotting on a contour plot.
+    * ``y_grid``: y data for plotting on a contour plot.
+    * ``z_grid``: z data for plotting on a contour plot.
+    * ``x_curr``: current x id when data was saved.
+    * ``y_curr``: current y id when data was saved.
+    * ``grid_shape``: the shape of the grid matrices.
+    * ``datetime``: the datetime at which datacollection began.
+    """
+
+    x_grid, y_grid = qnp.meshgrid(x_range, y_range)
+
+    data_dict = (
+        init_data_dict
+        if init_data_dict
+        else {
+            "x_grid": x_grid.tolist(),
+            "y_grid": y_grid.tolist(),
+            "grid_shape": [*x_grid.shape],
+            "x_curr": 0,
+            "y_curr": 0,
+            "datetime": datetime_now_string(),
+            **meta_kwargs,
+        }
+    )
+
+    z_grid = qnp.array(data_dict["z_grid"]) if init_data_dict else qnp.zeros(x_grid.shape)
+
+    unique_filename = filename + "_" + data_dict["datetime"]
+
+    try:
+        for y in range(data_dict["y_curr"], z_grid.shape[0]):
+            data_dict["y_curr"] = y
+            for x in range(0, z_grid.shape[1]):
+                data_dict["x_curr"] = x
+                z_grid[y, x] = fn([x_grid[y, x], y_grid[y, x]])
+
+    except BaseException as err:
+        msg_template = "An exception of type {0} occurred during two-param scan step (x,y) = {1}. Arguments:\n{2!r}"
+        message = msg_template.format(
+            type(err).__name__,
+            "(" + str(data_dict["x_curr"]) + "," + str(data_dict["y_curr"]) + ")",
+            err.args,
+        )
+        print(message)
+
+        data_dict["z_grid"] = z_grid.tolist()
+
+        tmp_path = tmp_dir(filepath)
+        write_json(data_dict, tmp_path + unique_filename)
+
+    else:
+        data_dict["z_grid"] = z_grid.tolist()
+        write_json(data_dict, filepath + unique_filename)
+
+    return data_dict
