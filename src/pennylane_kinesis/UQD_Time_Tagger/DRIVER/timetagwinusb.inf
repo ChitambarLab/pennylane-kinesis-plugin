@@ -1,0 +1,115 @@
+[Version]
+Signature = "$Windows NT$"
+Class = MyDeviceClass
+ClassGuid={d436E97E-E325-11CE-BFC1-08002BE10318}
+Provider = %ProviderName%
+DriverVer = 07/05/2009,7.0.0
+;CatalogFile=MyCatFile.cat
+
+; ================== Class section ==================
+
+[ClassInstall32]
+Addreg=MyDeviceClassReg
+
+[MyDeviceClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-1
+
+; ========== Manufacturer/Models sections ===========
+
+[Manufacturer]
+%ProviderName% = MyDevice_WinUSB,NTx86,NTamd64,NTia64
+
+[MyDevice_WinUSB.NTx86]
+%USB\MyDevice.DeviceDesc% =USB_Install, USB\VID_0bd0&PID_f100
+
+[MyDevice_WinUSB.NTamd64]
+%USB\MyDevice.DeviceDesc% =USB_Install, USB\VID_0bd0&PID_f100
+
+[MyDevice_WinUSB.NTia64]
+%USB\MyDevice.DeviceDesc% =USB_Install, USB\VID_0bd0&PID_f100
+; =================== Installation ===================
+
+;[1]
+[USB_Install]
+Include=winusb.inf
+Needs=WINUSB.NT
+
+;[2]
+[USB_Install.Services]
+Include=winusb.inf
+AddService=WinUSB,0x00000002,WinUSB_ServiceInstall
+
+;[3]
+[WinUSB_ServiceInstall]
+DisplayName     = %WinUSB_SvcDesc%
+ServiceType     = 1
+StartType       = 3
+ErrorControl    = 1
+ServiceBinary   = %12%\WinUSB.sys
+
+;[4]
+[USB_Install.Wdf]
+KmdfService=WINUSB, WinUsb_Install
+UmdfServiceOrder=WINUSB
+
+[WinUSB_Install]
+KmdfLibraryVersion=1.9
+
+;[5]
+[USB_Install.HW]
+AddReg=Dev_AddReg
+
+[Dev_AddReg]
+HKR,,DeviceInterfaceGUIDs,0x10000,"{047c1274-5b69-5b49-8ad7-8eaf51ae6fbf}"
+
+;[6]
+[USB_Install.CoInstallers]
+AddReg=CoInstallers_AddReg
+CopyFiles=CoInstallers_CopyFiles
+
+[CoInstallers_AddReg]
+HKR,,CoInstallers32,0x00010000,"WdfCoInstaller01009.dll,WdfCoInstaller","WUDFUpdate_01009.dll","WinUSBCoInstaller2.dll"
+
+[CoInstallers_CopyFiles]
+WinUSBCoInstaller2.dll
+WdfCoInstaller01009.dll
+WUDFUpdate_01009.dll
+
+[DestinationDirs]
+CoInstallers_CopyFiles=11
+
+; ================= Source Media Section =====================
+;[7]
+
+[SourceDisksNames]
+1 = %DISK_NAME%,,,\x86
+[SourceDisksNames.X86]
+1 = %DISK_NAME%,,,\x86
+[SourceDisksNames.amd64]
+2 = %DISK_NAME%,,,\amd64
+[SourceDisksNames.ia64]
+3 = %DISK_NAME%,,,\ia64
+
+[SourceDisksFiles.x86]
+WinUSBCoInstaller2.dll=1
+WdfCoInstaller01009.dll=1
+WUDFUpdate_01009.dll=1
+
+[SourceDisksFiles.amd64]
+WinUSBCoInstaller2.dll=2
+WdfCoInstaller01009.dll=2
+WUDFUpdate_01009.dll=2
+
+[SourceDisksFiles.ia64]
+WinUSBCoInstaller2.dll=3
+WdfCoInstaller01009.dll=3
+WUDFUpdate_01009.dll=3
+; =================== Strings ===================
+
+[Strings]
+ProviderName="Dotfast Consulting"
+USB\MyDevice.DeviceDesc="Timetag Hardware"
+WinUSB_SvcDesc = "WinUSB Driver Service"
+DISK_NAME="My Install Disk"
+ClassName="Timetag"

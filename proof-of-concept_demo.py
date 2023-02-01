@@ -45,9 +45,9 @@ plt.show()
 # evaluating the parameter_frequencies of the QWP circuit
 @qml.qnode(dev)
 def simple_circuit_marked(theta):
-    qml.RY(-1 * theta, wires=[0], id="x")
-    qml.S(wires=[0])
-    qml.RY(theta, wires=[0], id="x")
+    qml.RY(-1 * theta * 2, wires=[0], id="x")
+    qml.PauliZ(wires=[0])
+    qml.RY(theta * 2, wires=[0], id="x")
 
     return qml.expval(qml.PauliZ(0))
 

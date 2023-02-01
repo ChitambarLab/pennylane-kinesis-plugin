@@ -9,19 +9,19 @@ class HWPRotStage(Operation):
 
     .. code-block:: python
 
-        def hwp_rot_stage(\theta, wires):
-            qml.RY(-\theta, wires=wires[0])
+        def hwp_rot_stage(theta, wires):
+            qml.RY(-2 * theta, wires=wires[0])
             qml.PauliZ(wires=wires[0])
-            qml.RY(\theta, wires=wires[0])
+            qml.RY(2 * theta, wires=wires[0])
 
     The HWP rotational stage corresponds to the following unitary matrix:
 
     .. math::
 
-        HWP(\theta) = \begin{pmatrix}
-            \cos^2(\theta/2) - \sin^2(\theta/2) & 2\cos(\theta/2)\sin(\theta/2) \\
-            2\cos(\theta/2)\sin(\theta/2) & - \cos^2(\theta/2) + \sin^2(\theta/2) \\
-        \end{pmatrix}
+        HWP(\\theta) = \\begin{pmatrix}
+            \\cos^2(\\theta) - \\sin^2(\\theta) & 2\\cos(\\theta)\\sin(\\theta) \\\\
+            2\\cos(\\theta)\\sin(\\theta) & - \\cos^2(\\theta) + \\sin^2(\\theta) \\\\
+        \\end{pmatrix}
 
     :param theta: The angle of rotation. 
     :type theta: Float
@@ -40,7 +40,7 @@ class HWPRotStage(Operation):
 
     num_wires = 1
     grad_method = "A"
-    parameter_frequencies = [(1, 2)]
+    parameter_frequencies = [(2, 4)]
 
     def __init__(self, angle, wires, do_queue=True, id=None):
         super().__init__(angle, wires=qml.wires.Wires(wires), do_queue=do_queue, id=id)
@@ -56,17 +56,17 @@ class HWPRotStage(Operation):
     @staticmethod
     def compute_decomposition(theta, wires):
         return [
-            qml.RY(-1 * theta, wires=wires),
+            qml.RY(-2 * theta, wires=wires),
             qml.PauliZ(wires=wires),
-            qml.RY(theta, wires=wires),
+            qml.RY(2 * theta, wires=wires),
         ]
 
     @staticmethod
     def compute_matrix(theta):
         interface = qml.math.get_interface(theta)
 
-        c = qml.math.cos(theta / 2)
-        s = qml.math.sin(theta / 2)
+        c = qml.math.cos(theta)
+        s = qml.math.sin(theta)
 
         # If anything is not tensorflow, it has to be casted and then
         if interface == "tensorflow":
@@ -88,19 +88,19 @@ class QWPRotStage(Operation):
 
     .. code-block:: python
 
-        def qwp_rot_stage(\theta, wires):
-            qml.RY(-\theta, wires=wires[0])
+        def qwp_rot_stage(theta, wires):
+            qml.RY(-2 * theta, wires=wires[0])
             qml.S(wires=wires[0])
-            qml.RY(\theta, wires=wires[0])
+            qml.RY(2 * theta, wires=wires[0])
 
     The QWP rotational stage corresponds to the following unitary matrix:
 
     .. math::
 
-        QWP(\theta) = \begin{pmatrix}
-            \cos^2(\theta/2) + i \sin^2(\theta/2) & (1-i)\cos(\theta/2)\sin(\theta/2) \\
-            (1-i)\cos(\theta/2)\sin(\theta/2) & i \cos^2(\theta/2) + \sin^2(\theta/2) \\
-        \end{pmatrix}
+        QWP(\\theta) = \\begin{pmatrix}
+            \\cos^2(\\theta) + i \\sin^2(\\theta) & (1-i)\\cos(\\theta)\\sin(\\theta) \\\\
+            (1-i)\\cos(\\theta)\\sin(\\theta) & i \\cos^2(\\theta) + \\sin^2(\\theta) \\\\
+        \\end{pmatrix}
 
     :param theta: The angle of rotation. 
     :type theta: Float
@@ -119,7 +119,7 @@ class QWPRotStage(Operation):
 
     num_wires = 1
     grad_method = "A"
-    parameter_frequencies = [(1, 2)]
+    parameter_frequencies = [(2, 4)]
 
     def __init__(self, theta, wires, do_queue=True, id=None):
         super().__init__(theta, wires=qml.wires.Wires(wires), do_queue=do_queue, id=id)
@@ -135,17 +135,17 @@ class QWPRotStage(Operation):
     @staticmethod
     def compute_decomposition(theta, wires):
         return [
-            qml.RY(-1 * theta, wires=wires[0]),
+            qml.RY(-2 * theta, wires=wires[0]),
             qml.S(wires=wires[0]),
-            qml.RY(theta, wires=wires[0]),
+            qml.RY(2 * theta, wires=wires[0]),
         ]
 
     @staticmethod
     def compute_matrix(theta):
         interface = qml.math.get_interface(theta)
 
-        c = qml.math.cos(theta / 2)
-        s = qml.math.sin(theta / 2)
+        c = qml.math.cos(theta)
+        s = qml.math.sin(theta)
 
         # If anything is not tensorflow, it has to be casted and then
         if interface == "tensorflow":
