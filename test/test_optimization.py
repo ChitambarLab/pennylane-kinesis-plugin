@@ -14,8 +14,7 @@ def test_simple_optimization(tmp_dir_cleanup):
     tmp_dir = pk.tmp_dir("./test/")
     filename = "test_simple_optimization"
 
-    np.random.seed(2)
-    dev = qml.device("kinesis.simulator", shots=10000, wires=[0])
+    dev = qml.device("kinesis.simulator", shots=10000, wires=[0], seed=2)
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):

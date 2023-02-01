@@ -32,9 +32,12 @@ class KinesisSimulatorDevice(QubitDevice):
         r_dtype=np.float64,
         c_dtype=np.complex128,
         analytic=None,
+        seed=None,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
+        if seed:
+            np.random.seed(seed)
 
     def reset(self):
         super().reset()

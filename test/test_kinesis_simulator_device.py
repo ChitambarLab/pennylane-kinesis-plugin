@@ -13,9 +13,9 @@ def _setup_device(interface):
     dev = None
 
     if interface == "class":
-        dev = pk.KinesisSimulatorDevice(shots=shots, wires=wires)
+        dev = pk.KinesisSimulatorDevice(shots=shots, wires=wires, seed=37)
     elif interface == "pennylane":
-        dev = qml.device("kinesis.simulator", shots=shots, wires=wires)
+        dev = qml.device("kinesis.simulator", shots=shots, wires=wires, seed=37)
     else:
         raise ValueError(
             "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
@@ -84,7 +84,6 @@ class TestKinesisSimulatorDevice:
         assert all(dev._state == dev.init_state)
 
     def test_device_qnode_projector_expval(self, interface):
-        np.random.seed(37)
         dev = _setup_device(interface)
 
         @qml.qnode(dev)
@@ -97,7 +96,6 @@ class TestKinesisSimulatorDevice:
         assert np.isclose(circ(np.pi / 2), 0.99, atol=1e-2)
 
     def test_device_qnode_probs(self, interface):
-        np.random.seed(37)
         dev = _setup_device(interface)
 
         @qml.qnode(dev)
@@ -110,8 +108,6 @@ class TestKinesisSimulatorDevice:
         assert np.allclose(circ(np.pi / 2), [0.01, 0.99], atol=1e-2)
 
     def test_device_qnode_samples(self, interface):
-        np.random.seed(41)
-
         dev = _setup_device(interface)
 
         @qml.qnode(dev)
