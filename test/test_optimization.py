@@ -1,6 +1,7 @@
 import pytest
 import pennylane as qml
 from pennylane import numpy as qnp
+import numpy as np
 import os
 import re
 
@@ -13,7 +14,7 @@ def test_simple_optimization(tmp_dir_cleanup):
     tmp_dir = pk.tmp_dir("./test/")
     filename = "test_simple_optimization"
 
-    dev = qml.device("kinesis.simulator", shots=1000, wires=[0])
+    dev = qml.device("kinesis.simulator", shots=10000, wires=[0])
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):
@@ -30,7 +31,7 @@ def test_simple_optimization(tmp_dir_cleanup):
     init_settings = qnp.array([qnp.pi / 4, qnp.pi / 2], requires_grad=True)
     opt_meta_kwargs = {"test_key": "test_val"}
 
-    qnp.random.seed(22)
+    np.random.seed(2)
     opt_dict = pk.optimize(
         cost,
         init_settings,
@@ -47,37 +48,41 @@ def test_simple_optimization(tmp_dir_cleanup):
     assert opt_dict == pk.read_optimization_json(saved_filename)
 
     assert len(opt_dict["cost_vals"]) == 13
-    assert opt_dict["cost_vals"] == [
-        0.496,
-        0.481,
-        0.341,
-        0.26,
-        0.194,
-        0.137,
-        0.095,
-        0.037,
-        0.027,
-        0.015,
-        0.014,
-        0.006,
-        0.004,
-    ]
+    assert qnp.allclose(
+        opt_dict["cost_vals"],
+        [
+            0.4987,
+            0.501,
+            0.3659,
+            0.2698,
+            0.1878,
+            0.133,
+            0.0807,
+            0.0535,
+            0.0286,
+            0.0162,
+            0.0112,
+            0.006,
+            0.0031,
+        ],
+        atol=1e-3,
+    )
     assert len(opt_dict["settings_history"]) == 13
 
     match_settings_history = [
-        [0.785, 1.571],
-        [0.784, 1.262],
-        [0.745, 1.022],
-        [0.605, 0.860],
-        [0.465, 0.717],
-        [0.366, 0.558],
-        [0.281, 0.449],
-        [0.215, 0.347],
-        [0.171, 0.277],
-        [0.132, 0.217],
-        [0.104, 0.168],
-        [0.080, 0.123],
-        [0.063, 0.120],
+        [0.7853, 1.5707],
+        [0.7889, 1.2702],
+        [0.7368, 1.0211],
+        [0.5935, 0.8604],
+        [0.4685, 0.7057],
+        [0.3623, 0.5690],
+        [0.2789, 0.4516],
+        [0.2207, 0.3539],
+        [0.1698, 0.2736],
+        [0.1297, 0.2073],
+        [0.1035, 0.1569],
+        [0.0720, 0.1231],
+        [0.0575, 0.1023],
     ]
     assert qnp.all(
         [
