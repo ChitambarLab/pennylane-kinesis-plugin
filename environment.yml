@@ -1,8 +1,10 @@
 name: pennylane-kinesis-dev
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - python>=3.8
+  - pythonnet==2.5.2
   - black
   - sphinx
   - pytest
