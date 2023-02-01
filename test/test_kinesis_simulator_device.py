@@ -125,7 +125,7 @@ class TestKinesisSimulatorDevice:
 
         samples = circ(np.pi / 4)
 
-        assert len(samples) == 9924
+        assert len(samples) == 10000
         assert all([s == 0 or s == 1 for s in samples])
 
     def test_device_parameter_shift_opt(self, interface):
