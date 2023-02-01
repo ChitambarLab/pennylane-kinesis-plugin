@@ -14,6 +14,7 @@ def test_simple_optimization(tmp_dir_cleanup):
     tmp_dir = pk.tmp_dir("./test/")
     filename = "test_simple_optimization"
 
+    np.random.seed(2)
     dev = qml.device("kinesis.simulator", shots=10000, wires=[0])
 
     @qml.qnode(dev, diff_method="parameter-shift")
@@ -31,7 +32,6 @@ def test_simple_optimization(tmp_dir_cleanup):
     init_settings = qnp.array([qnp.pi / 4, qnp.pi / 2], requires_grad=True)
     opt_meta_kwargs = {"test_key": "test_val"}
 
-    np.random.seed(2)
     opt_dict = pk.optimize(
         cost,
         init_settings,
