@@ -98,3 +98,19 @@ def optimize(
         write_optimization_json(opt_dict, filepath + unique_filename)
 
     return opt_dict
+
+
+def scan_two_param_cost(cost, x_range, y_range):
+
+
+    cost_grid
+
+    for i in range(len(x_range)):
+        for j in range(len(y_range)):
+            cost_val = cost([x_range[i], y_range[j]])
+
+            cost_val 
+
+
+
+    #TODO:
