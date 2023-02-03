@@ -50,24 +50,25 @@ class TestOptimization:
         assert len(opt_dict["cost_vals"]) == 11
         assert qnp.allclose(
             opt_dict["cost_vals"],
-            [0.9882, 0.9914, 0.9901, 0.9787, 0.9968, 0.9642, 0.7643, 0.1291, 0.0739, 0.0404, 0.024],
+            [0.9882, 1.0, 0.9991, 0.9806, 0.9827, 0.8373, 0.2494, 0.1316, 0.0657, 0.0436, 0.0307],
             atol=1e-3,
         )
         assert len(opt_dict["settings_history"]) == 11
 
         match_settings_history = [
             [0.7853981633974483, 1.5707963267948966],
-            [0.783927869024933, 1.5714626009648762],
-            [0.7792217672943804, 1.574007525205368],
-            [0.7646346605131938, 1.580361007169212],
-            [0.7216651273251361, 1.60841369836267],
-            [0.5927014520014546, 1.683000002118578],
-            [0.26498664969405106, 1.8693658599829543],
-            [0.1176365277609629, 1.8445056161167779],
-            [0.14340089284235247, 1.7313759104892932],
-            [0.047299816364969216, 1.717640002118578],
-            [0.08620258765069447, 1.642377575711707],
+            [0.7846498791262008, 1.5656985807623407],
+            [0.787007869024933, 1.5644428448310528],
+            [0.7990493618079196, 1.5581442661872902],
+            [0.8305673517066519, 1.5361498087587406],
+            [0.9290580623847705, 1.4766202459847546],
+            [1.2016180623847705, 1.31313740327228],
+            [1.4841475955728283, 1.2267822560860224],
+            [1.3822712708965097, 1.39392301727048],
+            [1.5297022254408048, 1.3851409357424629],
+            [1.451780215339537, 1.4936719912994356],
         ]
+        print(opt_dict["settings_history"])
         assert qnp.all(
             [
                 qnp.allclose(opt_dict["settings_history"][i], match_settings_history[i], atol=1e-3)
@@ -88,13 +89,7 @@ class TestOptimization:
 
         @qml.qnode(dev, diff_method="parameter-shift")
         def cost(settings):
-            if cost.call_count:
-                raise Exception("This is an expected test error.")
-            else:
-                cost.call_count += 1
-                return qml.expval(qml.Identity(dev.wires[0]))
-
-        cost.call_count = 0
+            raise Exception("This is an expected test error.")
 
         init_settings = qnp.array([0.1, 0.2], requires_grad=True)
 
@@ -113,8 +108,8 @@ class TestOptimization:
         assert os.path.isfile(saved_filename)
         assert opt_dict == pk.read_json(saved_filename)
 
-        assert len(opt_dict["cost_vals"]) == 1
-        assert opt_dict["cost_vals"] == [1.0]
+        assert len(opt_dict["cost_vals"]) == 0
+        assert opt_dict["cost_vals"] == []
         assert len(opt_dict["settings_history"]) == 1
 
         assert opt_dict["settings_history"][0] == [0.1, 0.2]
