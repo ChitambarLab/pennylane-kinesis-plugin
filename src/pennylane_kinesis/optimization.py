@@ -1,5 +1,6 @@
 import pennylane as qml
 from pennylane import numpy as qnp
+import time
 
 from .file_utilities import datetime_now_string, tmp_dir, write_json
 
@@ -75,6 +76,7 @@ def optimize(
             "num_steps": num_steps,
             "datetime": datetime_now_string(),
             "domain_periods": domain_periods,
+            "opt_step_time": [],
             **meta_kwargs,
         }
     )
@@ -85,7 +87,9 @@ def optimize(
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
     try:
+        curr_time = time.time()
         for i in range(current_step, num_steps):
+            print("\n\nOptimization Step : ", i, "\n\n")
             settings, cost_val = opt.step_and_cost(cost, settings)
             if domain_periods:
                 settings = qnp.array(
@@ -95,6 +99,13 @@ def optimize(
 
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
+
+            print("current cost : ")
+            print(opt_dict["cost_vals"])
+
+            new_time = time.time()
+            opt_dict["opt_step_time"] += [float(new_time - curr_time)]
+            curr_time = new_time
 
         opt_dict["cost_vals"] += [float(cost(settings))]
 
