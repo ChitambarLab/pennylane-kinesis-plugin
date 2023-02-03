@@ -12,7 +12,8 @@ def optimize(
     filepath="./",
     filename="",
     init_opt_dict=None,
-    **opt_meta_kwargs
+    domain_periods=None,
+    **meta_kwargs,
 ):
     """Optimizes the specified ``cost`` function using gradient descent starting from the
     specified ``init_settings``.
@@ -54,6 +55,9 @@ def optimize(
     :param init_opt_dict: An optimization dictionary to continue optimizing. Default: ``None``.
     :type init_opt_dict: dictionary
 
+    :param domain_periods: The period of each parameter in the settings list.
+    :type domain_periods: list[float]
+
     :param opt_meta_kwargs: Additional keyword arguments to write to optimization dictionary and saved JSON.
     :type opt_meta_kwargs: dictionary
 
@@ -65,25 +69,34 @@ def optimize(
         init_opt_dict
         if init_opt_dict
         else {
-            "cost_vals": [float(cost(init_settings))],
+            "cost_vals": [],
             "settings_history": [init_settings.tolist()],
             "step_size": step_size,
             "num_steps": num_steps,
             "datetime": datetime_now_string(),
-            **opt_meta_kwargs,
+            "domain_periods": domain_periods,
+            **meta_kwargs,
         }
     )
 
     unique_filename = filename + "_" + opt_dict["datetime"]
 
     opt = qml.GradientDescentOptimizer(stepsize=step_size)
-    current_step = len(opt_dict["cost_vals"]) - 1
+    current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
     try:
         for i in range(current_step, num_steps):
             settings, cost_val = opt.step_and_cost(cost, settings)
+            if domain_periods:
+                settings = qnp.array(
+                    [settings[i] % domain_periods[i] for i in range(len(settings))],
+                    requires_grad=True,
+                )
+
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
+
+        opt_dict["cost_vals"] += [float(cost(settings))]
 
     except BaseException as err:
         msg_template = (
