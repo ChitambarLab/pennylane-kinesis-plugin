@@ -51,7 +51,10 @@ def plot_cost_contour(title, scan_dict, opt_dict=None):
 
 
 if __name__ == "__main__":
-    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=6000)
+
+    shots=50000
+    shot_rate=50000
+    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):
@@ -62,19 +65,25 @@ if __name__ == "__main__":
         return qml.expval(qml.Projector([1], wires=dev.wires[0]))
 
     print("Scanning cost Landscape")
-    theta_set = qnp.arange(0, theta_period + 0.1, 0.1)
-    phi_set = qnp.arange(0, phi_period + 0.1, 0.1)
+    theta_set = qnp.arange(0, theta_period + 0.11, 0.1)
+    phi_set = qnp.arange(0, phi_period + 0.11, 0.1)
     cost_landscape = pk.scan_two_param_fn(
         cost,
         theta_set,
         phi_set,
         filename="cost_landscape",
         filepath=filepath,
+        shots=shots,
+        shot_rate=shot_rate,
     )
 
     print("Running optimization from fixed initial settings.")
     fixed_init_settings = qnp.array(
-        [100.29 * 2 * qnp.pi / 360, 112.21 * 2 * qnp.pi / 360], requires_grad=True
+        [
+            (100.29 * 2 * qnp.pi / 360) % theta_period,
+            (112.21 * 2 * qnp.pi / 360) % phi_period
+        ],
+        requires_grad=True,
     )
     opt_dict = pk.optimize(
         cost,
@@ -84,6 +93,8 @@ if __name__ == "__main__":
         filepath=filepath,
         filename="fixed_init_optimize",
         domain_periods=[theta_period, phi_period],
+        shots=shots,
+        shot_rate=shot_rate,
     )
 
     plot_cost_contour("Inversion of Hadamard Transform", cost_landscape, opt_dict)
