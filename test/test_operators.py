@@ -45,6 +45,9 @@ class TestHWPRotStage:
             qml.PauliZ(wires=[0])
             qml.RY(2 * phi, wires=[0])
 
+            qml.S(wires=[0])
+            qml.Hadamard(wires=[0])
+
             return qml.expval(qml.Projector([1], wires=[0]))
 
         return qml.grad(circ)(qnp.array(theta, requires_grad=True))
@@ -56,6 +59,9 @@ class TestHWPRotStage:
         @qml.qnode(dev, diff_method="parameter-shift")
         def circ(phi):
             pk.HWPRotStage(phi, wires=[0])
+
+            qml.S(wires=[0])
+            qml.Hadamard(wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
@@ -76,7 +82,7 @@ class TestQWPRotStage:
         assert op.num_params == 1
         assert op.ndim_params == (0,)
         assert op.grad_method == "A"
-        assert op.parameter_frequencies == [(4,)]
+        assert op.parameter_frequencies == [(2, 4)]
         assert op.id == None
 
     def match_qwp_operator_matrix(self, theta):
@@ -106,6 +112,9 @@ class TestQWPRotStage:
             qml.S(wires=[0])
             qml.RY(2 * phi, wires=[0])
 
+            qml.S(wires=[0])
+            qml.Hadamard(wires=[0])
+
             return qml.expval(qml.Projector([1], wires=[0]))
 
         return qml.grad(circ)(qnp.array(theta, requires_grad=True))
@@ -117,6 +126,9 @@ class TestQWPRotStage:
         @qml.qnode(dev, diff_method="parameter-shift")
         def circ(phi):
             pk.QWPRotStage(phi, wires=[0])
+
+            qml.S(wires=[0])
+            qml.Hadamard(wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
