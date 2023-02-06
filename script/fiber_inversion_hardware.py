@@ -4,6 +4,10 @@ from matplotlib import pyplot as plt
 
 import pennylane_kinesis as pk
 
+"""This script scans over the domain to construct a contour plot of the cost function.
+A gradient descent optimization is then run starting from a peak.
+"""
+
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware/"
