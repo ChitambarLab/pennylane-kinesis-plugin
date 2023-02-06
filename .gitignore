@@ -1,3 +1,4 @@
 **/**/__pycache__
 **/**/pennylane_kinesis\.egg-info/*
 tmp/
+.DS_Store
