@@ -4,6 +4,10 @@ from matplotlib import pyplot as plt
 
 import pennylane_kinesis as pk
 
+"""This numerical script scans over the cost landscape to create a contour plot
+then performs a gradient descent from the peak.
+"""
+
 dev = qml.device("kinesis.simulator", wires=[0], shots=10000)
 theta_period = qnp.pi / 2
 phi_period = qnp.pi

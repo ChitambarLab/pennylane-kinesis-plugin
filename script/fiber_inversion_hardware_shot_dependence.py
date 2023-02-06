@@ -4,6 +4,12 @@ from matplotlib import pyplot as plt
 
 import pennylane_kinesis as pk
 
+"""This script is intended to run on hardware. Its goal is to perform optimizations over a
+range of shots and to save the corresponding results.
+After many runs of this script, data can be aggregated to analyze the effect of shots on
+optimization precision.
+"""
+
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware_shot_dependence/"
@@ -15,7 +21,6 @@ datetime_str = pk.datetime_now_string()
 opt_dicts = []
 
 for shots in shots_list:
-    shots = 50000
     dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")

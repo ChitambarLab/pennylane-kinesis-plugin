@@ -4,6 +4,11 @@ from matplotlib import pyplot as plt
 
 import pennylane_kinesis as pk
 
+"""This script performs a gradient desecent optimization from a random starting point.
+The optimization is run many times for different numbers of shots to determine the
+effect of shots on the precision of the gradient descent optimization.
+"""
+
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_numeric_shot_dependence/"
