@@ -81,8 +81,6 @@ def optimize(
         }
     )
 
-    unique_filename = filename + "_" + opt_dict["datetime"]
-
     opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
@@ -117,9 +115,9 @@ def optimize(
         print(message)
 
         tmp_path = tmp_dir(filepath)
-        write_json(opt_dict, tmp_path + unique_filename)
+        write_json(opt_dict, tmp_path + filename)
     else:
-        write_json(opt_dict, filepath + unique_filename)
+        write_json(opt_dict, filepath + filename)
 
     return opt_dict
 
@@ -183,8 +181,6 @@ def scan_two_param_fn(
 
     z_grid = qnp.array(data_dict["z_grid"]) if init_data_dict else qnp.zeros(x_grid.shape)
 
-    unique_filename = filename + "_" + data_dict["datetime"]
-
     try:
         for y in range(data_dict["y_curr"], z_grid.shape[0]):
             data_dict["y_curr"] = y
@@ -204,10 +200,10 @@ def scan_two_param_fn(
         data_dict["z_grid"] = z_grid.tolist()
 
         tmp_path = tmp_dir(filepath)
-        write_json(data_dict, tmp_path + unique_filename)
+        write_json(data_dict, tmp_path + filename)
 
     else:
         data_dict["z_grid"] = z_grid.tolist()
-        write_json(data_dict, filepath + unique_filename)
+        write_json(data_dict, filepath + filename)
 
     return data_dict
