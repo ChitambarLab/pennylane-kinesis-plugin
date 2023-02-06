@@ -121,7 +121,7 @@ class QWPRotStage(Operation):
     num_wires = 1
     grad_method = "A"
     # parameter_frequencies = [(2, 4)]
-    parameter_frequencies = [(4,)]
+    parameter_frequencies = [(2, 4)]
 
     def __init__(self, theta, wires, do_queue=True, id=None):
         super().__init__(theta, wires=qml.wires.Wires(wires), do_queue=do_queue, id=id)
