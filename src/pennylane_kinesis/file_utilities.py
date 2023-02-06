@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+import re
 
 
 def datetime_now_string():
@@ -13,6 +14,21 @@ def tmp_dir(filepath):
         os.mkdir(tmp_path)
 
     return tmp_path
+
+
+def get_files(path, regex):
+    """Retrieves all data files that match the ``regex`` in the
+    directory specified by ``path``.
+    """
+    return [
+        os.path.join(path, f)
+        for f in os.listdir(path)
+        if (
+            f.endswith(".json")
+            and os.path.isfile(os.path.join(path, f))
+            and bool(re.match(regex, f))
+        )
+    ]
 
 
 def write_json(json_dict, filename):
