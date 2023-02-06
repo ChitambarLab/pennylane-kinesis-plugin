@@ -16,7 +16,7 @@ class TestHWPRotStage:
         assert op.num_params == 1
         assert op.ndim_params == (0,)
         assert op.grad_method == "A"
-        assert op.parameter_frequencies == [(2, 4)]
+        assert op.parameter_frequencies == [(4,)]
         assert op.id == None
 
     def match_hwp_operator_matrix(self, theta):
@@ -76,7 +76,7 @@ class TestQWPRotStage:
         assert op.num_params == 1
         assert op.ndim_params == (0,)
         assert op.grad_method == "A"
-        assert op.parameter_frequencies == [(2, 4)]
+        assert op.parameter_frequencies == [(4,)]
         assert op.id == None
 
     def match_qwp_operator_matrix(self, theta):

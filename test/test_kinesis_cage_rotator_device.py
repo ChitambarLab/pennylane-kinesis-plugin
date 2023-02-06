@@ -27,8 +27,6 @@ def _setup_device(interface, wimp_mode):
             "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
         )
 
-    print("Dev test mode : ", dev.test_mode)
-
     return dev
 
 
