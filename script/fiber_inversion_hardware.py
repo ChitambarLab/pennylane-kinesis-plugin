@@ -88,8 +88,8 @@ if __name__ == "__main__":
     opt_dict = pk.optimize(
         cost,
         fixed_init_settings,
-        step_size=0.1,
-        num_steps=12,
+        step_size=0.2, # previously 0.1
+        num_steps=50, # previously 12
         filepath=filepath,
         filename="fixed_init_optimize",
         domain_periods=[theta_period, phi_period],
