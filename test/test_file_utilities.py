@@ -35,6 +35,26 @@ def test_tmp_dir(tmp_dir_cleanup):
     assert tmp_dir == "./test/tmp/"
 
 
+def test_get_files(tmp_dir_cleanup):
+    tmp_dir = pk.tmp_dir("./test/")
+
+    assert pk.get_files(tmp_dir, r".*") == []
+
+    pk.write_json({"elephant": 123}, tmp_dir + "test_get_files_elephant")
+    pk.write_json({"blah": "hello"}, tmp_dir + "test_get_files_blah")
+
+    filenames = pk.get_files(tmp_dir, r"test_get_files.*")
+    assert len(filenames) == 2
+
+    filenames = pk.get_files(tmp_dir, r"test_get_files_elephant")
+    assert len(filenames) == 1
+
+    filenames = pk.get_files(tmp_dir, r"test_get_files_blah")
+    assert len(filenames) == 1
+
+    assert pk.get_files(tmp_dir, r"no test file matches this string") == []
+
+
 @pytest.mark.parametrize(
     "json_dict",
     [

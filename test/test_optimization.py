@@ -43,7 +43,7 @@ class TestOptimization:
             **opt_meta_kwargs,
         )
 
-        saved_filename = tmp_dir + filename + "_" + opt_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + filename + ".json"
         assert os.path.isfile(saved_filename)
         assert opt_dict == pk.read_json(saved_filename)
 
@@ -104,7 +104,7 @@ class TestOptimization:
             init_opt_dict=None,
         )
 
-        saved_filename = tmp_dir + "tmp/" + filename + "_" + opt_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + "tmp/" + filename + ".json"
         assert os.path.isfile(saved_filename)
         assert opt_dict == pk.read_json(saved_filename)
 
@@ -131,7 +131,7 @@ class TestScanTwoParamFn:
 
         data_dict = pk.scan_two_param_fn(fn, x_range, y_range, filename=filename, filepath=tmp_dir)
 
-        saved_filename = tmp_dir + filename + "_" + data_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + filename + ".json"
 
         assert os.path.isfile(saved_filename)
         assert data_dict == pk.read_json(saved_filename)
@@ -161,7 +161,7 @@ class TestScanTwoParamFn:
 
         data_dict = pk.scan_two_param_fn(fn, x_range, y_range, filename=filename, filepath=tmp_dir)
 
-        saved_filename = tmp_dir + "tmp/" + filename + "_" + data_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + "tmp/" + filename + ".json"
 
         assert os.path.isfile(saved_filename)
         assert data_dict == pk.read_json(saved_filename)
@@ -198,7 +198,7 @@ class TestScanTwoParamFn:
             fn, x_range, y_range, filename=filename, filepath=tmp_dir, init_data_dict=init_dict
         )
 
-        saved_filename = tmp_dir + filename + "_" + data_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + filename + ".json"
 
         assert os.path.isfile(saved_filename)
         assert data_dict == pk.read_json(saved_filename)
@@ -223,7 +223,7 @@ class TestScanTwoParamFn:
             cost, x_range, y_range, filename=filename, filepath=tmp_dir
         )
 
-        saved_filename = tmp_dir + filename + "_" + data_dict["datetime"] + ".json"
+        saved_filename = tmp_dir + filename + ".json"
 
         assert os.path.isfile(saved_filename)
         assert data_dict == pk.read_json(saved_filename)
