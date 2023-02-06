@@ -5,3 +5,4 @@ from .file_utilities import *
 from .kinesis_simulator_device import *
 from .kinesis_cage_rotator_device import *
 from .optimization import *
+from .plot_utilities import *
