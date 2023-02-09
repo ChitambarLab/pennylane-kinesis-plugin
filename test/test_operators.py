@@ -39,7 +39,7 @@ class TestHWPRotStage:
     def match_hwp_grad(self, theta):
         dev = qml.device("default.qubit", wires=[0])
 
-        @qml.qnode(dev, diff_method="parameter-shift")
+        @qml.qnode(dev, diff_method="backprop")
         def circ(phi):
             qml.RY(-2 * phi, wires=[0])
             qml.PauliZ(wires=[0])
@@ -54,7 +54,7 @@ class TestHWPRotStage:
 
     @pytest.mark.parametrize("theta", np.arange(0, 2 * np.pi, 0.5))
     def test_hwp_grad(self, theta):
-        dev = qml.device("kinesis.simulator", wires=[0], shots=200000, seed=66)
+        dev = qml.device("kinesis.simulator", wires=[0], shots=None, seed=66)
 
         @qml.qnode(dev, diff_method="parameter-shift")
         def circ(phi):
@@ -68,7 +68,7 @@ class TestHWPRotStage:
         assert np.isclose(
             qml.grad(circ)(qnp.array(theta, requires_grad=True)),
             self.match_hwp_grad(theta),
-            atol=1e-2,
+            atol=1e-6,
         )
 
 
@@ -106,7 +106,7 @@ class TestQWPRotStage:
     def match_qwp_grad(self, theta):
         dev = qml.device("default.qubit", wires=[0])
 
-        @qml.qnode(dev, diff_method="parameter-shift")
+        @qml.qnode(dev, diff_method="backprop")
         def circ(phi):
             qml.RY(-2 * phi, wires=[0])
             qml.S(wires=[0])
@@ -121,7 +121,7 @@ class TestQWPRotStage:
 
     @pytest.mark.parametrize("theta", np.arange(0, 2 * np.pi, 0.5))
     def test_qwp_grad(self, theta):
-        dev = qml.device("kinesis.simulator", wires=[0], shots=200000, seed=20)
+        dev = qml.device("kinesis.simulator", wires=[0], shots=None, seed=20)
 
         @qml.qnode(dev, diff_method="parameter-shift")
         def circ(phi):
@@ -135,5 +135,5 @@ class TestQWPRotStage:
         assert np.isclose(
             qml.grad(circ)(qnp.array(theta, requires_grad=True)),
             self.match_qwp_grad(theta),
-            atol=6e-3,
+            atol=1e-6,
         )

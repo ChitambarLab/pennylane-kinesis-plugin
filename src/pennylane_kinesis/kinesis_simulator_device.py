@@ -2,6 +2,8 @@ from pennylane import QubitDevice
 import pennylane as qml
 import numpy as np
 
+# from pennylane import numpy as np
+
 from .version import __version__
 
 
@@ -49,7 +51,7 @@ class KinesisSimulatorDevice(QubitDevice):
         capabilities.update(
             model="qubit",
             supports_inverse_operations=False,
-            supports_analytic_computation=False,
+            supports_analytic_computation=True,
             supports_broadcasting=False,
             returns_state=False,
         )
@@ -60,6 +62,15 @@ class KinesisSimulatorDevice(QubitDevice):
         for operation in all_ops:
             mat = qml.matrix(operation)
             self._state = mat @ self._state
+
+    def analytic_probability(self, wires=None):
+        if self._state is None:
+            return None
+
+        real = self._real(self._state)
+        imag = self._imag(self._state)
+        prob = self.marginal_prob(real**2 + imag**2, wires)
+        return prob
 
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
