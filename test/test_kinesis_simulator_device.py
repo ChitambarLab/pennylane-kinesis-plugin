@@ -70,7 +70,7 @@ class TestKinesisSimulatorDevice:
     @pytest.mark.parametrize(
         "ops,match",
         [
-            ([qml.RY(0.0, [0]), qml.PauliZ([0]), qml.RY(0.0, [0])], [1, 0]),
+            ([qml.RY(qnp.array(0.0), [0]), qml.PauliZ([0]), qml.RY(qnp.array(0.0), [0])], [1, 0]),
             ([qml.RY(-np.pi, [0]), qml.S([0]), qml.RY(np.pi, [0])], [1j, 0]),
         ],
     )
