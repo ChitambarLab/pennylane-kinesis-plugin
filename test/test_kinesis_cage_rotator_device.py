@@ -89,7 +89,7 @@ class TestKinesisSimulatorDevice:
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
-        assert circ([0.5, 0.5]) == 0.5
+        assert circ(qnp.array([0.5, 0.5])) == 0.5
 
     def test_device_qnode_samples(self, interface, wimp_mode):
         dev = _setup_device(interface, wimp_mode)
