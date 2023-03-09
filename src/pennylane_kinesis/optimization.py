@@ -14,6 +14,8 @@ def optimize(
     filename="",
     init_opt_dict=None,
     domain_periods=None,
+    use_adam=False,
+    verbose=True,
     **meta_kwargs,
 ):
     """Optimizes the specified ``cost`` function using gradient descent starting from the
@@ -59,6 +61,12 @@ def optimize(
     :param domain_periods: The period of each parameter in the settings list.
     :type domain_periods: list[float]
 
+    :param use_adam: If ``True``, uses the ADAM optimizer instead of the standard gradient descent optimizer. Default ``False``
+    :type use_adam: Bool
+
+    :param verbose: If ``True``, prints out optimization progress. Default ``True``.
+    :type verbose: Bool
+
     :param opt_meta_kwargs: Additional keyword arguments to write to optimization dictionary and saved JSON.
     :type opt_meta_kwargs: dictionary
 
@@ -77,17 +85,23 @@ def optimize(
             "datetime": datetime_now_string(),
             "domain_periods": domain_periods,
             "opt_step_time": [],
+            "use_adam": use_adam,
             **meta_kwargs,
         }
     )
 
-    opt = qml.GradientDescentOptimizer(stepsize=step_size)
+    opt = (
+        qml.AdamOptimizer(stepsize=step_size)
+        if use_adam
+        else qml.GradientDescentOptimizer(stepsize=step_size)
+    )
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
     try:
         curr_time = time.time()
         for i in range(current_step, num_steps):
-            print("\n\nOptimization Step : ", i, "\n\n")
+            if verbose:
+                print("\n\nOptimization Step : ", i, "\n\n")
             settings, cost_val = opt.step_and_cost(cost, settings)
             if domain_periods:
                 settings = qnp.array(
@@ -98,8 +112,9 @@ def optimize(
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
 
-            print("current cost : ")
-            print(opt_dict["cost_vals"])
+            if verbose:
+                print("current cost : ")
+                print(opt_dict["cost_vals"])
 
             new_time = time.time()
             opt_dict["opt_step_time"] += [float(new_time - curr_time)]

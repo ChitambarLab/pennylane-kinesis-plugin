@@ -8,6 +8,10 @@ import pennylane_kinesis as pk
 range of shots and to save the corresponding results.
 After many runs of this script, data can be aggregated to analyze the effect of shots on
 optimization precision.
+
+
+NOTE: Before running script make sure that the "./data/fiber_inversion_hardware_shot_dependence"
+      directory exists with subdirectories "/shots_N" where N in [10,35,100,350,1000,3500,10000].
 """
 
 theta_period = qnp.pi / 2
