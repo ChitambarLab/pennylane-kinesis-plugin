@@ -87,7 +87,7 @@ class TestKinesisSimulatorDevice:
             pk.HWPRotStage(settings[0], wires=dev.wires[0])
             pk.QWPRotStage(settings[1], wires=dev.wires[0])
 
-            return qml.expval(qml.Projector([1], wires=[0]))
+            return qml.expval(qml.Projector(qnp.array([1]), wires=[0]))
 
         assert circ(qnp.array([0.5, 0.5])) == 0.5
 
