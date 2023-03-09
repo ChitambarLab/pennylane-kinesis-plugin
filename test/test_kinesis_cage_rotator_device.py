@@ -101,7 +101,7 @@ class TestKinesisSimulatorDevice:
 
             return qml.sample(wires=dev.wires[0])
 
-        samples = circ([0.5, 0.5])
+        samples = circ(qnp.array([0.5, 0.5]))
 
         assert len(samples) == 500
         assert all([s == 0 or s == 1 for s in samples])
