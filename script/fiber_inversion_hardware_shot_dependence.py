@@ -19,7 +19,8 @@ phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware_shot_dependence/"
 shot_rate = 50000
 
-shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
+shots_list = [1000, 10000]
+# shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
 datetime_str = pk.datetime_now_string()
 
 opt_dicts = []
