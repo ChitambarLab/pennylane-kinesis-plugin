@@ -16,7 +16,7 @@ class KinesisSimulatorDevice(QubitDevice):
 
     name = "Kinesis Simulator Device"
     short_name = "kinesis.simulator"
-    pennylane_requires = "0.28.0"
+    pennylane_requires = "0.29.1"
     version = __version__
     author = "Brian Doolittle and Colin Lualdi"
 
