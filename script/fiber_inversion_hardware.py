@@ -14,8 +14,8 @@ filepath = "./data/fiber_inversion_hardware/"
 datetime_str = pk.datetime_now_string()
 
 
-shots = 50000
-shot_rate = 50000
+shots = 1000
+shot_rate = 65000
 dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
 
@@ -49,8 +49,8 @@ fixed_init_settings = qnp.array(
 opt_dict = pk.optimize(
     cost,
     fixed_init_settings,
-    step_size=0.2,  # previously 0.1
-    num_steps=50,  # previously 12
+    step_size=0.15,  # previously 0.1
+    num_steps=10,  # previously 12
     filepath=filepath,
     filename="fixed_init_optimize_" + datetime_str,
     domain_periods=[theta_period, phi_period],

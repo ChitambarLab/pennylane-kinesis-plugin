@@ -17,15 +17,16 @@ NOTE: Before running script make sure that the "./data/fiber_inversion_hardware_
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware_shot_dependence/"
-shot_rate = 50000
+shot_rate = 60000
 
-shots_list = [1000, 10000]
+shots_list = [10, 100, 1000, 10000] * 3
 # shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
-datetime_str = pk.datetime_now_string()
 
 opt_dicts = []
 
 for shots in shots_list:
+    datetime_str = pk.datetime_now_string()
+
     dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")
@@ -53,6 +54,8 @@ for shots in shots_list:
     plt.semilogy(
         range(len(opt_dict["cost_vals"])), opt_dict["cost_vals"], label="shots = " + str(shots)
     )
+
+    dev.disconnect()
 
 plt.legend()
 plt.show()
