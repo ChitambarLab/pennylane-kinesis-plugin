@@ -2,6 +2,8 @@ from pennylane import QubitDevice
 import pennylane as qml
 import numpy as np
 
+# from pennylane import numpy as np
+
 from .version import __version__
 
 
@@ -14,7 +16,7 @@ class KinesisSimulatorDevice(QubitDevice):
 
     name = "Kinesis Simulator Device"
     short_name = "kinesis.simulator"
-    pennylane_requires = "0.28.0"
+    pennylane_requires = "0.29.1"
     version = __version__
     author = "Brian Doolittle and Colin Lualdi"
 
@@ -28,13 +30,18 @@ class KinesisSimulatorDevice(QubitDevice):
         self,
         wires,
         shots=1000,
+        background_counts=100,
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
         analytic=None,
+        seed=None,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
+        self.background_counts = background_counts
+        if seed:
+            np.random.seed(seed)
 
     def reset(self):
         super().reset()
@@ -46,7 +53,7 @@ class KinesisSimulatorDevice(QubitDevice):
         capabilities.update(
             model="qubit",
             supports_inverse_operations=False,
-            supports_analytic_computation=False,
+            supports_analytic_computation=True,
             supports_broadcasting=False,
             returns_state=False,
         )
@@ -58,9 +65,27 @@ class KinesisSimulatorDevice(QubitDevice):
             mat = qml.matrix(operation)
             self._state = mat @ self._state
 
+    def analytic_probability(self, wires=None):
+        if self._state is None:
+            return None
+
+        real = self._real(self._state)
+        imag = self._imag(self._state)
+        prob = self.marginal_prob(real**2 + imag**2, wires)
+        return prob
+
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        poisson_shots = np.random.poisson(self.shots, size=1)[0]
+        # counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots))) + self.background_counts
+        counts = (
+            np.round((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
+            + self.background_counts
+        )
 
-        return np.random.choice([0, 1], size=(poisson_shots, 1), p=[p0, 1 - p0])
+        return np.concatenate(
+            (
+                np.ones((int(min(counts, self.shots)), 1), dtype=int),
+                np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
+            )
+        )
