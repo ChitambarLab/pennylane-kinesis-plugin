@@ -136,7 +136,7 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename):
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.suptitle(
-        "Step Size Vs. Gradient Descent Performance", #\n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        "Step Size Vs. Gradient Descent Performance",  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )

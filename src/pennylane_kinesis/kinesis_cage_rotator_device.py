@@ -94,11 +94,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         analytic=None,
         shot_rate=6000,
         wimp_mode=False,
+        ttag_channel=13,
         test_mode=_TEST_MODE,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
         self.wimp_mode = wimp_mode
+        self.ttag_channel = ttag_channel
 
         self.shot_rate = shot_rate  # mean num photons incident upon detector per second
         self.integration_time = shots / (self.shot_rate)
@@ -146,21 +148,21 @@ class KinesisCageRotatorDevice(QubitDevice):
         self.b_hwp_off = float(wp_details[3][2])
         self.b_qwp_off = float(wp_details[4][2])
 
-        # self.dev_a_hwp, self.a_hwp_config = self.device_setup(
-        #     self.a_hwp_sn
-        # )  # a waveplates are 1550
-        # self.dev_a_qwp, self.a_qwp_config = self.device_setup(self.a_qwp_sn)
+        # a waveplates are 1550
+        self.dev_a_hwp, self.a_hwp_config = self.device_setup(self.a_hwp_sn)
+        self.dev_a_qwp, self.a_qwp_config = self.device_setup(self.a_qwp_sn)
 
-        self.dev_b_hwp, self.b_hwp_config = self.device_setup(self.b_hwp_sn)  # a waveplates are 810
+        # b waveplates are 810
+        self.dev_b_hwp, self.b_hwp_config = self.device_setup(self.b_hwp_sn)
         self.dev_b_qwp, self.b_qwp_config = self.device_setup(self.b_qwp_sn)
 
-        # # Home all devices
-        # print("Homing all devices...")
-        # self.device_home(self.dev_a_hwp)
-        # self.device_home(self.dev_a_qwp)
-        # print()
+        # Home all a devices
+        print("Homing all devices...")
+        self.device_home(self.dev_a_hwp)
+        self.device_home(self.dev_a_qwp)
+        print()
 
-        # Home all devices
+        # Home all b devices
         print("Homing all devices...")
         self.device_home(self.dev_b_hwp)
         self.device_home(self.dev_b_qwp)
@@ -341,10 +343,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         if not self.test_mode:
             # Code must gracefully disconnect from device at its conclusion.
             # Otherwise, the Connect() method will throw an error when the code is rerun
+
+            # TODO: manage dev a and dev b
             # self.dev_a_hwp.Disconnect(
             #     False
             # )  # Disconnects the device. If argument is True, shuts down device.
             # self.dev_a_qwp.Disconnect(False)
+
             self.dev_b_hwp.Disconnect(
                 False
             )  # Disconnects the device. If argument is True, shuts down device.
@@ -386,6 +391,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         for op in all_ops:
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
+            # TODO: manage dev a and dev b
             # if op.name == "HWPRotStage":
             #     self.device_move_to_angle(self.dev_a_hwp, angle % 90)
             # elif op.name == "QWPRotStage":
@@ -420,7 +426,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         print("Measured Singles:")
         print(singles_array)
 
-        counts = singles_array[13]  # set channel for timetagger device
+        counts = singles_array[self.ttag_channel]  # set channel for timetagger device
 
         print("num counts : ", counts)
         print("max_shots_allowed : ", self.shots)
