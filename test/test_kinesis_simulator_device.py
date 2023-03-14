@@ -66,6 +66,7 @@ class TestKinesisSimulatorDevice:
         assert dev.shots == None if analytic else 10000
         assert dev.num_wires == 1
         assert list(dev.wires) == [0]
+        assert dev.background_counts == 100
 
     @pytest.mark.parametrize(
         "ops,match",

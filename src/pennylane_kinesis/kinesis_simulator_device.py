@@ -30,6 +30,7 @@ class KinesisSimulatorDevice(QubitDevice):
         self,
         wires,
         shots=1000,
+        background_counts=100,
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
@@ -38,6 +39,7 @@ class KinesisSimulatorDevice(QubitDevice):
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
+        self.background_counts = background_counts
         if seed:
             np.random.seed(seed)
 
@@ -75,7 +77,11 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
+        # counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots))) + self.background_counts
+        counts = (
+            np.round((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
+            + self.background_counts
+        )
 
         return np.concatenate(
             (
