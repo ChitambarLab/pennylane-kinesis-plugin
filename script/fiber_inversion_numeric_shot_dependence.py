@@ -13,13 +13,16 @@ theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_numeric_shot_dependence/"
 
-shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
+# shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
+shots_list = [1000, 10000]
+background_list = [5, 49]
 datetime_str = pk.datetime_now_string()
 
 opt_dicts = []
 
+i = 0
 for shots in shots_list:
-    dev = qml.device("kinesis.simulator", wires=[0], shots=shots)
+    dev = qml.device("kinesis.simulator", wires=[0], shots=shots, background_counts = background_list[i])
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):
@@ -43,13 +46,17 @@ for shots in shots_list:
         step_size=0.1,
         num_steps=50,
         filepath=shots_filepath,
-        filename="optimization_" + datetime_str,
+        filename="background_noise_optimization_" + datetime_str,
         domain_periods=[theta_period, phi_period],
+        background_counts=background_list[i],
+        shots=shots,
     )
+    i += 1
 
-    plt.semilogy(
-        range(len(opt_dict["cost_vals"])), opt_dict["cost_vals"], label="shots = " + str(shots)
-    )
 
-plt.legend()
-plt.show()
+#     plt.semilogy(
+#         range(len(opt_dict["cost_vals"])), opt_dict["cost_vals"], label="shots = " + str(shots)
+#     )
+
+# plt.legend()
+# plt.show()

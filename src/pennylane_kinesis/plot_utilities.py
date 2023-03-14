@@ -87,6 +87,99 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict):
     plt.savefig(filename)
 
 
+def plot_shot_dependence_comparison(
+    hardware_filepath, numerics_filepath, shots_list, plot_filename
+):
+    datetime_str = datetime_now_string()
+
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    fig.suptitle(
+        "Number of Shots Vs.\nGradient Descent Performance", fontweight="bold", fontsize=20
+    )
+    ax.set_xlabel("Gradient Descent Iteration")
+    ax.set_ylabel("Photon Count Extinction Rate (Cost)")
+
+    for shots in shots_list:
+        hardware_shots_filepath = hardware_filepath + "shots_" + str(shots) + "/"
+        numerics_shots_filepath = numerics_filepath + "shots_" + str(shots) + "/"
+
+        hardware_filenames = get_files(hardware_shots_filepath, r"optimization_.*\.json")
+        numeric_filenames = get_files(
+            numerics_shots_filepath, r"background_noise_optimization_.*\.json"
+        )
+
+        hardware_opt_dicts = [read_json(filename) for filename in hardware_filenames]
+        numeric_opt_dicts = [read_json(filename) for filename in numeric_filenames]
+
+        hardware_aggregate_data = []
+        for opt_dict in hardware_opt_dicts:
+            for i in range(len(opt_dict["cost_vals"])):
+                if len(hardware_aggregate_data) <= i:
+                    hardware_aggregate_data += [[]]
+
+                hardware_aggregate_data[i] += [opt_dict["cost_vals"][i]]
+
+        numerics_aggregate_data = []
+        for opt_dict in numeric_opt_dicts:
+            for i in range(len(opt_dict["cost_vals"])):
+                if len(numerics_aggregate_data) <= i:
+                    numerics_aggregate_data += [[]]
+
+                numerics_aggregate_data[i] += [opt_dict["cost_vals"][i]]
+
+        hardware_mean_cost_vals = []
+        hardware_std_err_cost_vals = []
+        for i in range(len(hardware_aggregate_data)):
+            hardware_mean_cost_vals += [np.mean(hardware_aggregate_data[i])]
+            hardware_std_err_cost_vals += [
+                np.std(hardware_aggregate_data[i]) / np.sqrt(len(hardware_aggregate_data[i]))
+            ]
+
+        theory_np_mean = np.array(hardware_mean_cost_vals)
+        theory_np_std_err = np.array(hardware_std_err_cost_vals)
+
+        numerics_mean_cost_vals = []
+        numerics_std_err_cost_vals = []
+        for i in range(len(numerics_aggregate_data)):
+            numerics_mean_cost_vals += [np.mean(numerics_aggregate_data[i])]
+            numerics_std_err_cost_vals += [
+                np.std(numerics_aggregate_data[i]) / np.sqrt(len(numerics_aggregate_data[i]))
+            ]
+
+        numerics_np_mean = np.array(numerics_mean_cost_vals)
+        numerics_np_std_err = np.array(numerics_std_err_cost_vals)
+
+        ax.semilogy(
+            range(len(hardware_mean_cost_vals)),
+            hardware_mean_cost_vals,
+            alpha=3 / 4,
+            label="Hardware, shots = " + str(shots),
+        )
+        ax.fill_between(
+            range(len(hardware_mean_cost_vals)),
+            theory_np_mean - theory_np_std_err,
+            theory_np_mean + theory_np_std_err,
+            alpha=1 / 4,
+        )
+
+        ax.semilogy(
+            range(len(numerics_mean_cost_vals)),
+            numerics_mean_cost_vals,
+            alpha=3 / 4,
+            label="Numerics, shots = " + str(shots),
+        )
+        ax.fill_between(
+            range(len(numerics_mean_cost_vals)),
+            numerics_np_mean - numerics_np_std_err,
+            numerics_np_mean + numerics_np_std_err,
+            alpha=1 / 4,
+        )
+
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(plot_filename + "_" + datetime_str)
+
+
 def plot_shot_dependence(filepath, shots_list, plot_filename):
     datetime_str = datetime_now_string()
 
@@ -108,7 +201,10 @@ def plot_shot_dependence(filepath, shots_list, plot_filename):
                 if len(aggregate_data) <= i:
                     aggregate_data += [[]]
 
-                aggregate_data[i] += [opt_dict["cost_vals"][i]]
+                corrected_probs = max(opt_dict["cost_vals"][i] - 0.011, 0)
+                aggregate_data[i] += [corrected_probs]
+
+                # aggregate_data[i] += [opt_dict["cost_vals"][i]]
 
         mean_cost_vals = []
         std_err_cost_vals = []
