@@ -136,7 +136,7 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename):
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.suptitle(
-        "Step Size Vs. Gradient Descent Performance\n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        "Step Size Vs. Gradient Descent Performance", #\n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )
@@ -148,7 +148,8 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename):
     for step_size in step_size_list:
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
 
-        std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
+        std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+        # std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
         adam_filenames = get_files(step_size_filepath, r"adam_optimization_.*\.json")
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
         adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
@@ -191,7 +192,7 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename):
         adam_np_mean = np.array(adam_mean_cost_vals)
         adam_np_std_err = np.array(adam_std_err_cost_vals)
 
-        ax.loglog(
+        ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
             alpha=3 / 4,
@@ -205,21 +206,21 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename):
             alpha=1 / 4,
             color=colors[c_id],
         )
-        ax.loglog(
-            range(len(adam_mean_cost_vals)),
-            adam_mean_cost_vals,
-            alpha=3 / 4,
-            color=colors[c_id],
-            linestyle="--",
-        )
-        ax.fill_between(
-            range(len(adam_mean_cost_vals)),
-            adam_np_mean - adam_np_std_err,
-            adam_np_mean + adam_np_std_err,
-            alpha=1 / 4,
-            color=colors[c_id],
-            linestyle="--",
-        )
+        # ax.semilogy(
+        #     range(len(adam_mean_cost_vals)),
+        #     adam_mean_cost_vals,
+        #     alpha=3 / 4,
+        #     color=colors[c_id],
+        #     linestyle="--",
+        # )
+        # ax.fill_between(
+        #     range(len(adam_mean_cost_vals)),
+        #     adam_np_mean - adam_np_std_err,
+        #     adam_np_mean + adam_np_std_err,
+        #     alpha=1 / 4,
+        #     color=colors[c_id],
+        #     linestyle="--",
+        # )
 
         c_id += 1
 

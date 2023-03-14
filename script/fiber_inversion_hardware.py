@@ -14,8 +14,8 @@ filepath = "./data/fiber_inversion_hardware/"
 datetime_str = pk.datetime_now_string()
 
 
-shots = 1000
-shot_rate = 65000
+shots = 100000
+shot_rate = 100000
 dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
 
