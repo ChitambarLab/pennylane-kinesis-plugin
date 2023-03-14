@@ -14,6 +14,7 @@ def _setup_device(interface, wimp_mode):
         "wires": [0],
         "test_mode": True,
         "wimp_mode": wimp_mode,
+        "ttag_channel": 0,
     }
 
     dev = None
@@ -71,11 +72,16 @@ class TestKinesisSimulatorDevice:
 
         assert dev.dev_a_hwp["sn"] == "55253334"
         assert dev.dev_a_qwp["sn"] == "55253344"
+        assert dev.dev_b_hwp["sn"] == "55250324"
+        assert dev.dev_b_qwp["sn"] == "55246004"
 
         assert dev.a_hwp_config["device_vel"] == 5 if wimp_mode else 10
         assert dev.a_qwp_config["device_vel"] == 5 if wimp_mode else 10
+        assert dev.b_hwp_config["device_vel"] == 5 if wimp_mode else 10
+        assert dev.b_qwp_config["device_vel"] == 5 if wimp_mode else 10
 
         assert dev.buffer == {}
+        assert dev.ttag_channel == 0
 
         assert dev.wimp_mode == wimp_mode
 
