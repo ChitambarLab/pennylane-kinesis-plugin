@@ -151,9 +151,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         # )  # a waveplates are 1550
         # self.dev_a_qwp, self.a_qwp_config = self.device_setup(self.a_qwp_sn)
 
-        self.dev_b_hwp, self.b_hwp_config = self.device_setup(
-            self.b_hwp_sn
-        )  # a waveplates are 810
+        self.dev_b_hwp, self.b_hwp_config = self.device_setup(self.b_hwp_sn)  # a waveplates are 810
         self.dev_b_qwp, self.b_qwp_config = self.device_setup(self.b_qwp_sn)
 
         # # Home all devices
@@ -422,7 +420,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         print("Measured Singles:")
         print(singles_array)
 
-        counts = singles_array[13] # set channel for timetagger device
+        counts = singles_array[13]  # set channel for timetagger device
 
         print("num counts : ", counts)
         print("max_shots_allowed : ", self.shots)
