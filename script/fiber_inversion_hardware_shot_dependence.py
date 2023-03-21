@@ -17,12 +17,17 @@ NOTE: Before running script make sure that the "./data/fiber_inversion_hardware_
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware_shot_dependence/"
-shot_rate = 60000
+shot_rate = 90000
 
-shots_list = [10, 100, 1000, 10000] * 3
+shots_list = [10, 100, 1000, 10000] * 5
 # shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
 
 opt_dicts = []
+
+print("testing device setup")
+dev_test = qml.device("kinesis.cage.rotator", wires=[0], shots=1000, shot_rate=shot_rate)
+print("testing device disconnect")
+dev_test.disconnect()
 
 for shots in shots_list:
     datetime_str = pk.datetime_now_string()
