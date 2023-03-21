@@ -49,6 +49,8 @@ for shots in shots_list:
         filepath=shots_filepath,
         filename="optimization_" + datetime_str,
         domain_periods=[theta_period, phi_period],
+        shot_rate=shot_rate,
+        shots=shots,
     )
 
     plt.semilogy(
