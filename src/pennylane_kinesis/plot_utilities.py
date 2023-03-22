@@ -3,6 +3,7 @@ import numpy as np
 
 from .file_utilities import get_files, read_json, datetime_now_string
 
+_COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
 def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_shots=None):
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
@@ -100,6 +101,7 @@ def plot_shot_dependence_comparison(
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Photon Count Extinction Rate (Cost)")
 
+    color_id = 0
     for shots in shots_list:
         hardware_shots_filepath = hardware_filepath + "shots_" + str(shots) + "/"
         numerics_shots_filepath = numerics_filepath + "shots_" + str(shots) + "/"
@@ -191,7 +193,7 @@ def plot_shot_dependence(filepath, shots_list, plot_filename, background=None, s
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Percent of Incident Photons Detected (Cost)")
 
-
+    color_id = 0
     for shots in shots_list:
         shots_filepath = filepath + "shots_" + str(shots) + "/"
         filenames = get_files(shots_filepath, r"optimization_.*\.json")
@@ -213,19 +215,27 @@ def plot_shot_dependence(filepath, shots_list, plot_filename, background=None, s
 
         mean_cost_vals = []
         std_err_cost_vals = []
+        min_cost_vals = []
         for i in range(len(aggregate_data)):
             mean_cost_vals += [np.mean(aggregate_data[i])]
             std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
+            min_cost_vals += [np.min(aggregate_data[i])]
 
         np_mean = np.array(mean_cost_vals)
         np_std_err = np.array(std_err_cost_vals)
 
+        color = _COLORS[color_id]
         ax.semilogy(
-            range(len(mean_cost_vals)), mean_cost_vals, alpha=3 / 4, label="shots = " + str(shots)
+            range(len(mean_cost_vals)), mean_cost_vals, alpha=3 / 4, label="shots = " + str(shots), color=color, linestyle="--"
         )
         ax.fill_between(
-            range(len(mean_cost_vals)), np_mean - np_std_err, np_mean + np_std_err, alpha=1 / 4
+            range(len(mean_cost_vals)), np_mean - np_std_err, np_mean + np_std_err, alpha=1 / 4, color=color,
         )
+        ax.semilogy(
+            range(len(min_cost_vals)), min_cost_vals, linestyle="-", color=color,
+        )
+
+        color_id += 1
 
     
     if background:
