@@ -42,26 +42,26 @@ cost_landscape_dict = pk.scan_two_param_fn(
 )
 
 print("Running optimization from fixed initial settings.")
-fixed_init_settings = qnp.array(
-    [(100.29 * 2 * qnp.pi / 360) % theta_period, (112.21 * 2 * qnp.pi / 360) % phi_period],
-    requires_grad=True,
-)
-opt_dict = pk.optimize(
-    cost,
-    fixed_init_settings,
-    step_size=0.15,  # previously 0.1
-    num_steps=10,  # previously 12
-    filepath=filepath,
-    filename="fixed_init_optimize_" + datetime_str,
-    domain_periods=[theta_period, phi_period],
-    shots=shots,
-    shot_rate=shot_rate,
-)
+# fixed_init_settings = qnp.array(
+#     [(100.29 * 2 * qnp.pi / 360) % theta_period, (112.21 * 2 * qnp.pi / 360) % phi_period],
+#     requires_grad=True,
+# )
+# opt_dict = pk.optimize(
+#     cost,
+#     fixed_init_settings,
+#     step_size=0.15,  # previously 0.1
+#     num_steps=10,  # previously 12
+#     filepath=filepath,
+#     filename="fixed_init_optimize_" + datetime_str,
+#     domain_periods=[theta_period, phi_period],
+#     shots=shots,
+#     shot_rate=shot_rate,
+# )
 
-pk.plot_trajectory_on_cost_contour(
-    filepath + "cost_contour_plot_" + datetime_str,
-    cost_landscape_dict,
-    opt_dict,
-)
+# pk.plot_trajectory_on_cost_contour(
+#     filepath + "cost_contour_plot_" + datetime_str,
+#     cost_landscape_dict,
+#     opt_dict,
+# )
 
 dev.disconnect()

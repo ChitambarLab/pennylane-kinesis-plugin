@@ -17,11 +17,11 @@ NOTE: Before running script make sure that the "./data/fiber_inversion_hardware_
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
 filepath = "./data/fiber_inversion_hardware_step_size_dependence/"
-shot_rate = 45000
+shot_rate = 85000
 shots = 1000
 
 
-step_size_list = [0.2, 0.15, 0.1, 0.05] * 2
+step_size_list = [0.2, 0.15, 0.1, 0.05] * 5
 
 # step_size_list = [0.2, 0.15, 0.1, 0.05, 0.01]
 
