@@ -9,4 +9,6 @@ filepath = "./data/fiber_inversion_hardware_step_size_dependence/"
 step_size_list = [0.2, 0.15, 0.1, 0.05]
 plot_filename = "step_size_dependence_numerics"
 
-pk.plot_step_size_dependence(filepath, step_size_list, plot_filename, background=300, shot_rate=45000)
+pk.plot_step_size_dependence(
+    filepath, step_size_list, plot_filename, background=240, shot_rate=85000
+)
