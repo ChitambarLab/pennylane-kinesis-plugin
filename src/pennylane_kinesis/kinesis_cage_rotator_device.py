@@ -345,10 +345,10 @@ class KinesisCageRotatorDevice(QubitDevice):
             # Otherwise, the Connect() method will throw an error when the code is rerun
 
             # TODO: manage dev a and dev b
-            # self.dev_a_hwp.Disconnect(
-            #     False
-            # )  # Disconnects the device. If argument is True, shuts down device.
-            # self.dev_a_qwp.Disconnect(False)
+            self.dev_a_hwp.Disconnect(
+                False
+            )  # Disconnects the device. If argument is True, shuts down device.
+            self.dev_a_qwp.Disconnect(False)
 
             self.dev_b_hwp.Disconnect(
                 False
