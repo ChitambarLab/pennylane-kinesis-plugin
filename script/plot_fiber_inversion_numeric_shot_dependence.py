@@ -6,7 +6,10 @@ using the `./script/fiber_inversion_numeric_shot_dependence.py` script.
 """
 
 filepath = "./data/fiber_inversion_numeric_shot_dependence/"
-shots_list = [10000, 3500, 1000, 350, 100, 35, 10]
+# shots_list = [10000, 3500, 1000, 350, 100, 35, 10]
+shots_list = [10000, 1000, 100, 10]
 plot_filename = "shot_dependence_numerics"
 
-pk.plot_shot_dependence(filepath, shots_list, plot_filename)
+pk.plot_shot_dependence(
+    filepath, shots_list, plot_filename, background=240, shot_rate=85000, add_background=True
+)
