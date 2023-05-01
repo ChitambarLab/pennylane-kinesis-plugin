@@ -5,6 +5,7 @@ from .file_utilities import get_files, read_json, datetime_now_string
 
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
+
 def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_shots=None):
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
     ax1.grid()
@@ -21,20 +22,24 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
     opt_shots = opt_dict["shots"]
 
     # make contour plot of cost landscape
-    CS = ax1.contour(np.array(scan_dict["x_grid"])*180/np.pi, np.array(scan_dict["y_grid"])*180/np.pi, np.array(scan_dict["z_grid"])*scan_shots/1000, linewidth=4)
-    
-    
+    CS = ax1.contour(
+        np.array(scan_dict["x_grid"]) * 180 / np.pi,
+        np.array(scan_dict["y_grid"]) * 180 / np.pi,
+        np.array(scan_dict["z_grid"]) * scan_shots / 1000,
+        linewidth=4,
+    )
+
     ax1.clabel(CS, inline=True, fontsize=10)
 
     cbar = fig.colorbar(CS)
-    cbar.ax.set_ylabel('Photon Counts (x1000)')
-    
+    cbar.ax.set_ylabel("Photon Counts (x1000)")
+
     ax1.set_xlabel(r"HWP Angle (Degrees)", fontsize=label_size)
     ax1.set_ylabel(r"QWP Angle (Degrees)", fontsize=label_size)
     ax1.set_title("Photon Counts Vs.\nWave Plate Settings", fontsize=label_size)
 
-    ax1.set_xticks([0,15,30,45,60,75,90])
-    ax1.set_yticks([0,30,60,90,120,150,180])
+    ax1.set_xticks([0, 15, 30, 45, 60, 75, 90])
+    ax1.set_yticks([0, 30, 60, 90, 120, 150, 180])
 
     # plot trajectory of optimization
     theta_settings = []
@@ -43,29 +48,34 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
         theta_settings += [settings[0]]
         phi_settings += [settings[1]]
 
-    ax1.plot(np.array(theta_settings)*180/np.pi, np.array(phi_settings)*180/np.pi, marker="o", label="Gradient Descent")
+    ax1.plot(
+        np.array(theta_settings) * 180 / np.pi,
+        np.array(phi_settings) * 180 / np.pi,
+        marker="o",
+        label="Gradient Descent",
+    )
 
     # plot log scale of optimization on right
     ax2.semilogy(
         range(len(opt_dict["cost_vals"])),
-        np.array(opt_dict["cost_vals"])*opt_shots,
+        np.array(opt_dict["cost_vals"]) * opt_shots,
         label="Gradient Descent",
         marker="o",
     )
 
-    ax1.plot(theta_settings[0]*180/np.pi, phi_settings[0]*180/np.pi, "rx", markersize=8)
+    ax1.plot(theta_settings[0] * 180 / np.pi, phi_settings[0] * 180 / np.pi, "rx", markersize=8)
     ax1.plot(
-        theta_settings[-1]*180/np.pi,
-        phi_settings[-1]*180/np.pi,
+        theta_settings[-1] * 180 / np.pi,
+        phi_settings[-1] * 180 / np.pi,
         color="lime",
         marker="v",
         linestyle="",
         markersize=8,
     )
-    ax2.plot(0, opt_dict["cost_vals"][0]*opt_shots, "rx", markersize=8, label="Starting Point")
+    ax2.plot(0, opt_dict["cost_vals"][0] * opt_shots, "rx", markersize=8, label="Starting Point")
     ax2.plot(
         len(opt_dict["cost_vals"]) - 1,
-        opt_dict["cost_vals"][-1]*opt_shots,
+        opt_dict["cost_vals"][-1] * opt_shots,
         color="lime",
         marker="v",
         linestyle="",
@@ -183,13 +193,13 @@ def plot_shot_dependence_comparison(
     plt.savefig(plot_filename + "_" + datetime_str)
 
 
-def plot_shot_dependence(filepath, shots_list, plot_filename, background=None, shot_rate=None, add_background=False):
+def plot_shot_dependence(
+    filepath, shots_list, plot_filename, background=None, shot_rate=None, add_background=False
+):
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.suptitle(
-        "Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20
-    )
+    fig.suptitle("Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20)
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Percent of Incident Photons Detected (Cost)")
 
@@ -206,7 +216,7 @@ def plot_shot_dependence(filepath, shots_list, plot_filename, background=None, s
                     aggregate_data += [[]]
 
                 if add_background:
-                    dark_count_rate = background /shot_rate
+                    dark_count_rate = background / shot_rate
                     corrected_probs = opt_dict["cost_vals"][i] + dark_count_rate
                     aggregate_data[i] += [corrected_probs]
 
@@ -226,30 +236,53 @@ def plot_shot_dependence(filepath, shots_list, plot_filename, background=None, s
 
         color = _COLORS[color_id]
         ax.semilogy(
-            range(len(mean_cost_vals)), mean_cost_vals, alpha=3 / 4, label="shots = " + str(shots), color=color, linestyle="--"
+            range(len(mean_cost_vals)),
+            mean_cost_vals,
+            alpha=3 / 4,
+            label="shots = " + str(shots),
+            color=color,
+            linestyle="--",
         )
         ax.fill_between(
-            range(len(mean_cost_vals)), np_mean - np_std_err, np_mean + np_std_err, alpha=1 / 4, color=color,
+            range(len(mean_cost_vals)),
+            np_mean - np_std_err,
+            np_mean + np_std_err,
+            alpha=1 / 4,
+            color=color,
         )
         ax.semilogy(
-            range(len(min_cost_vals)), min_cost_vals, linestyle="-", color=color,
+            range(len(min_cost_vals)),
+            min_cost_vals,
+            linestyle="-",
+            color=color,
         )
 
         color_id += 1
 
-    
     if background:
-        ax.plot(range(len(mean_cost_vals)), [background/shot_rate] * len(mean_cost_vals), "k--", label="Background (" + str(background) + " cps)")
+        ax.plot(
+            range(len(mean_cost_vals)),
+            [background / shot_rate] * len(mean_cost_vals),
+            "k--",
+            label="Background (" + str(background) + " cps)",
+        )
 
-
-    ax.set_yticks([1e-2,1e-1,1e-0])
+    ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
     plt.grid()
     plt.legend(ncols=2)
     plt.tight_layout()
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 
-def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_background=False, background=None, shot_rate=None, plot_adam=False):
+def plot_step_size_dependence(
+    filepath,
+    step_size_list,
+    plot_filename,
+    add_background=False,
+    background=None,
+    shot_rate=None,
+    plot_adam=False,
+):
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
@@ -261,7 +294,6 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
     ax.set_xlabel("Gradient Descent Step")
     ax.set_ylabel("Percent Incident Photons Detected (Cost)")
 
-    colors = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
     c_id = 0
     for step_size in step_size_list:
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
@@ -282,7 +314,7 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
                     std_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = std_opt_dict["cost_vals"][i] + background/shot_rate
+                    corrected_val = std_opt_dict["cost_vals"][i] + background / shot_rate
                     std_aggregate_data[i] += [corrected_val]
                 else:
                     std_aggregate_data[i] += [std_opt_dict["cost_vals"][i]]
@@ -294,18 +326,20 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
                     adam_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = adam_opt_dict["cost_vals"][i] + background/shot_rate
+                    corrected_val = adam_opt_dict["cost_vals"][i] + background / shot_rate
                     adam_aggregate_data[i] += [corrected_val]
                 else:
                     adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i]]
 
         std_mean_cost_vals = []
         std_std_err_cost_vals = []
+        std_min_cost_vals = []
         for i in range(len(std_aggregate_data)):
             std_mean_cost_vals += [np.mean(std_aggregate_data[i])]
             std_std_err_cost_vals += [
                 np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))
             ]
+            std_min_cost_vals += [np.min(std_aggregate_data[i])]
 
         adam_mean_cost_vals = []
         adam_std_err_cost_vals = []
@@ -318,21 +352,29 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
+        # ax.loglog(
+        #     range(len(std_min_cost_vals)),
+        #     std_min_cost_vals,
+        #     alpha=3 / 4,
+        #     label="step_size = " + str(step_size),
+        #     color=_COLORS[c_id],
+        #     linestyle="-"
+        # )
         ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
             alpha=3 / 4,
             label="step_size = " + str(step_size),
-            color=colors[c_id],
+            color=_COLORS[c_id],
+            linestyle="--",
         )
         ax.fill_between(
             range(len(std_mean_cost_vals)),
             std_np_mean - std_np_std_err,
             std_np_mean + std_np_std_err,
             alpha=1 / 4,
-            color=colors[c_id],
+            color=_COLORS[c_id],
         )
-
 
         if plot_adam:
             adam_np_mean = np.array(adam_mean_cost_vals)
@@ -341,7 +383,7 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
                 range(len(adam_mean_cost_vals)),
                 adam_mean_cost_vals,
                 alpha=3 / 4,
-                color=colors[c_id],
+                color=_COLORS[c_id],
                 linestyle="--",
             )
             ax.fill_between(
@@ -349,17 +391,22 @@ def plot_step_size_dependence(filepath, step_size_list, plot_filename, add_backg
                 adam_np_mean - adam_np_std_err,
                 adam_np_mean + adam_np_std_err,
                 alpha=1 / 4,
-                color=colors[c_id],
+                color=_COLORS[c_id],
                 linestyle="--",
             )
 
         c_id += 1
 
     if background:
-        ax.plot(range(len(std_np_mean)), [background/shot_rate] * len(std_np_mean), "k--", label="Background (" + str(background) + " cps)")
+        ax.plot(
+            range(len(std_np_mean)),
+            [background / shot_rate] * len(std_np_mean),
+            "k--",
+            label="Background (" + str(background) + " cps)",
+        )
 
     # plt.tight_layout(pad=2)
-    ax.set_yticks([1e-2,1e-1,1e-0])
+    ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     plt.grid()
     # fig.subplots_adjust(bottom=0.3)
