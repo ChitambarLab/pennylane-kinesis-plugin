@@ -60,20 +60,20 @@ class TestKinesisSimulatorDevice:
 
         assert dev.device_list() == []
 
-        assert dev.a_hwp_sn == "55253334"
-        assert dev.a_qwp_sn == "55253344"
-        assert dev.b_hwp_sn == "55250324"
-        assert dev.b_qwp_sn == "55246004"
+        assert dev.a_hwp_sn == "27501110"
+        assert dev.a_qwp_sn == "27002915"
+        assert dev.b_hwp_sn == "27252048"
+        assert dev.b_qwp_sn == "27501224"
 
-        assert dev.a_hwp_off == 100.29
-        assert dev.a_qwp_off == 112.21
-        assert dev.b_hwp_off == 86.64
-        assert dev.b_qwp_off == 12.02
+        assert dev.a_hwp_off == 68.3
+        assert dev.a_qwp_off == 4.5
+        assert dev.b_hwp_off == 178.8
+        assert dev.b_qwp_off == 99.1
 
-        assert dev.dev_a_hwp["sn"] == "55253334"
-        assert dev.dev_a_qwp["sn"] == "55253344"
-        assert dev.dev_b_hwp["sn"] == "55250324"
-        assert dev.dev_b_qwp["sn"] == "55246004"
+        assert dev.dev_a_hwp["sn"] == "27501110"
+        assert dev.dev_a_qwp["sn"] == "27002915"
+        assert dev.dev_b_hwp["sn"] == "27252048"
+        assert dev.dev_b_qwp["sn"] == "27501224"
 
         assert dev.a_hwp_config["device_vel"] == 5 if wimp_mode else 10
         assert dev.a_qwp_config["device_vel"] == 5 if wimp_mode else 10
