@@ -1,6 +1,7 @@
 from pennylane import QubitDevice
 import pennylane as qml
 import numpy as np
+from pylablib.devices import Thorlabs
 
 import time
 
@@ -9,36 +10,6 @@ from .version import __version__
 _TEST_MODE = False
 
 try:
-    import clr
-    import System
-    import sys
-
-    # The Kinesis software needs to be downloaded in order to use this code.
-    # IMPORTANT: Upon initial install of Kinesis, make sure to connect and operate
-    # all of the rotation stages via the Kinesis GUI prior to running this code.
-    # Otherwise code will throw errors relating to
-    # "System.NullReferenceException: Object reference not set to an instance of an object."
-    sys.path.append("C:\\Program Files\\Thorlabs\\Kinesis\\")
-
-    # Note: This code is written for use with the K10CR1 rotation mount.
-    # The full CageRotator API may be found in Kinesis Help, under
-    # "CageRotator Member List"
-    # More details may be found under "Integrated Stepper Motors
-    # (K10CR1, LTS150, LTS300, L490MZ, MLJ050, MLJ150) "
-
-    #######################################################
-    # Load the required .NET assemblies via PythonNET
-    #######################################################
-    clr.AddReference("Thorlabs.MotionControl.IntegratedStepperMotorsCLI")
-    clr.AddReference("Thorlabs.MotionControl.IntegratedStepperMotorsUI")
-    clr.AddReference("Thorlabs.MotionControl.GenericMotorCLI")
-    clr.AddReference("Thorlabs.MotionControl.DeviceManagerCLI")
-
-    from Thorlabs.MotionControl.IntegratedStepperMotorsCLI import *
-    from Thorlabs.MotionControl.IntegratedStepperMotorsUI import *
-    from Thorlabs.MotionControl.GenericMotorCLI import *
-    from Thorlabs.MotionControl.DeviceManagerCLI import *
-
     # importing the local time-tagger library
     from . import ttag
 
@@ -47,7 +18,7 @@ except BaseException as ex:
     message = msg_template.format(type(ex).__name__, ex.args)
     print(message)
 
-    print("\nAn error occured while importing pythonnet, time tagger, or kinesis software")
+    print("\nAn error occured while importing time tagger")
 
     _TEST_MODE = True
     print("setting `_TEST_MODE=True`")
@@ -94,16 +65,22 @@ class KinesisCageRotatorDevice(QubitDevice):
         analytic=None,
         shot_rate=6000,
         wimp_mode=False,
-        ttag_channel=13,
+        ttag_channel_transmit=5,
+        ttag_channel_reflect=4,
+        # integration_time=1,
         test_mode=_TEST_MODE,
     ):
-        super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
+        super().__init__(
+            wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic
+        )
         self.test_mode = test_mode
         self.wimp_mode = wimp_mode
-        self.ttag_channel = ttag_channel
+        self.ttag_channel_transmit = ttag_channel_transmit
+        self.ttag_channel_reflect = ttag_channel_reflect
 
         self.shot_rate = shot_rate  # mean num photons incident upon detector per second
         self.integration_time = shots / (self.shot_rate)
+        # self.integration_time = integration_time
 
         # Initialize device list
         self.device_list()
@@ -116,7 +93,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         print("Reading configuration file...")
         print()
 
-        config_file = "./src/pennylane_kinesis/2022_02_21_colin_wp_config.txt"
+        config_file = "./src/pennylane_kinesis/2023_07_10_michael_wp_config.txt"
 
         with open(config_file) as f:
             config_lines = f.readlines()
@@ -176,12 +153,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             print("No devices detected.")
             return []
         else:
-            # Build an internal list of all connected devices.
-            DeviceManagerCLI.BuildDeviceList()
-            # Get the device list size.
-            DeviceManagerCLI.GetDeviceListSize()
-            # Get a list of all connected devices, by serial number.
-            devices = DeviceManagerCLI.GetDeviceList()
+            devices = Thorlabs.list_kinesis_devices()
 
             if len(devices) == 0:
                 print("No devices detected.")
@@ -190,7 +162,9 @@ class KinesisCageRotatorDevice(QubitDevice):
                 print("----------------------------------------------")
                 i = 1
                 for device in devices:
-                    print("Device " + str(i) + ": S/N " + device)
+                    print(
+                        "Device " + str(i) + ": S/N " + device[0] + " Type " + device[1]
+                    )
                     i += 1
 
             return devices
@@ -217,60 +191,38 @@ class KinesisCageRotatorDevice(QubitDevice):
             return {"sn": SN}, {"device_vel": deviceVel}
         else:
             # Create CageRotator and connect to it
-            device = CageRotator.CreateCageRotator(SN)
-            device.Connect(SN)  # Makes a connection to device with S/N SN
-            if device.IsConnected:
+            try:
+                device = Thorlabs.KinesisMotor(SN, scale="stage")
                 print("Connected to device S/N " + SN)
-            else:
+            except:
                 print("Failed to connect device S/N " + SN)
 
-            # If device is not initalized, wait for the given timeout period
-            if not device.IsSettingsInitialized():
-                try:
-                    # Wait for the device settings to be initialized.
-                    # Argument is timeout period (ms).
-                    device.WaitForSettingsInitialized(5000)
-                except:
-                    print("Did not initalize: Device S/N " + SN)
-                    device.Disconnect(False)
+            velocity_parameters = device.get_velocity_parameters()
+            updated_velocity_parameters = (
+                velocity_parameters.min_velocity,
+                velocity_parameters.acceleration,
+                deviceVel,
+            )
+            homing_parameters = device.get_homing_parameters()
+            updated_homing_parameters = (
+                homing_parameters.home_direction,
+                homing_parameters.limit_switch,
+                deviceVel,
+                homing_parameters.offset_distance,
+            )
 
-            if device.IsSettingsInitialized():
-                print("Initalized device S/N " + SN)
-            else:
-                print("Failed to initalize device S/N " + SN)
-                device.Disconnect(False)
+            device.setup_velocity(*updated_velocity_parameters)
+            device.setup_homing(*updated_homing_parameters)
 
-            # Start the device polling:
-            # The polling loop requests regular status requests to the motor to ensure the
-            # program keeps track of the device.
+            deviceConfig = device.get_full_info()
 
-            # The polling loop will request a status update every ms milliseconds.
-            # NOTE the ms time interval starts on receipt of the previous status, so
-            # status messages will NOT stack up
-            device.StartPolling(250)
-
-            # Needs a delay so that the current enabled state can be obtained
-            time.sleep(0.5)  # wait for 500 ms
-
-            device.EnableDevice()  # Enable the device, otherwise any move is ignored
-
-            # Needs a delay so that the device can be enabled
-            time.sleep(0.5)  # wait for 500 ms
-
-            # Call LoadMotorConfiguration on the device to initialize the
-            # DeviceUnitConverter object required for real world unit parameters.
-            # Loads configuration information into channel
-            deviceConfig = device.LoadMotorConfiguration(SN)
-            # aHWPSettings = aHWP.MotorDeviceSettings # Not sure what this does yet
-
-            # TODO: Set rotation mode
-            # device.SetRotationModes(0x01,0x00) # unlimited direction and quickest
-
-            device.SetVelocityParams(System.Decimal(deviceVel), System.Decimal(deviceVel))
-            device.SetHomingVelocity(System.Decimal(deviceVel))
-
-            deviceInfo = device.GetDeviceInfo()
-            print(deviceInfo.Name + " (S/N " + str(deviceInfo.SerialNumber) + ") is ready to use.")
+            deviceInfo = device.get_device_info()
+            print(
+                deviceInfo.model_no
+                + " (S/N "
+                + str(deviceInfo.serial_no)
+                + ") is ready to use."
+            )
             print()
 
             return device, deviceConfig
@@ -290,7 +242,7 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             return buffer
 
-    def device_home(self, device):
+    def device_home(self, device: Thorlabs.KinesisMotor):
         """Sends the specified device to the home position.
 
         :param device: A cage rotaator device.
@@ -299,27 +251,28 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if not self.test_mode:
-            deviceInfo = device.GetDeviceInfo()
-            deviceSN = str(deviceInfo.SerialNumber)
+            deviceInfo = device.get_device_info()
+            deviceSN = str(deviceInfo.serial_no)
 
             # if False: #set it to home every time, just as a precaution
-            if device.Status.IsHomed:
+            if device.is_homed():
                 print("Device S/N " + deviceSN + " is already homed")
                 return
             else:
                 # Sends the motor to its home position.
                 # Argument is the timeout. Function will wait until the move completes
                 # or the timeout elapses, whichever comes first.
-                device.Home(60000)
-                if device.Status.IsHomed:
+                device.home()
+                device.wait_for_home()
+                if device.is_homed():
                     print("Homed device S/N " + deviceSN)
                 else:
                     print("Failed to home device S/N " + deviceSN)
-                    device.Disconnect(False)
+                    device.close()
 
         return True
 
-    def device_move_to_angle(self, device, angle):
+    def device_move_to_angle(self, device: Thorlabs.KinesisMotor, angle):
         """Rotates a device to the specified angle.
 
         :param device: A cage rotaator device.
@@ -331,12 +284,25 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device["sn"] + " to position " + str(angle) + "\u00B0")
+            print(
+                "Moved device S/N "
+                + device["sn"]
+                + " to position "
+                + str(angle)
+                + "\u00B0"
+            )
         else:
-            device_info = device.GetDeviceInfo()
-            device_sn = str(device_info.SerialNumber)
-            device.MoveTo(System.Decimal(angle), 60000)  # Moves to position in degrees
-            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
+            device_info = device.get_device_info()
+            device_sn = str(device_info.serial_no)
+            device.move_to(angle)  # Moves to position in degrees
+            device.wait_for_stop()
+            print(
+                "Moved device S/N "
+                + device_sn
+                + " to position "
+                + str(angle)
+                + "\u00B0"
+            )
 
     def disconnect(self):
         """Disconnects all Kinesis devices."""
@@ -345,15 +311,11 @@ class KinesisCageRotatorDevice(QubitDevice):
             # Otherwise, the Connect() method will throw an error when the code is rerun
 
             # TODO: manage dev a and dev b
-            self.dev_a_hwp.Disconnect(
-                False
-            )  # Disconnects the device. If argument is True, shuts down device.
-            self.dev_a_qwp.Disconnect(False)
+            self.dev_a_hwp.close()  # Disconnects the device.
+            self.dev_a_qwp.close()
 
-            self.dev_b_hwp.Disconnect(
-                False
-            )  # Disconnects the device. If argument is True, shuts down device.
-            self.dev_b_qwp.Disconnect(False)
+            self.dev_b_hwp.close()  # Disconnects the device.
+            self.dev_b_qwp.close()
 
         print("Devices disconnected.")
 
@@ -388,7 +350,9 @@ class KinesisCageRotatorDevice(QubitDevice):
         :type operations: A PennyLane Operataion
         """
         all_ops = operations + rotations if rotations else operations
-        for op in all_ops:
+
+        dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
+        for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             # TODO: manage dev a and dev b
@@ -400,9 +364,11 @@ class KinesisCageRotatorDevice(QubitDevice):
             #     print("Operation : ", op.name, ", is not supported")
 
             if op.name == "HWPRotStage":
-                self.device_move_to_angle(self.dev_b_hwp, angle % 90)
+                self.device_move_to_angle(dev_list[i], angle % 90)
+                # self.device_move_to_angle(self.dev_b_hwp, angle % 90)
             elif op.name == "QWPRotStage":
-                self.device_move_to_angle(self.dev_b_qwp, angle % 180)
+                self.device_move_to_angle(dev_list[i], angle % 180)
+                # self.device_move_to_angle(self.dev_b_qwp, angle % 180)
             else:
                 print("Operation : ", op.name, ", is not supported")
 
@@ -426,15 +392,22 @@ class KinesisCageRotatorDevice(QubitDevice):
         print("Measured Singles:")
         print(singles_array)
 
-        counts = singles_array[self.ttag_channel]  # set channel for timetagger device
+        h_counts = singles_array[
+            self.ttag_channel_transmit
+        ]  # set channel for timetagger device
+        v_counts = singles_array[self.ttag_channel_reflect]
 
-        print("num counts : ", counts)
-        print("max_shots_allowed : ", self.shots)
-        print("detection probability : ", counts / self.shots)
+        counts = h_counts + v_counts
+        print("total counts : ", counts)
+        # self.shots = int(counts)
+        # print("max_shots_allowed : ", self.shots)
+
+        # print("detection probability : ", counts / self.shots)
 
         return np.concatenate(
             (
-                np.ones((int(min(counts, self.shots)), 1), dtype=int),
-                np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
+                np.ones((int(v_counts), 1), dtype=int),
+                np.zeros((int(h_counts), 1), dtype=int),
+                # np.ones(int(self.shots - counts), dtype=int),
             )
         )
