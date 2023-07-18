@@ -14,7 +14,8 @@ def _setup_device(interface, wimp_mode):
         "wires": [0],
         "test_mode": True,
         "wimp_mode": wimp_mode,
-        "ttag_channel": 0,
+        "ttag_channel_transmit": 5,
+        "ttag_channel_reflect": 4,
     }
 
     dev = None
@@ -44,7 +45,7 @@ class TestKinesisSimulatorDevice:
         assert dev.short_name == "kinesis.cage.rotator"
         assert dev.pennylane_requires == "0.29.1"
         assert dev.version == pk.__version__
-        assert dev.author == "Brian Doolittle and Colin Lualdi"
+        assert dev.author == "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
         assert dev.operations == {"HWPRotStage", "QWPRotStage"}
         assert dev.observables == {"Projector", "Identity", "PauliZ"}
         assert not dev.analytic
@@ -81,7 +82,8 @@ class TestKinesisSimulatorDevice:
         assert dev.b_qwp_config["device_vel"] == 5 if wimp_mode else 10
 
         assert dev.buffer == {}
-        assert dev.ttag_channel == 0
+        assert dev.ttag_channel_transmit == 5
+        assert dev.ttag_channel_reflect == 4
 
         assert dev.wimp_mode == wimp_mode
 

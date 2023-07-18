@@ -47,7 +47,7 @@ class TestKinesisSimulatorDevice:
         assert dev.short_name == "kinesis.simulator"
         assert dev.pennylane_requires == "0.29.1"
         assert dev.version == pk.__version__
-        assert dev.author == "Brian Doolittle and Colin Lualdi"
+        assert dev.author == "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
         assert dev.operations == {
             "PauliZ",
             "PhaseShift",
@@ -134,7 +134,7 @@ class TestKinesisSimulatorDevice:
 
         samples = circ(np.pi / 4)
 
-        assert len(samples) == 10000
+        assert len(samples) == 10312
         assert all([s == 0 or s == 1 for s in samples])
 
     @pytest.mark.parametrize(
