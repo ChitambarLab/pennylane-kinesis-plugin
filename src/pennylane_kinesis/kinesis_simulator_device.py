@@ -18,7 +18,7 @@ class KinesisSimulatorDevice(QubitDevice):
     short_name = "kinesis.simulator"
     pennylane_requires = "0.29.1"
     version = __version__
-    author = "Brian Doolittle and Colin Lualdi"
+    author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
 
     operations = {"PauliZ", "PhaseShift", "RX", "RY", "RZ", "S", "HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
@@ -34,6 +34,7 @@ class KinesisSimulatorDevice(QubitDevice):
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
+        shot_rate=6000,
         analytic=None,
         seed=None,
     ):
@@ -77,15 +78,11 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        # counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots))) + self.background_counts
-        counts = (
-            np.round((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
-            + self.background_counts
-        )
+        counts = np.random.poisson(self.shots) + self.background_counts
 
         return np.concatenate(
             (
-                np.ones((int(min(counts, self.shots)), 1), dtype=int),
-                np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
+                np.ones((int((1 - p0) * counts), 1), dtype=int),
+                np.zeros((int(p0 * counts), 1), dtype=int),
             )
         )
