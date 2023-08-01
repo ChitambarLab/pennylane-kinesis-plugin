@@ -27,19 +27,27 @@ if __name__ == "__main__":
         dev_name = "kinesis.simulator"
     else:
         data_path = "./data/dimensionality_witnessing/hardware/"
-        shots = 3000000
+        shots = 120000
         dev_name = "kinesis.cage.rotator"
 
     pk.make_dir(data_path)
 
-    shot_rate = 3000000
+    shot_rate = 120000
 
     datetime_str = pk.datetime_now_string()
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [
+            qnetvo.PrepareNode(
+                num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        [
+            qnetvo.MeasureNode(
+                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,

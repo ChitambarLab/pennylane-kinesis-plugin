@@ -14,8 +14,9 @@ filepath = "./data/fiber_inversion_hardware/"
 datetime_str = pk.datetime_now_string()
 
 
-shots = 3000000
-shot_rate = 3000000
+shots = 100000
+shot_rate = 100000
+# dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
 dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
 
@@ -62,9 +63,9 @@ phi_set = qnp.arange(0, phi_period + 0.11, 0.1)
 
 opt_dict = pk.optimize(
     cost,
-    qnp.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6]),
-    num_steps=10,
-    step_size=0.8,
+    qnp.zeros(6),
+    num_steps=100,
+    step_size=0.05,
     filepath="./",
     filename="test_state_discrimination",
     init_opt_dict=None,

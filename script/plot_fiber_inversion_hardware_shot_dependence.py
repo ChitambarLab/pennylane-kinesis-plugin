@@ -4,9 +4,11 @@ import pennylane_kinesis as pk
 the `./script/fiber_inversion_hardware_shot_dependence.py` script.
 """
 
-filepath = "./data/fiber_inversion_hardware_shot_dependence/"
-shots_list = [10000, 1000, 100, 10]
+filepath = "./data/state_discrimination_hardware_shot_dependence/"
+shots_list = [100000, 10000, 1000, 100, 10]
 # shots_list = [10000, 3500, 1000, 350, 100, 35, 10]
 plot_filename = "shot_dependence_hardware"
 
-pk.plot_shot_dependence(filepath, shots_list, plot_filename, background=240, shot_rate=90000)
+pk.plot_shot_dependence(
+    filepath, shots_list, plot_filename, background=10, shot_rate=100000
+)
