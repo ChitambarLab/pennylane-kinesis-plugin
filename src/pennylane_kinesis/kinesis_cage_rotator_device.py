@@ -70,7 +70,9 @@ class KinesisCageRotatorDevice(QubitDevice):
         # integration_time=1,
         test_mode=_TEST_MODE,
     ):
-        super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
+        super().__init__(
+            wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic
+        )
         self.test_mode = test_mode
         self.wimp_mode = wimp_mode
         self.ttag_channel_transmit = ttag_channel_transmit
@@ -160,7 +162,9 @@ class KinesisCageRotatorDevice(QubitDevice):
                 print("----------------------------------------------")
                 i = 1
                 for device in devices:
-                    print("Device " + str(i) + ": S/N " + device[0] + " Type " + device[1])
+                    print(
+                        "Device " + str(i) + ": S/N " + device[0] + " Type " + device[1]
+                    )
                     i += 1
 
             return devices
@@ -181,7 +185,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         if self.wimp_mode:
             deviceVel = 5
         else:
-            deviceVel = 10
+            deviceVel = 25
 
         if self.test_mode:
             return {"sn": SN}, {"device_vel": deviceVel}
@@ -213,7 +217,13 @@ class KinesisCageRotatorDevice(QubitDevice):
             deviceConfig = device.get_full_info()
 
             deviceInfo = device.get_device_info()
-            print(deviceInfo.model_no + " (S/N " + str(deviceInfo.serial_no) + ") is ready to use.")
+
+            print(
+                deviceInfo.model_no
+                + " (S/N "
+                + str(deviceInfo.serial_no)
+                + ") is ready to use."
+            )
             print()
 
             return device, deviceConfig
@@ -275,13 +285,25 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device["sn"] + " to position " + str(angle) + "\u00B0")
+            print(
+                "Moved device S/N "
+                + device["sn"]
+                + " to position "
+                + str(angle)
+                + "\u00B0"
+            )
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_to(angle)  # Moves to position in degrees
             device.wait_for_stop()
-            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
+            print(
+                "Moved device S/N "
+                + device_sn
+                + " to position "
+                + str(angle)
+                + "\u00B0"
+            )
 
     def disconnect(self):
         """Disconnects all Kinesis devices."""
@@ -348,21 +370,47 @@ class KinesisCageRotatorDevice(QubitDevice):
         Since our measurement only detects one polarization, we estimate the total number
         of counts to construct the relative probability distribution.
         """
-        time.sleep(
-            self.integration_time
-        )  # give the buffer time to fill up, otherwise buffer will throw a warning
+
+        timeout = 5 * self.integration_time
 
         if self.test_mode:
             singles_array = [0, 0, 0, 0, int(self.shots / 2), int(self.shots / 2)]
+            h_counts = singles_array[self.ttag_channel_transmit]
+            v_counts = singles_array[self.ttag_channel_reflect]
         else:
-            singles_array = self.buffer.singles(self.integration_time)
+            channels = []
+            start_time = time.perf_counter()
+            iteration = 0
+            while (
+                len(channels) < self.shots
+                and time.perf_counter() - start_time < timeout
+            ):
+                time.sleep(self.integration_time)
+                iteration += 1
+                channels, _ = self.buffer(self.integration_time * iteration)
+                channel_filter = np.logical_or(
+                    channels == self.ttag_channel_transmit,
+                    channels == self.ttag_channel_reflect,
+                )
+                channels = channels[channel_filter]
+            if len(channels) < self.shots:
+                # if buffer did not fill up, warn user and compensate
+                print("Warning: buffer did not fill up in time")
+                h_counts = len(channels[channels == self.ttag_channel_transmit])
+                v_counts = len(channels[channels == self.ttag_channel_reflect])
+                missing_counts = self.shots - len(channels)
+                h_compensation = missing_counts * (h_counts // (h_counts + v_counts))
+                v_compensation = missing_counts - h_compensation
+                h_counts += h_compensation
+                v_counts += v_compensation
+            else:
+                channels = channels[: self.shots]
+                h_counts = len(channels[channels == self.ttag_channel_transmit])
+                v_counts = len(channels[channels == self.ttag_channel_reflect])
 
         print()
         print("Measured Singles:")
-        print(singles_array)
-
-        h_counts = singles_array[self.ttag_channel_transmit]
-        v_counts = singles_array[self.ttag_channel_reflect]
+        print(f"H counts: {h_counts}\t V counts: {v_counts}")
 
         counts = h_counts + v_counts
         print("total counts : ", counts)
