@@ -6,9 +6,7 @@ from .file_utilities import get_files, read_json, datetime_now_string
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
 
-def plot_trajectory_on_cost_contour(
-    filename, scan_dict, opt_dict, background_shots=None
-):
+def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_shots=None):
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
     ax1.grid()
 
@@ -136,9 +134,7 @@ def plot_shot_dependence_comparison(
         hardware_shots_filepath = hardware_filepath + "shots_" + str(shots) + "/"
         numerics_shots_filepath = numerics_filepath + "shots_" + str(shots) + "/"
 
-        hardware_filenames = get_files(
-            hardware_shots_filepath, r"optimization_.*\.json"
-        )
+        hardware_filenames = get_files(hardware_shots_filepath, r"optimization_.*\.json")
         numeric_filenames = get_files(
             numerics_shots_filepath, r"background_noise_optimization_.*\.json"
         )
@@ -167,8 +163,7 @@ def plot_shot_dependence_comparison(
         for i in range(len(hardware_aggregate_data)):
             hardware_mean_cost_vals += [np.mean(hardware_aggregate_data[i])]
             hardware_std_err_cost_vals += [
-                np.std(hardware_aggregate_data[i])
-                / np.sqrt(len(hardware_aggregate_data[i]))
+                np.std(hardware_aggregate_data[i]) / np.sqrt(len(hardware_aggregate_data[i]))
             ]
 
         theory_np_mean = np.array(hardware_mean_cost_vals)
@@ -179,8 +174,7 @@ def plot_shot_dependence_comparison(
         for i in range(len(numerics_aggregate_data)):
             numerics_mean_cost_vals += [np.mean(numerics_aggregate_data[i])]
             numerics_std_err_cost_vals += [
-                np.std(numerics_aggregate_data[i])
-                / np.sqrt(len(numerics_aggregate_data[i]))
+                np.std(numerics_aggregate_data[i]) / np.sqrt(len(numerics_aggregate_data[i]))
             ]
 
         numerics_np_mean = np.array(numerics_mean_cost_vals)
@@ -228,9 +222,7 @@ def plot_shot_dependence(
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.suptitle(
-        "Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20
-    )
+    fig.suptitle("Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20)
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
@@ -259,9 +251,7 @@ def plot_shot_dependence(
         min_cost_vals = []
         for i in range(len(aggregate_data)):
             mean_cost_vals += [np.mean(aggregate_data[i])]
-            std_err_cost_vals += [
-                np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))
-            ]
+            std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
             min_cost_vals += [np.min(aggregate_data[i])]
 
         np_mean = np.array(mean_cost_vals)
@@ -329,9 +319,7 @@ def plot_step_size_dependence(
 
     c_id = 0
     for step_size in step_size_list:
-        step_size_filepath = (
-            filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-        )
+        step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
 
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
@@ -349,9 +337,7 @@ def plot_step_size_dependence(
                     std_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = (
-                        std_opt_dict["cost_vals"][i] + background / shot_rate
-                    )
+                    corrected_val = std_opt_dict["cost_vals"][i] + background / shot_rate
                     std_aggregate_data[i] += [corrected_val]
                 else:
                     std_aggregate_data[i] += [std_opt_dict["cost_vals"][i]]
@@ -363,9 +349,7 @@ def plot_step_size_dependence(
                     adam_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = (
-                        adam_opt_dict["cost_vals"][i] + background / shot_rate
-                    )
+                    corrected_val = adam_opt_dict["cost_vals"][i] + background / shot_rate
                     adam_aggregate_data[i] += [corrected_val]
                 else:
                     adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i]]

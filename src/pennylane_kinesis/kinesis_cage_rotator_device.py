@@ -366,12 +366,7 @@ class KinesisCageRotatorDevice(QubitDevice):
     def generate_samples(self):
         """Constructs a sequence of sampled data from the device.
         This data can be used to construct probability distributions and expectations.
-
-        Since our measurement only detects one polarization, we estimate the total number
-        of counts to construct the relative probability distribution.
         """
-
-        timeout = 5 * self.integration_time
 
         if self.test_mode:
             singles_array = [0, 0, 0, 0, int(self.shots / 2), int(self.shots / 2)]
@@ -379,12 +374,8 @@ class KinesisCageRotatorDevice(QubitDevice):
             v_counts = singles_array[self.ttag_channel_reflect]
         else:
             channels = []
-            start_time = time.perf_counter()
             iteration = 0
-            while (
-                len(channels) < self.shots
-                and time.perf_counter() - start_time < timeout
-            ):
+            while True:
                 time.sleep(self.integration_time)
                 iteration += 1
                 channels, _ = self.buffer(self.integration_time * iteration)
@@ -393,20 +384,11 @@ class KinesisCageRotatorDevice(QubitDevice):
                     channels == self.ttag_channel_reflect,
                 )
                 channels = channels[channel_filter]
-            if len(channels) < self.shots:
-                # if buffer did not fill up, warn user and compensate
-                print("Warning: buffer did not fill up in time")
-                h_counts = len(channels[channels == self.ttag_channel_transmit])
-                v_counts = len(channels[channels == self.ttag_channel_reflect])
-                missing_counts = self.shots - len(channels)
-                h_compensation = missing_counts * (h_counts // (h_counts + v_counts))
-                v_compensation = missing_counts - h_compensation
-                h_counts += h_compensation
-                v_counts += v_compensation
-            else:
-                channels = channels[: self.shots]
-                h_counts = len(channels[channels == self.ttag_channel_transmit])
-                v_counts = len(channels[channels == self.ttag_channel_reflect])
+                if len(channels) >= self.shots:
+                    break
+            channels = channels[: self.shots]  # truncate to desired number of shots
+            h_counts = len(channels[channels == self.ttag_channel_transmit])
+            v_counts = len(channels[channels == self.ttag_channel_reflect])
 
         print()
         print("Measured Singles:")
