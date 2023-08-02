@@ -38,16 +38,8 @@ if __name__ == "__main__":
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
-        [
-            qnetvo.MeasureNode(
-                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,

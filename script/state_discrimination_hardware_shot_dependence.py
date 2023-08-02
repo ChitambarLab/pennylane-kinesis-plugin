@@ -19,30 +19,26 @@ phi_period = qnp.pi
 period_array = qnp.array(
     [theta_period, theta_period, phi_period, phi_period, theta_period, phi_period]
 )
-filepath = "./data/state_discrimination_hardware_shot_dependence_old/numerics/"
-shot_rate = 100000
+filepath = "./data/state_discrimination_hardware_shot_dependence/"
+shot_rate = 120000
 
-shots_list = [10, 100, 1000, 10000, 100000] * 4
+shots_list = [100, 1000, 10000, 100000, 10] * 2
 # shots_list = [10000, 10, 1000, 100]
 # shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
 
 opt_dicts = []
 
 print("testing device setup")
-dev_test = qml.device(
-    "kinesis.cage.rotator", wires=[0], shots=1000, shot_rate=shot_rate
-)
+dev_test = qml.device("kinesis.cage.rotator", wires=[0], shots=1000, shot_rate=shot_rate)
 # dev_test = qml.device("kinesis.simulator", wires=[0], shots=1000, shot_rate=shot_rate)
-# print("testing device disconnect")
+print("testing device disconnect")
 dev_test.disconnect()
 
 for shots in shots_list:
     datetime_str = pk.datetime_now_string()
 
-    dev = qml.device(
-        "kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate
-    )
-    dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
+    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
+    # dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def circ(circ_settings):
@@ -79,7 +75,7 @@ for shots in shots_list:
 
     plt.semilogy(
         range(len(opt_dict["cost_vals"])),
-        opt_dict["cost_vals"] + 2,
+        qnp.array(opt_dict["cost_vals"]) + 2,
         label="shots = " + str(shots),
     )
 
