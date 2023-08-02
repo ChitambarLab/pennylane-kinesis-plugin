@@ -70,9 +70,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         # integration_time=1,
         test_mode=_TEST_MODE,
     ):
-        super().__init__(
-            wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic
-        )
+        super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
         self.wimp_mode = wimp_mode
         self.ttag_channel_transmit = ttag_channel_transmit
@@ -162,9 +160,7 @@ class KinesisCageRotatorDevice(QubitDevice):
                 print("----------------------------------------------")
                 i = 1
                 for device in devices:
-                    print(
-                        "Device " + str(i) + ": S/N " + device[0] + " Type " + device[1]
-                    )
+                    print("Device " + str(i) + ": S/N " + device[0] + " Type " + device[1])
                     i += 1
 
             return devices
@@ -218,12 +214,7 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             deviceInfo = device.get_device_info()
 
-            print(
-                deviceInfo.model_no
-                + " (S/N "
-                + str(deviceInfo.serial_no)
-                + ") is ready to use."
-            )
+            print(deviceInfo.model_no + " (S/N " + str(deviceInfo.serial_no) + ") is ready to use.")
             print()
 
             return device, deviceConfig
@@ -285,25 +276,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print(
-                "Moved device S/N "
-                + device["sn"]
-                + " to position "
-                + str(angle)
-                + "\u00B0"
-            )
+            print("Moved device S/N " + device["sn"] + " to position " + str(angle) + "\u00B0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_to(angle)  # Moves to position in degrees
             device.wait_for_stop()
-            print(
-                "Moved device S/N "
-                + device_sn
-                + " to position "
-                + str(angle)
-                + "\u00B0"
-            )
+            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
 
     def disconnect(self):
         """Disconnects all Kinesis devices."""
