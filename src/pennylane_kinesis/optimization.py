@@ -73,7 +73,6 @@ def optimize(
     :returns: Contains all optimization data.
     :rtype: dictionary
     """
-
     opt_dict = (
         init_opt_dict
         if init_opt_dict
@@ -103,7 +102,7 @@ def optimize(
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
             settings, cost_val = opt.step_and_cost(cost, settings)
-            if domain_periods:
+            if len(domain_periods) > 0:
                 settings = qnp.array(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,

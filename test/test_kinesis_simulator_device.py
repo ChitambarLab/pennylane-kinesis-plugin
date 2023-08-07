@@ -134,7 +134,7 @@ class TestKinesisSimulatorDevice:
 
         samples = circ(np.pi / 4)
 
-        assert len(samples) == 10312
+        assert len(samples) == 10000
         assert all([s == 0 or s == 1 for s in samples])
 
     @pytest.mark.parametrize(

@@ -80,9 +80,17 @@ class KinesisSimulatorDevice(QubitDevice):
 
         counts = np.random.poisson(self.shots) + self.background_counts
 
+        zero_background_counts = np.random.poisson(int(self.background_counts / 2))
+        one_background_counts = np.random.poisson(int(self.background_counts / 2))
+
+        detected_counts = self.shots - zero_background_counts - one_background_counts
+
+        zero_counts = min(int(p0 * detected_counts) + zero_background_counts, self.shots)
+        one_counts = self.shots - zero_counts
+
         return np.concatenate(
             (
-                np.ones((int((1 - p0) * counts), 1), dtype=int),
-                np.zeros((int(p0 * counts), 1), dtype=int),
+                np.ones((one_counts, 1), dtype=int),
+                np.zeros((zero_counts, 1), dtype=int),
             )
         )
