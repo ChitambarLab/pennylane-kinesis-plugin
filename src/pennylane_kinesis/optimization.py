@@ -102,7 +102,7 @@ def optimize(
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
             settings, cost_val = opt.step_and_cost(cost, settings)
-            if len(domain_periods) > 0:
+            if domain_periods:
                 settings = qnp.array(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
