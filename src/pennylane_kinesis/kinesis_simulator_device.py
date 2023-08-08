@@ -70,13 +70,14 @@ class KinesisSimulatorDevice(QubitDevice):
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
         for operation in all_ops:
-            if operation.name == "HWPRotStage" and self.hwp_domain_period:
-                print("HWP param: ", operation.parameters[0])
-                mat = qml.matrix(HWPRotStage)(
-                    np.mod(operation.parameters[0], self.hwp_domain_period), wires=[0]
+            if operation.name == "HWPRotStage":
+                angle = (
+                    np.mod(operation.parameters[0], self.hwp_domain_period)
+                    if self.hwp_domain_period
+                    else operation.parameters[0]
                 )
+                mat = qml.matrix(HWPRotStage)(angle, wires=[0])
             elif operation.name == "QWPRotStage":
-                print("QWP param: ", operation.parameters[0])
                 angle = (
                     np.mod(operation.parameters[0], self.qwp_domain_period)
                     if self.qwp_domain_period

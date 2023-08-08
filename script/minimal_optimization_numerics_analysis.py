@@ -9,21 +9,21 @@ import pennylane_kinesis as pk
 
 num_shots = 10000
 hwp_period = qnp.pi / 2
-qwp_period = qnp.pi / 2
+qwp_period = qnp.pi
 
 
-dev = qml.device(
-    "kinesis.simulator",
-    wires=[0],
-    shots=num_shots,
-    qwp_domain_period=qwp_period,
-    hwp_domain_period=hwp_period,
-)
+dev_kwargs = {
+    "name": "kinesis.simulator",
+    "shots": num_shots,
+    "background_counts": 0,
+    "qwp_domain_period": qwp_period,
+    "hwp_domain_period": hwp_period,
+}
 
 filepath = "./data/min_optimization_numerics_analysis/"
 
 
-scan_range = qnp.arange(0, qnp.pi, 1)
+scan_range = qnp.arange(0.25, 2 * qnp.pi, 2)
 
 
 def arb_unitary(settings, wires):
@@ -84,11 +84,7 @@ if __name__ == "__main__":
                     ],
                     # [qnetvo.MeasureNode(num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                     [qnetvo.MeasureNode(wires=[0], num_out=2)],
-                    dev_kwargs={
-                        "name": "kinesis.simulator",
-                        "shots": num_shots,
-                        "background_counts": 0,
-                    },
+                    dev_kwargs=dev_kwargs,
                 )
 
                 state_disc_opt_fn = optimize_ansatz_fn(
@@ -157,11 +153,7 @@ if __name__ == "__main__":
                             num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
                         )
                     ],
-                    dev_kwargs={
-                        "name": "kinesis.simulator",
-                        "shots": num_shots,
-                        "background_counts": 0,
-                    },
+                    dev_kwargs=dev_kwargs,
                 )
 
                 dim_wit_opt_fn = optimize_ansatz_fn(
@@ -236,11 +228,7 @@ if __name__ == "__main__":
                             num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
                         )
                     ],
-                    dev_kwargs={
-                        "name": "kinesis.simulator",
-                        "shots": num_shots,
-                        "background_counts": 0,
-                    },
+                    dev_kwargs=dev_kwargs,
                 )
 
                 rac_opt_fn = optimize_ansatz_fn(
