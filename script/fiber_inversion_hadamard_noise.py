@@ -7,10 +7,12 @@ import pennylane_kinesis as pk
 """This numerical script scans over the cost landscape to create a contour plot
 then performs a gradient descent from the peak.
 """
-
-dev = qml.device("kinesis.simulator", wires=[0], shots=10000)
 theta_period = qnp.pi / 2
-phi_period = qnp.pi
+phi_period = qnp.pi / 2
+dev = qml.device(
+    "kinesis.simulator", wires=[0], shots=10000
+)  # , qwp_domain_period = phi_period, hwp_domain_period=theta_period)
+
 filepath = "./data/fiber_inversion_hadamard_noise/"
 
 
@@ -23,6 +25,7 @@ def cost(settings):
     # fiber "noise"
     # qml.S(wires=dev.wires[0])
     qml.Hadamard(wires=dev.wires[0])
+    # qml.ArbitraryUnitary([0.5,0.6,0.7], wires=[0])
 
     return qml.expval(qml.Projector([1], wires=dev.wires[0]))
 
@@ -31,7 +34,7 @@ if __name__ == "__main__":
     datetime_str = pk.datetime_now_string()
 
     print("Running optimization from fixed initial settings.")
-    fixed_init_settings = qnp.array([qnp.pi / 3 + 0.1, qnp.pi / 4 + 0.1], requires_grad=True)
+    fixed_init_settings = qnp.array([qnp.pi / 3 + 0.2, qnp.pi / 2 - 0.001], requires_grad=True)
     opt_dict = pk.optimize(
         cost,
         fixed_init_settings,
@@ -40,6 +43,7 @@ if __name__ == "__main__":
         filepath=filepath,
         filename="fixed_init_optimize_" + datetime_str,
         domain_periods=[theta_period, phi_period],
+        shots=10000,
     )
 
     print("Scanning cost Landscape")
@@ -51,6 +55,7 @@ if __name__ == "__main__":
         phi_set,
         filename="cost_landscape_" + datetime_str,
         filepath=filepath,
+        shots=10000,
     )
 
     pk.plot_trajectory_on_cost_contour(

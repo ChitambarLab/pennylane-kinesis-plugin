@@ -8,9 +8,18 @@ from dask.distributed import Client
 import pennylane_kinesis as pk
 
 num_shots = 10000
-dev = qml.device("kinesis.simulator", wires=[0], shots=num_shots)
 hwp_period = qnp.pi / 2
 qwp_period = qnp.pi / 2
+
+
+dev = qml.device(
+    "kinesis.simulator",
+    wires=[0],
+    shots=num_shots,
+    qwp_domain_period=qwp_period,
+    hwp_domain_period=hwp_period,
+)
+
 filepath = "./data/min_optimization_numerics_analysis/"
 
 
