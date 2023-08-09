@@ -264,7 +264,7 @@ def plot_shot_dependence(
             alpha=3 / 4,
             label="shots = " + str(shots),
             color=color,
-            linestyle="--",
+            linestyle="-",
         )
         ax.fill_between(
             range(len(mean_cost_vals)),
@@ -273,12 +273,12 @@ def plot_shot_dependence(
             alpha=1 / 4,
             color=color,
         )
-        ax.semilogy(
-            range(len(min_cost_vals)),
-            min_cost_vals,
-            linestyle="-",
-            color=color,
-        )
+        # ax.semilogy(
+        #     range(len(min_cost_vals)),
+        #     min_cost_vals,
+        #     linestyle="-",
+        #     color=color,
+        # )
 
         color_id += 1
 
@@ -315,7 +315,7 @@ def plot_step_size_dependence(
         fontsize=14,
     )
     ax.set_xlabel("Gradient Descent Step")
-    ax.set_ylabel("Percent Incident Photons Detected (Cost)")
+    ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
     c_id = 0
     for step_size in step_size_list:
@@ -337,10 +337,10 @@ def plot_step_size_dependence(
                     std_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = std_opt_dict["cost_vals"][i] + background / shot_rate
+                    corrected_val = std_opt_dict["cost_vals"][i] + 2 + background / shot_rate
                     std_aggregate_data[i] += [corrected_val]
                 else:
-                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i]]
+                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:
@@ -349,10 +349,10 @@ def plot_step_size_dependence(
                     adam_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = adam_opt_dict["cost_vals"][i] + background / shot_rate
+                    corrected_val = adam_opt_dict["cost_vals"][i] + 2 + background / shot_rate
                     adam_aggregate_data[i] += [corrected_val]
                 else:
-                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i]]
+                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i] + 2]
 
         std_mean_cost_vals = []
         std_std_err_cost_vals = []

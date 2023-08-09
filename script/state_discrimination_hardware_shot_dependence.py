@@ -22,14 +22,16 @@ period_array = qnp.array(
 filepath = "./data/state_discrimination_hardware_shot_dependence/"
 shot_rate = 120000
 
-shots_list = [100, 1000, 10000, 100000, 10] * 2
+shots_list = [10, 10000, 100000, 100, 1000]
 # shots_list = [10000, 10, 1000, 100]
 # shots_list = [10, 35, 100, 350, 1000, 3500, 10000]
 
 opt_dicts = []
 
 print("testing device setup")
-dev_test = qml.device("kinesis.cage.rotator", wires=[0], shots=1000, shot_rate=shot_rate)
+dev_test = qml.device(
+    "kinesis.cage.rotator", wires=[0], shots=1000, shot_rate=shot_rate
+)
 # dev_test = qml.device("kinesis.simulator", wires=[0], shots=1000, shot_rate=shot_rate)
 print("testing device disconnect")
 dev_test.disconnect()
@@ -37,7 +39,9 @@ dev_test.disconnect()
 for shots in shots_list:
     datetime_str = pk.datetime_now_string()
 
-    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
+    dev = qml.device(
+        "kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate
+    )
     # dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")

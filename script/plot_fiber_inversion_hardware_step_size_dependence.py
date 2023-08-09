@@ -5,10 +5,10 @@ dependent upon the optimization step size. Data for this plot is obtained numeri
 using the `./script/fiber_inversion_hardware_step_size_dependence.py` script.
 """
 
-filepath = "./data/fiber_inversion_hardware_step_size_dependence/"
-step_size_list = [0.2, 0.15, 0.1, 0.05]
+filepath = "./data/state_discrimination_hardware_step_size_dependence/numerics/two_wp/"
+step_size_list = [0.5, 0.2, 0.1, 0.05, 0.01]
 plot_filename = "step_size_dependence_numerics"
 
 pk.plot_step_size_dependence(
-    filepath, step_size_list, plot_filename, background=240, shot_rate=85000
+    filepath, step_size_list, plot_filename, background=4, shot_rate=100000
 )
