@@ -30,7 +30,9 @@ opt_dicts = []
 for step_size in step_size_list:
     datetime_str = pk.datetime_now_string()
 
-    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
+    dev = qml.device(
+        "kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate
+    )
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):
@@ -40,8 +42,12 @@ for step_size in step_size_list:
 
         return qml.expval(qml.Projector([1], wires=dev.wires[0]))
 
-    step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-    init_settings = qnp.random.rand(2, requires_grad=True) * qnp.array([theta_period, phi_period])
+    step_size_filepath = (
+        filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
+    )
+    init_settings = qnp.random.rand(2, requires_grad=True) * qnp.array(
+        [theta_period, phi_period]
+    )
 
     print("Running optimization for step_size ", step_size)
     opt_dict = pk.optimize(
