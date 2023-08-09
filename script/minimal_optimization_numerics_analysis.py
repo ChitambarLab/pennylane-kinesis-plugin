@@ -52,76 +52,228 @@ if __name__ == "__main__":
     n_workers = 4
     client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
+    # """
+    # optimizing state discrimination
+    # """
+    # state_disc_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
+
+    # state_disc_opt_kwargs = {
+    #     "step_size": 0.07,
+    #     "num_steps": 30,
+    #     "verbose": False,
+    # }
+
+    # for i, alpha in enumerate(scan_range):
+    #     for j, beta in enumerate(scan_range):
+    #         for k, gamma in enumerate(scan_range):
+    #             print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
+
+    #             state_disc_ansatz = qnetvo.NetworkAnsatz(
+    #                 [
+    #                     qnetvo.PrepareNode(
+    #                         num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+    #                     )
+    #                 ],
+    #                 [
+    #                     qnetvo.NoiseNode(
+    #                         wires=[0],
+    #                         ansatz_fn=lambda settings, wires: qml.ArbitraryUnitary(
+    #                             [alpha, beta, gamma], wires=[wires[0]]
+    #                         ),
+    #                     )
+    #                 ],
+    #                 # [qnetvo.MeasureNode(num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+    #                 [qnetvo.MeasureNode(wires=[0], num_out=2)],
+    #                 dev_kwargs=dev_kwargs,
+    #             )
+
+    #             state_disc_opt_fn = optimize_ansatz_fn(
+    #                 state_disc_ansatz,
+    #                 qnp.eye(2),
+    #                 [hwp_period, qwp_period] * 3,
+    #                 **state_disc_opt_kwargs,
+    #             )
+
+    #             state_disc_opt_jobs = client.map(state_disc_opt_fn, range(n_workers))
+    #             state_disc_opt_dicts = client.gather(state_disc_opt_jobs)
+
+    #             for opt_dict in state_disc_opt_dicts:
+    #                 if state_disc_min_costs[i, j, k] > opt_dict["min_cost"]:
+    #                     state_disc_min_costs[i, j, k] = opt_dict["min_cost"]
+
+    #             print("state disc min cost: ", state_disc_min_costs[i, j, k])
+    #             print("state disc cost vals : ", state_disc_opt_dicts[0]["cost_vals"])
+
+    # pk.write_json(
+    #     {
+    #         "scan_range": scan_range.tolist(),
+    #         "min_costs": state_disc_min_costs.tolist(),
+    #         "opt_kwargs": state_disc_opt_kwargs,
+    #         "shots": num_shots,
+    #         "qwp_domain_period": qwp_period,
+    #     },
+    #     filepath + "twostate_discrimination/" + pk.datetime_now_string(),
+    # )
+
+    # """
+    # optimizing dimensionality witnessing
+    # """
+    # client.restart()
+
+    # dim_wit_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
+    # dim_wit_opt_kwargs = {
+    #     "step_size": 0.03,
+    #     "num_steps": 40,
+    #     "verbose": False,
+    # }
+
+    # for i, alpha in enumerate(scan_range):
+    #     for j, beta in enumerate(scan_range):
+    #         for k, gamma in enumerate(scan_range):
+    #             print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
+
+    #             dim_wit_ansatz = qnetvo.NetworkAnsatz(
+    #                 [
+    #                     qnetvo.PrepareNode(
+    #                         num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+    #                     )
+    #                 ],
+    #                 # [qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
+    #                 [
+    #                     qnetvo.NoiseNode(
+    #                         wires=[0],
+    #                         ansatz_fn=lambda settings, wires: qml.ArbitraryUnitary(
+    #                             [alpha, beta, gamma], wires=[wires[0]]
+    #                         ),
+    #                     )
+    #                 ],
+    #                 # [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+    #                 [
+    #                     qnetvo.MeasureNode(
+    #                         num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
+    #                     )
+    #                 ],
+    #                 dev_kwargs=dev_kwargs,
+    #             )
+
+    #             dim_wit_opt_fn = optimize_ansatz_fn(
+    #                 dim_wit_ansatz,
+    #                 qnp.array(
+    #                     [
+    #                         [1, 1, 1, -1, -1, 0],
+    #                         [-1, -1, -1, 1, 1, 0],
+    #                     ]
+    #                 ),
+    #                 [hwp_period, qwp_period] * 3 + [hwp_period] * 2,
+    #                 **dim_wit_opt_kwargs,
+    #             )
+
+    #             dim_wit_opt_jobs = client.map(dim_wit_opt_fn, range(n_workers))
+    #             dim_wit_opt_dicts = client.gather(dim_wit_opt_jobs)
+
+    #             for opt_dict in dim_wit_opt_dicts:
+    #                 if dim_wit_min_costs[i, j, k] > opt_dict["min_cost"]:
+    #                     dim_wit_min_costs[i, j, k] = opt_dict["min_cost"]
+
+    #             print("min cost: ", dim_wit_min_costs[i, j, k])
+    #             print("cos vals : ", dim_wit_opt_dicts[0]["cost_vals"])
+
+    # pk.write_json(
+    #     {
+    #         "scan_range": scan_range.tolist(),
+    #         "min_costs": dim_wit_min_costs.tolist(),
+    #         "opt_kwargs": dim_wit_opt_kwargs,
+    #         "shots": num_shots,
+    #         "qwp_domain_period": qwp_period,
+    #     },
+    #     filepath + "dimensionality_witnessing/" + pk.datetime_now_string(),
+    # )
+
+    # """
+    # optimizing 4-2 random access coding
+    # """
+    # client.restart()
+
+    # rac_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
+
+    # rac_opt_kwargs = {
+    #     "step_size": 0.05,
+    #     "num_steps": 40,
+    #     "verbose": False,
+    # }
+
+    # for i, alpha in enumerate(scan_range):
+    #     for j, beta in enumerate(scan_range):
+    #         for k, gamma in enumerate(scan_range):
+    #             print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
+
+    #             rac_ansatz = qnetvo.NetworkAnsatz(
+    #                 [
+    #                     qnetvo.PrepareNode(
+    #                         num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+    #                     )
+    #                 ],
+    #                 # [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
+    #                 [
+    #                     qnetvo.NoiseNode(
+    #                         wires=[0],
+    #                         ansatz_fn=lambda settings, wires: qml.ArbitraryUnitary(
+    #                             [alpha, beta, gamma], wires=[wires[0]]
+    #                         ),
+    #                     )
+    #                 ],
+    #                 # [qnetvo.MeasureNode(num_out=2, num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+    #                 [
+    #                     qnetvo.MeasureNode(
+    #                         num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
+    #                     )
+    #                 ],
+    #                 dev_kwargs=dev_kwargs,
+    #             )
+
+    #             rac_opt_fn = optimize_ansatz_fn(
+    #                 rac_ansatz,
+    #                 qnp.array(
+    #                     [
+    #                         [1, 0, 0, 1, 1, 1, 0, 0],
+    #                         [0, 1, 1, 0, 0, 0, 1, 1],
+    #                     ]
+    #                 ),
+    #                 [hwp_period, qwp_period] * 4 + [hwp_period] * 2,
+    #                 **rac_opt_kwargs,
+    #             )
+
+    #             rac_opt_jobs = client.map(rac_opt_fn, range(n_workers))
+    #             rac_opt_dicts = client.gather(rac_opt_jobs)
+
+    #             for opt_dict in rac_opt_dicts:
+    #                 if rac_min_costs[i, j, k] > opt_dict["min_cost"]:
+    #                     rac_min_costs[i, j, k] = opt_dict["min_cost"]
+
+    #             print("min cost: ", rac_min_costs[i, j, k])
+    #             print("cost vals : ", rac_opt_dicts[0]["cost_vals"])
+
+    # pk.write_json(
+    #     {
+    #         "scan_range": scan_range.tolist(),
+    #         "min_costs": rac_min_costs.tolist(),
+    #         "opt_kwargs": rac_opt_kwargs,
+    #         "shots": num_shots,
+    #         "qwp_domain_period": qwp_period,
+    #     },
+    #     filepath + "random_access_coding/" + pk.datetime_now_string(),
+    # )
+
+    # print(rac_min_costs)
+
     """
-    optimizing state discrimination
-    """
-    state_disc_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
-
-    state_disc_opt_kwargs = {
-        "step_size": 0.07,
-        "num_steps": 30,
-        "verbose": False,
-    }
-
-    for i, alpha in enumerate(scan_range):
-        for j, beta in enumerate(scan_range):
-            for k, gamma in enumerate(scan_range):
-                print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
-
-                state_disc_ansatz = qnetvo.NetworkAnsatz(
-                    [
-                        qnetvo.PrepareNode(
-                            num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                        )
-                    ],
-                    [
-                        qnetvo.NoiseNode(
-                            wires=[0],
-                            ansatz_fn=lambda settings, wires: qml.ArbitraryUnitary(
-                                [alpha, beta, gamma], wires=[wires[0]]
-                            ),
-                        )
-                    ],
-                    # [qnetvo.MeasureNode(num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                    [qnetvo.MeasureNode(wires=[0], num_out=2)],
-                    dev_kwargs=dev_kwargs,
-                )
-
-                state_disc_opt_fn = optimize_ansatz_fn(
-                    state_disc_ansatz,
-                    qnp.eye(2),
-                    [hwp_period, qwp_period] * 3,
-                    **state_disc_opt_kwargs,
-                )
-
-                state_disc_opt_jobs = client.map(state_disc_opt_fn, range(n_workers))
-                state_disc_opt_dicts = client.gather(state_disc_opt_jobs)
-
-                for opt_dict in state_disc_opt_dicts:
-                    if state_disc_min_costs[i, j, k] > opt_dict["min_cost"]:
-                        state_disc_min_costs[i, j, k] = opt_dict["min_cost"]
-
-                print("state disc min cost: ", state_disc_min_costs[i, j, k])
-                print("state disc cost vals : ", state_disc_opt_dicts[0]["cost_vals"])
-
-    pk.write_json(
-        {
-            "scan_range": scan_range.tolist(),
-            "min_costs": state_disc_min_costs.tolist(),
-            "opt_kwargs": state_disc_opt_kwargs,
-            "shots": num_shots,
-            "qwp_domain_period": qwp_period,
-        },
-        filepath + "twostate_discrimination/" + pk.datetime_now_string(),
-    )
-
-    """
-    optimizing dimensionality witnessing
+    optimizing 8-2 random access coding
     """
     client.restart()
 
-    dim_wit_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
-    dim_wit_opt_kwargs = {
+    rac2_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
+
+    rac2_opt_kwargs = {
         "step_size": 0.03,
         "num_steps": 40,
         "verbose": False,
@@ -132,13 +284,12 @@ if __name__ == "__main__":
             for k, gamma in enumerate(scan_range):
                 print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
 
-                dim_wit_ansatz = qnetvo.NetworkAnsatz(
+                rac2_ansatz = qnetvo.NetworkAnsatz(
                     [
                         qnetvo.PrepareNode(
-                            num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+                            num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2
                         )
                     ],
-                    # [qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
                     [
                         qnetvo.NoiseNode(
                             wires=[0],
@@ -147,121 +298,95 @@ if __name__ == "__main__":
                             ),
                         )
                     ],
-                    # [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                     [
                         qnetvo.MeasureNode(
-                            num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
+                            num_out=2, num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
                         )
                     ],
                     dev_kwargs=dev_kwargs,
                 )
 
-                dim_wit_opt_fn = optimize_ansatz_fn(
-                    dim_wit_ansatz,
+                rac2_opt_fn = optimize_ansatz_fn(
+                    rac2_ansatz,
                     qnp.array(
                         [
-                            [1, 1, 1, -1, -1, 0],
-                            [-1, -1, -1, 1, 1, 0],
+                            [
+                                1,
+                                1,
+                                1,
+                                1,
+                                1,
+                                0,
+                                1,
+                                0,
+                                1,
+                                1,
+                                0,
+                                0,
+                                0,
+                                1,
+                                1,
+                                0,
+                                1,
+                                0,
+                                0,
+                                0,
+                                1,
+                                0,
+                                0,
+                                0,
+                            ],
+                            [
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                1,
+                                0,
+                                1,
+                                0,
+                                0,
+                                1,
+                                1,
+                                1,
+                                0,
+                                0,
+                                1,
+                                0,
+                                1,
+                                1,
+                                1,
+                                0,
+                                1,
+                                1,
+                                1,
+                            ],
                         ]
                     ),
-                    [hwp_period, qwp_period] * 3 + [hwp_period] * 2,
-                    **dim_wit_opt_kwargs,
+                    [hwp_period, qwp_period] * 8 + [hwp_period, qwp_period] * 3,
+                    **rac2_opt_kwargs,
                 )
 
-                dim_wit_opt_jobs = client.map(dim_wit_opt_fn, range(n_workers))
-                dim_wit_opt_dicts = client.gather(dim_wit_opt_jobs)
+                rac2_opt_jobs = client.map(rac2_opt_fn, range(n_workers))
+                rac2_opt_dicts = client.gather(rac2_opt_jobs)
 
-                for opt_dict in dim_wit_opt_dicts:
-                    if dim_wit_min_costs[i, j, k] > opt_dict["min_cost"]:
-                        dim_wit_min_costs[i, j, k] = opt_dict["min_cost"]
+                for opt_dict in rac2_opt_dicts:
+                    if rac2_min_costs[i, j, k] > opt_dict["min_cost"]:
+                        rac2_min_costs[i, j, k] = opt_dict["min_cost"]
 
-                print("min cost: ", dim_wit_min_costs[i, j, k])
-                print("cos vals : ", dim_wit_opt_dicts[0]["cost_vals"])
+                print("min cost: ", rac2_min_costs[i, j, k])
+                print("cost vals : ", rac2_opt_dicts[0]["cost_vals"])
 
     pk.write_json(
         {
             "scan_range": scan_range.tolist(),
-            "min_costs": dim_wit_min_costs.tolist(),
-            "opt_kwargs": dim_wit_opt_kwargs,
+            "min_costs": rac2_min_costs.tolist(),
+            "opt_kwargs": rac2_opt_kwargs,
             "shots": num_shots,
             "qwp_domain_period": qwp_period,
         },
-        filepath + "dimensionality_witnessing/" + pk.datetime_now_string(),
+        filepath + "random_access_coding2/" + pk.datetime_now_string(),
     )
 
-    """
-    optimizing random access coding
-    """
-    client.restart()
-
-    rac_min_costs = qnp.zeros((len(scan_range), len(scan_range), len(scan_range)))
-
-    rac_opt_kwargs = {
-        "step_size": 0.05,
-        "num_steps": 40,
-        "verbose": False,
-    }
-
-    for i, alpha in enumerate(scan_range):
-        for j, beta in enumerate(scan_range):
-            for k, gamma in enumerate(scan_range):
-                print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
-
-                rac_ansatz = qnetvo.NetworkAnsatz(
-                    [
-                        qnetvo.PrepareNode(
-                            num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                        )
-                    ],
-                    # [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
-                    [
-                        qnetvo.NoiseNode(
-                            wires=[0],
-                            ansatz_fn=lambda settings, wires: qml.ArbitraryUnitary(
-                                [alpha, beta, gamma], wires=[wires[0]]
-                            ),
-                        )
-                    ],
-                    # [qnetvo.MeasureNode(num_out=2, num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                    [
-                        qnetvo.MeasureNode(
-                            num_out=2, num_in=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
-                        )
-                    ],
-                    dev_kwargs=dev_kwargs,
-                )
-
-                rac_opt_fn = optimize_ansatz_fn(
-                    rac_ansatz,
-                    qnp.array(
-                        [
-                            [1, 0, 0, 1, 1, 1, 0, 0],
-                            [0, 1, 1, 0, 0, 0, 1, 1],
-                        ]
-                    ),
-                    [hwp_period, qwp_period] * 4 + [hwp_period] * 2,
-                    **rac_opt_kwargs,
-                )
-
-                rac_opt_jobs = client.map(rac_opt_fn, range(n_workers))
-                rac_opt_dicts = client.gather(rac_opt_jobs)
-
-                for opt_dict in rac_opt_dicts:
-                    if rac_min_costs[i, j, k] > opt_dict["min_cost"]:
-                        rac_min_costs[i, j, k] = opt_dict["min_cost"]
-
-                print("min cost: ", rac_min_costs[i, j, k])
-                print("cost vals : ", rac_opt_dicts[0]["cost_vals"])
-
-    pk.write_json(
-        {
-            "scan_range": scan_range.tolist(),
-            "min_costs": rac_min_costs.tolist(),
-            "opt_kwargs": rac_opt_kwargs,
-            "shots": num_shots,
-            "qwp_domain_period": qwp_period,
-        },
-        filepath + "random_access_coding/" + pk.datetime_now_string(),
-    )
-
-    print(rac_min_costs)
+    print(rac2_min_costs)
