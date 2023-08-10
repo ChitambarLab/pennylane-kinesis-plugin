@@ -9,12 +9,7 @@ def datetime_now_string():
 
 
 def tmp_dir(filepath):
-    tmp_path = filepath + "tmp/"
-    # if not os.path.isdir(tmp_path):
-    #     os.mkdir(tmp_path)
-    make_dir(tmp_path)
-
-    return tmp_path
+    return make_dir(filepath + "tmp/")
 
 
 def make_dir(filepath):
