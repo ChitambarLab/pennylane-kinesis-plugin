@@ -174,6 +174,58 @@ class TestOptimization:
         assert opt_dict["step_size"] == 0.6
         assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$", opt_dict["datetime"])
 
+    @pytest.mark.parametrize("proj_state", [1, 0])
+    def test_test_cost_argument(self, tmp_dir_cleanup, cost, proj_state):
+        tmp_dir = pk.tmp_dir("./test/")
+        filename = "test_test_cost_argument"
+
+        # the eval cost uses fewer shots to distinguish itself from the grad cost
+        dev2 = qml.device("kinesis.simulator", shots=100, wires=[0], seed=2, background_counts=0)
+
+        # test the eval cost as projecting on to the 0/1 state
+        @qml.qnode(dev2, diff_method="parameter-shift")
+        def eval_cost(settings):
+            pk.HWPRotStage(settings[0], wires=dev2.wires[0])
+            pk.QWPRotStage(settings[1], wires=dev2.wires[0])
+
+            return qml.expval(qml.Projector([proj_state], wires=dev2.wires[0]))
+
+        # init settings shifted slightly to facilitate better optimization results
+        init_settings = qnp.array([qnp.pi / 4 - 0.0001, qnp.pi / 2 - 0.0001], requires_grad=True)
+
+        opt_dict = pk.optimize(
+            cost,
+            init_settings,
+            num_steps=10,
+            step_size=0.2,
+            filepath=tmp_dir,
+            filename=filename,
+            eval_cost=eval_cost,
+            verbose=False,
+        )
+
+        match_cost_vals = qnp.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.96, 0.64, 0.12, 0.07])
+        if not proj_state:
+            match_cost_vals = 1 - match_cost_vals
+
+        assert np.allclose(opt_dict["cost_vals"], match_cost_vals)
+        assert np.allclose(
+            opt_dict["settings_history"],
+            [
+                [0.7852981633974483, 1.5706963267948966],
+                [0.7854181633974483, 1.5709431897099067],
+                [0.7851781633974483, 1.5713276262180456],
+                [0.7846981633974482, 1.5720231897099066],
+                [0.7829381633974483, 1.5734407633030354],
+                [0.7774581633974482, 1.5777421846592727],
+                [0.7597781633974482, 1.5892476262180457],
+                [0.7050981633974481, 1.6242690475742831],
+                [0.5416581633974481, 1.725166621167412],
+                [0.17909816339744794, 1.923070052624917],
+                [0.17533816339744795, 1.7963110576755508],
+            ],
+        )
+
 
 class TestScanTwoParamFn:
     def test_scan_two_param_fn_simple(self, tmp_dir_cleanup):
