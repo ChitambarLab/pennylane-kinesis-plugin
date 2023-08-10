@@ -2,13 +2,13 @@ import pennylane as qml
 from pennylane import numpy as qnp
 from matplotlib import pyplot as plt
 import qnetvo
+import sys
 
 import pennylane_kinesis as pk
 
 """This script is intended to run on hardware. Its goal is to optimize the 3-bit random access coding task.
 
-NOTE: Before running script make sure to uncomment the appropriate `subdir` ("numerics" or "hardware") and
-make sure to uncomment the appropriate `dev_kwargs` (hdw_dev_kwargs or sim_dev_kwargs).
+To run on simulator use: `python script/rac_3bit_hardware.py numerics`
 """
 
 theta_period = qnp.pi / 2
@@ -18,21 +18,21 @@ shots = 10000
 
 dir = pk.make_dir("./data/rac_3bit/")
 
-subdir = "hardware/"
-dev_kwargs = {
-    "name": "kinesis.cage.rotator",
-    "shots": shots,
-    "shot_rate": shot_rate,
-}
-
-# NOTE: Uncomment to run on Simulator
-subdir = "numerics/"
-dev_kwargs = {
-    "name": "kinesis.simulator",
-    "shots": shots,
-    "qwp_domain_period": phi_period,
-    "hwp_domain_period": theta_period,
-}
+if sys.argv[1] == "numerics":
+    subdir = "numerics/"
+    dev_kwargs = {
+        "name": "kinesis.simulator",
+        "shots": shots,
+        "qwp_domain_period": phi_period,
+        "hwp_domain_period": theta_period,
+    }
+else:
+    subdir = "hardware/"
+    dev_kwargs = {
+        "name": "kinesis.cage.rotator",
+        "shots": shots,
+        "shot_rate": shot_rate,
+    }
 
 filepath = pk.make_dir(dir + subdir)
 
