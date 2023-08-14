@@ -8,8 +8,10 @@ import pennylane_kinesis as pk
 
 
 def _setup_device(interface, wimp_mode):
+    motors = pk.KinesisMotors(test_mode=True)
     dev_kwargs = {
         "shots": 500,
+        "motors": motors,
         "shot_rate": 1000,
         "wires": [0],
         "test_mode": True,
@@ -71,10 +73,10 @@ class TestKinesisSimulatorDevice:
         assert dev.b_hwp_off == 178.8
         assert dev.b_qwp_off == 99.1
 
-        assert dev.dev_a_hwp["sn"] == "27501110"
-        assert dev.dev_a_qwp["sn"] == "27002915"
-        assert dev.dev_b_hwp["sn"] == "27252048"
-        assert dev.dev_b_qwp["sn"] == "27501224"
+        assert dev.dev_a_hwp == "27501110"
+        assert dev.dev_a_qwp == "27002915"
+        assert dev.dev_b_hwp == "27252048"
+        assert dev.dev_b_qwp == "27501224"
 
         assert dev.a_hwp_config["device_vel"] == 5 if wimp_mode else 10
         assert dev.a_qwp_config["device_vel"] == 5 if wimp_mode else 10
