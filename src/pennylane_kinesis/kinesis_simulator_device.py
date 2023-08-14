@@ -22,7 +22,16 @@ class KinesisSimulatorDevice(QubitDevice):
     version = __version__
     author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
 
-    operations = {"PauliZ", "PhaseShift", "RX", "RY", "RZ", "S", "HWPRotStage", "QWPRotStage"}
+    operations = {
+        "PauliZ",
+        "PhaseShift",
+        "RX",
+        "RY",
+        "RZ",
+        "S",
+        "HWPRotStage",
+        "QWPRotStage",
+    }
     observables = {"Projector", "Identity", "PauliZ"}
 
     incidence_rate = 100000
