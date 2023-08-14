@@ -24,6 +24,47 @@ except BaseException as ex:
     print("setting `_TEST_MODE=True`")
 
 
+from pylablib.devices import Thorlabs
+
+
+class KinesisMotors:
+    """Connect and control kinesis motors for the Cage Rotator Device."""
+
+    def __init__(self, test_mode=_TEST_MODE):
+        self.read_config()
+        if test_mode:
+            self.prep_hwp = self.prep_hwp_sn
+            self.prep_qwp = self.prep_qwp_sn
+            self.meas_hwp = self.meas_hwp_sn
+            self.meas_qwp = self.meas_qwp_sn
+            return
+        self.prep_hwp = Thorlabs.KinesisMotor(self.prep_hwp_sn, scale="stage")
+        self.prep_qwp = Thorlabs.KinesisMotor(self.prep_qwp_sn, scale="stage")
+        self.meas_hwp = Thorlabs.KinesisMotor(self.meas_hwp_sn, scale="stage")
+        self.meas_qwp = Thorlabs.KinesisMotor(self.meas_qwp_sn, scale="stage")
+
+    def read_config(self):
+        """Read the configuration file and set the motor serial numbers."""
+        config_file = "./src/pennylane_kinesis/2023_07_10_michael_wp_config.txt"
+
+        with open(config_file) as f:
+            config_lines = f.readlines()
+
+        wp_details = [["" for j in range(4)] for i in range(5)]
+
+        for i in range(5):
+            entries = config_lines[i].split("\t")
+            wp_details[i][0] = entries[0]
+            wp_details[i][1] = entries[1]
+            wp_details[i][2] = entries[2]
+            wp_details[i][3] = entries[3][:-1]  # remove newline at end of line
+
+        self.prep_hwp_sn = wp_details[1][1]
+        self.prep_qwp_sn = wp_details[2][1]
+        self.meas_hwp_sn = wp_details[3][1]
+        self.meas_qwp_sn = wp_details[4][1]
+
+
 class KinesisCageRotatorDevice(QubitDevice):
     """A PennyLane plugin device for integrating with Kinesis Cage Rotational Stages.
 
@@ -32,6 +73,9 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     :param wires: A single qubit wire, should be set as ``[0]``.
     :type wires: list[int]
+
+    :param motors: A dataclass containing the connections to all motors.
+    :type motors: KinesisMotors
 
     :param shots: The number shots desired for the experiment.
     :type shots: int
@@ -58,6 +102,7 @@ class KinesisCageRotatorDevice(QubitDevice):
     def __init__(
         self,
         wires,
+        motors: KinesisMotors,
         shots=1000,
         *,
         r_dtype=np.float64,
@@ -124,12 +169,16 @@ class KinesisCageRotatorDevice(QubitDevice):
         self.b_qwp_off = float(wp_details[4][2])
 
         # a waveplates are 1550
-        self.dev_a_hwp, self.a_hwp_config = self.device_setup(self.a_hwp_sn)
-        self.dev_a_qwp, self.a_qwp_config = self.device_setup(self.a_qwp_sn)
+        self.dev_a_hwp = motors.prep_hwp
+        self.dev_a_qwp = motors.prep_qwp
+        self.a_hwp_config = self.device_setup(self.dev_a_hwp)
+        self.a_qwp_config = self.device_setup(self.dev_a_qwp)
 
         # b waveplates are 810
-        self.dev_b_hwp, self.b_hwp_config = self.device_setup(self.b_hwp_sn)
-        self.dev_b_qwp, self.b_qwp_config = self.device_setup(self.b_qwp_sn)
+        self.dev_b_hwp = motors.meas_hwp
+        self.dev_b_qwp = motors.meas_qwp
+        self.b_hwp_config = self.device_setup(self.dev_b_hwp)
+        self.b_qwp_config = self.device_setup(self.dev_b_qwp)
 
         # Home all a devices
         print("Homing all devices...")
@@ -165,14 +214,14 @@ class KinesisCageRotatorDevice(QubitDevice):
 
             return devices
 
-    def device_setup(self, SN):
-        """Connect and initialize device with S/N ``SN``.
+    def device_setup(self, device: Thorlabs.KinesisMotor):
+        """Set device parameters and get configuration information.
 
-        :param SN: Device serial number.
-        :type SN: string
+        :param device: Device connection.
+        :type device: KenisisMotor
 
-        :returns: A CageRotator Object and configuration information.
-        :rtype: tuple
+        :returns: Configuration information.
+        :rtype: dict
         """
         # Set velocity
         # If waveplates are unreliable, can set velocity at near half to keep
@@ -184,15 +233,8 @@ class KinesisCageRotatorDevice(QubitDevice):
             deviceVel = 25
 
         if self.test_mode:
-            return {"sn": SN}, {"device_vel": deviceVel}
+            return {"device_vel": deviceVel}
         else:
-            # Create CageRotator and connect to it
-            try:
-                device = Thorlabs.KinesisMotor(SN, scale="stage")
-                print("Connected to device S/N " + SN)
-            except:
-                print("Failed to connect device S/N " + SN)
-
             velocity_parameters = device.get_velocity_parameters()
             updated_velocity_parameters = (
                 velocity_parameters.min_velocity,
@@ -217,7 +259,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             print(deviceInfo.model_no + " (S/N " + str(deviceInfo.serial_no) + ") is ready to use.")
             print()
 
-            return device, deviceConfig
+            return deviceConfig
 
     def detector_setup(self):
         """Initializes the time-tagger buffer."""
@@ -276,7 +318,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device["sn"] + " to position " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device + " to position " + str(angle) + "\u00B0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
