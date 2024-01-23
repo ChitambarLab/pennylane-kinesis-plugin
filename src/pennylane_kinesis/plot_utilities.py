@@ -63,7 +63,12 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
         marker="o",
     )
 
-    ax1.plot(theta_settings[0] * 180 / np.pi, phi_settings[0] * 180 / np.pi, "rx", markersize=8)
+    ax1.plot(
+        theta_settings[0] * 180 / np.pi,
+        phi_settings[0] * 180 / np.pi,
+        "rx",
+        markersize=8,
+    )
     ax1.plot(
         theta_settings[-1] * 180 / np.pi,
         phi_settings[-1] * 180 / np.pi,
@@ -72,7 +77,13 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
         linestyle="",
         markersize=8,
     )
-    ax2.plot(0, opt_dict["cost_vals"][0] * opt_shots, "rx", markersize=8, label="Starting Point")
+    ax2.plot(
+        0,
+        opt_dict["cost_vals"][0] * opt_shots,
+        "rx",
+        markersize=8,
+        label="Starting Point",
+    )
     ax2.plot(
         len(opt_dict["cost_vals"]) - 1,
         opt_dict["cost_vals"][-1] * opt_shots,
@@ -85,7 +96,12 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
 
     if background_shots:
         num_iter = len(opt_dict["cost_vals"])
-        ax2.plot(range(num_iter), [background_shots] * num_iter, label="Background", linestyle="--")
+        ax2.plot(
+            range(num_iter),
+            [background_shots] * num_iter,
+            label="Background",
+            linestyle="--",
+        )
 
     ax2.grid()
     ax2.set_ylabel("Photon Counts (Cost)", fontsize=label_size)
@@ -106,7 +122,9 @@ def plot_shot_dependence_comparison(
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.suptitle(
-        "Number of Shots Vs.\nGradient Descent Performance", fontweight="bold", fontsize=20
+        "Number of Shots Vs.\nGradient Descent Performance",
+        fontweight="bold",
+        fontsize=20,
     )
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Photon Count Extinction Rate (Cost)")
@@ -194,14 +212,19 @@ def plot_shot_dependence_comparison(
 
 
 def plot_shot_dependence(
-    filepath, shots_list, plot_filename, background=None, shot_rate=None, add_background=False
+    filepath,
+    shots_list,
+    plot_filename,
+    background=None,
+    shot_rate=None,
+    add_background=False,
 ):
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.suptitle("Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20)
     ax.set_xlabel("Gradient Descent Iteration")
-    ax.set_ylabel("Percent of Incident Photons Detected (Cost)")
+    ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
     color_id = 0
     for shots in shots_list:
@@ -217,11 +240,11 @@ def plot_shot_dependence(
 
                 if add_background:
                     dark_count_rate = background / shot_rate
-                    corrected_probs = opt_dict["cost_vals"][i] + dark_count_rate
+                    corrected_probs = opt_dict["cost_vals"][i] + 2 + dark_count_rate
                     aggregate_data[i] += [corrected_probs]
 
                 else:
-                    aggregate_data[i] += [opt_dict["cost_vals"][i]]
+                    aggregate_data[i] += [opt_dict["cost_vals"][i] + 2]
 
         mean_cost_vals = []
         std_err_cost_vals = []
@@ -241,7 +264,7 @@ def plot_shot_dependence(
             alpha=3 / 4,
             label="shots = " + str(shots),
             color=color,
-            linestyle="--",
+            linestyle="-",
         )
         ax.fill_between(
             range(len(mean_cost_vals)),
@@ -250,12 +273,12 @@ def plot_shot_dependence(
             alpha=1 / 4,
             color=color,
         )
-        ax.semilogy(
-            range(len(min_cost_vals)),
-            min_cost_vals,
-            linestyle="-",
-            color=color,
-        )
+        # ax.semilogy(
+        #     range(len(min_cost_vals)),
+        #     min_cost_vals,
+        #     linestyle="-",
+        #     color=color,
+        # )
 
         color_id += 1
 
@@ -292,7 +315,7 @@ def plot_step_size_dependence(
         fontsize=14,
     )
     ax.set_xlabel("Gradient Descent Step")
-    ax.set_ylabel("Percent Incident Photons Detected (Cost)")
+    ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
     c_id = 0
     for step_size in step_size_list:
@@ -314,10 +337,10 @@ def plot_step_size_dependence(
                     std_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = std_opt_dict["cost_vals"][i] + background / shot_rate
+                    corrected_val = std_opt_dict["cost_vals"][i] + 2 + background / shot_rate
                     std_aggregate_data[i] += [corrected_val]
                 else:
-                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i]]
+                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:
@@ -326,10 +349,10 @@ def plot_step_size_dependence(
                     adam_aggregate_data += [[]]
 
                 if add_background:
-                    corrected_val = adam_opt_dict["cost_vals"][i] + background / shot_rate
+                    corrected_val = adam_opt_dict["cost_vals"][i] + 2 + background / shot_rate
                     adam_aggregate_data[i] += [corrected_val]
                 else:
-                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i]]
+                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i] + 2]
 
         std_mean_cost_vals = []
         std_std_err_cost_vals = []
@@ -410,6 +433,115 @@ def plot_step_size_dependence(
 
     plt.grid()
     # fig.subplots_adjust(bottom=0.3)
-    plt.legend(ncols=2)
+    plt.legend(ncols=2, loc="lower left")
+
+    plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+
+
+def plot_step_size_dependence_convergence(
+    filepath,
+    step_size_list,
+    plot_filename,
+    add_background=False,
+    background=None,
+    shot_rate=None,
+):
+    datetime_str = datetime_now_string()
+
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    fig.suptitle(
+        "Step Size Vs. Gradient Descent Performance",  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        fontweight="bold",
+        fontsize=14,
+    )
+    ax.set_xlabel("Gradient Descent Step Size")
+    ax.set_ylabel("Convergence time (iterations)", color="red")
+
+    ax_2 = ax.twinx()
+    ax_2.set_ylabel("Convergence value (probability of undiscriminated photons)")
+
+    ax.tick_params(axis="y", labelcolor="red")
+
+    c_id = 0
+    convergence_times = []
+    convergence_values = []
+    for step_size in step_size_list:
+        step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
+
+        # data naming is inconsistent between numerics and hardware.
+        std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
+        if len(std_filenames) == 0:
+            std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+
+        adam_filenames = get_files(step_size_filepath, r"adam_optimization_.*\.json")
+        std_opt_dicts = [read_json(filename) for filename in std_filenames]
+        adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
+
+        std_aggregate_data = []
+        for std_opt_dict in std_opt_dicts:
+            for i in range(len(std_opt_dict["cost_vals"])):
+                if len(std_aggregate_data) <= i:
+                    std_aggregate_data += [[]]
+
+                if add_background:
+                    corrected_val = std_opt_dict["cost_vals"][i] + 2 + background / shot_rate
+                    std_aggregate_data[i] += [corrected_val]
+                else:
+                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
+
+        adam_aggregate_data = []
+        for adam_opt_dict in adam_opt_dicts:
+            for i in range(len(adam_opt_dict["cost_vals"])):
+                if len(adam_aggregate_data) <= i:
+                    adam_aggregate_data += [[]]
+
+                if add_background:
+                    corrected_val = adam_opt_dict["cost_vals"][i] + 2 + background / shot_rate
+                    adam_aggregate_data[i] += [corrected_val]
+                else:
+                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i] + 2]
+
+        std_mean_cost_vals = []
+        std_std_err_cost_vals = []
+        std_min_cost_vals = []
+        for i in range(len(std_aggregate_data)):
+            std_mean_cost_vals += [np.mean(std_aggregate_data[i])]
+            std_std_err_cost_vals += [
+                np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))
+            ]
+            std_min_cost_vals += [np.min(std_aggregate_data[i])]
+
+        adam_mean_cost_vals = []
+        adam_std_err_cost_vals = []
+        for i in range(len(adam_aggregate_data)):
+            adam_mean_cost_vals += [np.mean(adam_aggregate_data[i])]
+            adam_std_err_cost_vals += [
+                np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))
+            ]
+
+        std_np_mean = np.array(std_mean_cost_vals)
+        min_val = np.min(std_np_mean)
+        tolerance = 0.1 * min_val
+        idx = np.where(std_np_mean <= min_val + tolerance)[0][0]
+        convergence_times += [idx]
+        convergence_values += [min(std_np_mean)]
+
+        # convergence_times += [np.argmin(std_np_mean)]
+        # convergence_values += [np.min(std_np_mean)]
+
+    ax.scatter(step_size_list, convergence_times, s=50, label="Convergence time", color="red")
+    ax_2.scatter(
+        step_size_list,
+        convergence_values,
+        s=50,
+        label="Convergence value",
+        color="black",
+    )
+
+    # plt.tight_layout(pad=2)
+    plt.xscale("log")
+    ax_2.set_yscale("log")
+    plt.grid()
+    # fig.subplots_adjust(bottom=0.3)
 
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)

@@ -14,54 +14,116 @@ filepath = "./data/fiber_inversion_hardware/"
 datetime_str = pk.datetime_now_string()
 
 
-shots = 100000
+shots = 10000
 shot_rate = 100000
+# dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
 dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
 
+for i in range(2):
+    # def cost(settings):
+    @qml.qnode(dev, diff_method="parameter-shift")
+    def circ(circ_settings):
+        theta1, phi1, theta2, phi2 = circ_settings
+        pk.HWPRotStage(theta1, wires=dev.wires[0])
+        pk.QWPRotStage(phi1, wires=dev.wires[0])
+        # noise happens
+        pk.HWPRotStage(theta2, wires=dev.wires[0])
+        pk.QWPRotStage(phi2, wires=dev.wires[0])
 
-@qml.qnode(dev, diff_method="parameter-shift")
-def cost(settings):
-    theta, phi = settings
-    pk.HWPRotStage(theta, wires=dev.wires[0])
-    pk.QWPRotStage(phi, wires=dev.wires[0])
+        # return qml.expval(qml.Projector([1], wires=dev.wires[0]))
+        return qml.probs(wires=dev.wires)
 
-    return qml.expval(qml.Projector([1], wires=dev.wires[0]))
+    # print(circ(qnp.array([0, 0, 0, 0])))
 
+    def cost(settings):
+        theta_a0, theta_a1, phi_a0, phi_a1, theta_b, phi_b = settings
 
-print("Scanning cost Landscape")
-theta_set = qnp.arange(0, theta_period + 0.11, 0.1)
-phi_set = qnp.arange(0, phi_period + 0.11, 0.1)
-cost_landscape_dict = pk.scan_two_param_fn(
-    cost,
-    theta_set,
-    phi_set,
-    filename="cost_landscape_" + datetime_str,
-    filepath=filepath,
-    shots=shots,
-    shot_rate=shot_rate,
-)
+        probs_0 = circ([theta_a0, phi_a0, theta_b, phi_b])
+        probs_1 = circ([theta_a1, phi_a1, theta_b, phi_b])
+        return -(probs_0[0] + probs_1[1])
 
-print("Running optimization from fixed initial settings.")
-# fixed_init_settings = qnp.array(
-#     [(100.29 * 2 * qnp.pi / 360) % theta_period, (112.21 * 2 * qnp.pi / 360) % phi_period],
-#     requires_grad=True,
-# )
-# opt_dict = pk.optimize(
-#     cost,
-#     fixed_init_settings,
-#     step_size=0.15,  # previously 0.1
-#     num_steps=10,  # previously 12
-#     filepath=filepath,
-#     filename="fixed_init_optimize_" + datetime_str,
-#     domain_periods=[theta_period, phi_period],
-#     shots=shots,
-#     shot_rate=shot_rate,
-# )
+    # print(cost(qnp.zeros(6)))
 
-# pk.plot_trajectory_on_cost_contour(
-#     filepath + "cost_contour_plot_" + datetime_str,
-#     cost_landscape_dict,
-#     opt_dict,
-# )
+    # print("Scanning cost Landscape")
+    # theta_set = qnp.arange(0, theta_period + 0.11, 0.1)
+    # phi_set = qnp.arange(0, phi_period + 0.11, 0.1)
+    # cost_landscape_dict = pk.scan_two_param_fn(
+    #     cost,
+    #     theta_set,
+    #     phi_set,
+    #     filename="cost_landscape_" + datetime_str,
+    #     filepath=filepath,
+    #     shots=shots,
+    #     shot_rate=shot_rate,
+    # )
+
+    opt_dict = pk.optimize(
+        cost,
+        qnp.zeros(6),
+        num_steps=50,
+        step_size=0.1,
+        filepath="./",
+        filename=f"test_state_discrimination_4_wp_{i}",
+        init_opt_dict=None,
+        domain_periods=None,
+        use_adam=False,
+        verbose=True,
+    )
+
+    @qml.qnode(dev, diff_method="parameter-shift")
+    def circ(circ_settings):
+        # theta1, phi1, theta2, phi2 = circ_settings
+        theta, phi = circ_settings
+        # pk.HWPRotStage(theta1, wires=dev.wires[0])
+        # pk.QWPRotStage(phi1, wires=dev.wires[0])
+        # pk.HWPRotStage(theta2, wires=dev.wires[0])
+        # pk.QWPRotStage(phi2, wires=dev.wires[0])
+        pk.HWPRotStage(theta, wires=dev.wires[0])
+        pk.QWPRotStage(phi, wires=dev.wires[0])
+
+        return qml.probs(wires=dev.wires)
+
+    def cost(settings):
+        theta_a0, theta_a1, phi_a0, phi_a1 = settings
+
+        probs_0 = circ([theta_a0, phi_a0])
+        probs_1 = circ([theta_a1, phi_a1])
+        return -(probs_0[0] + probs_1[1])
+
+    opt_dict = pk.optimize(
+        cost,
+        qnp.zeros(4),
+        num_steps=50,
+        step_size=0.1,
+        filepath="./",
+        filename=f"test_state_discrimination_2_wp_{i}",
+        init_opt_dict=None,
+        domain_periods=None,
+        use_adam=False,
+        verbose=True,
+    )
+
+    # print("Running optimization from fixed initial settings.")
+    # fixed_init_settings = qnp.array(
+    #     [(100.29 * 2 * qnp.pi / 360) % theta_period, (112.21 * 2 * qnp.pi / 360) % phi_period],
+    #     requires_grad=True,
+    # )
+    # opt_dict = pk.optimize(
+    #     cost,
+    #     fixed_init_settings,
+    #     step_size=0.15,  # previously 0.1
+    #     num_steps=10,  # previously 12
+    #     filepath=filepath,
+    #     filename="fixed_init_optimize_" + datetime_str,
+    #     domain_periods=[theta_period, phi_period],
+    #     shots=shots,
+    #     shot_rate=shot_rate,
+    # )
+
+    # pk.plot_trajectory_on_cost_contour(
+    #     filepath + "cost_contour_plot_" + datetime_str,
+    #     cost_landscape_dict,
+    #     opt_dict,
+    # )
 
 dev.disconnect()

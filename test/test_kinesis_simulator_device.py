@@ -7,15 +7,30 @@ import numpy as np
 import pennylane_kinesis as pk
 
 
-def _setup_device(interface, analytic=False):
+def _setup_device(interface, analytic=False, domain_period=False):
     shots = 10000 if not analytic else None
     wires = [0]
     dev = None
+    qwp_domain_period = np.pi / 2 if domain_period else None
+    hwp_domain_period = np.pi / 2 if domain_period else None
 
     if interface == "class":
-        dev = pk.KinesisSimulatorDevice(shots=shots, wires=wires, seed=37)
+        dev = pk.KinesisSimulatorDevice(
+            shots=shots,
+            wires=wires,
+            seed=37,
+            qwp_domain_period=qwp_domain_period,
+            hwp_domain_period=hwp_domain_period,
+        )
     elif interface == "pennylane":
-        dev = qml.device("kinesis.simulator", shots=shots, wires=wires, seed=37)
+        dev = qml.device(
+            "kinesis.simulator",
+            shots=shots,
+            wires=wires,
+            seed=37,
+            qwp_domain_period=qwp_domain_period,
+            hwp_domain_period=hwp_domain_period,
+        )
     else:
         raise ValueError(
             "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
@@ -47,7 +62,7 @@ class TestKinesisSimulatorDevice:
         assert dev.short_name == "kinesis.simulator"
         assert dev.pennylane_requires == "0.29.1"
         assert dev.version == pk.__version__
-        assert dev.author == "Brian Doolittle and Colin Lualdi"
+        assert dev.author == "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
         assert dev.operations == {
             "PauliZ",
             "PhaseShift",
@@ -67,6 +82,59 @@ class TestKinesisSimulatorDevice:
         assert dev.num_wires == 1
         assert list(dev.wires) == [0]
         assert dev.background_counts == 100
+
+        assert dev.qwp_domain_period == None
+        assert dev.hwp_domain_period == None
+
+    @pytest.mark.parametrize(
+        "domain_period,angle,match_state",
+        [
+            (True, 0, [1, 0]),
+            (True, np.pi / 2, [1, 0]),
+            (False, 0, [1, 0]),
+            (False, np.pi / 2, [-1, 0]),
+        ],
+    )
+    def test_hwp_domain_range(self, interface, domain_period, angle, match_state):
+        dev = _setup_device(interface, True, domain_period)
+
+        if domain_period:
+            assert np.isclose(dev.hwp_domain_period, np.pi / 2)
+        else:
+            assert dev.hwp_domain_period == None
+
+        @qml.qnode(dev)
+        def hwp_circ(setting):
+            pk.HWPRotStage(setting, wires=[0])
+            return qml.expval(qml.PauliZ([0]))
+
+        hwp_circ(angle)
+        assert np.allclose(dev._state, match_state)
+
+    @pytest.mark.parametrize(
+        "domain_period,angle,match_state",
+        [
+            (True, 0, [1, 0]),
+            (True, np.pi / 2, [1, 0]),
+            (False, 0, [1, 0]),
+            (False, np.pi / 2, [1j, 0]),
+        ],
+    )
+    def test_qwp_domain_range(self, interface, domain_period, angle, match_state):
+        dev = _setup_device(interface, True, domain_period)
+
+        if domain_period:
+            assert np.isclose(dev.qwp_domain_period, np.pi / 2)
+        else:
+            assert dev.qwp_domain_period == None
+
+        @qml.qnode(dev)
+        def qwp_circ(setting):
+            pk.QWPRotStage(setting, wires=[0])
+            return qml.expval(qml.PauliZ([0]))
+
+        qwp_circ(angle)
+        assert np.allclose(dev._state, match_state)
 
     @pytest.mark.parametrize(
         "ops,match",

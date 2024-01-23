@@ -47,6 +47,7 @@ class TestHWPRotStage:
 
             qml.S(wires=[0])
             qml.Hadamard(wires=[0])
+            qml.ArbitraryUnitary([0.7, 0.2, 0.3], wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
@@ -62,6 +63,7 @@ class TestHWPRotStage:
 
             qml.S(wires=[0])
             qml.Hadamard(wires=[0])
+            qml.ArbitraryUnitary([0.7, 0.2, 0.3], wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
@@ -114,12 +116,13 @@ class TestQWPRotStage:
 
             qml.S(wires=[0])
             qml.Hadamard(wires=[0])
+            qml.ArbitraryUnitary([0.7, 0.2, 0.3], wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
         return qml.grad(circ)(qnp.array(theta, requires_grad=True))
 
-    @pytest.mark.parametrize("theta", np.arange(0, 2 * np.pi, 0.5))
+    @pytest.mark.parametrize("theta", np.arange(0, 2 * np.pi, 0.1))
     def test_qwp_grad(self, theta):
         dev = qml.device("kinesis.simulator", wires=[0], shots=None, seed=20)
 
@@ -129,6 +132,7 @@ class TestQWPRotStage:
 
             qml.S(wires=[0])
             qml.Hadamard(wires=[0])
+            qml.ArbitraryUnitary([0.7, 0.2, 0.3], wires=[0])
 
             return qml.expval(qml.Projector([1], wires=[0]))
 
