@@ -2,3 +2,4 @@
 **/**/pennylane_kinesis\.egg-info/*
 tmp/
 .DS_Store
+.vscode/

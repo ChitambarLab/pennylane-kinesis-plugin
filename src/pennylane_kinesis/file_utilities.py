@@ -9,11 +9,14 @@ def datetime_now_string():
 
 
 def tmp_dir(filepath):
-    tmp_path = filepath + "tmp/"
-    if not os.path.isdir(tmp_path):
-        os.mkdir(tmp_path)
+    return make_dir(filepath + "tmp/")
 
-    return tmp_path
+
+def make_dir(filepath):
+    if not os.path.isdir(filepath):
+        os.mkdir(filepath)
+
+    return filepath
 
 
 def get_files(path, regex):

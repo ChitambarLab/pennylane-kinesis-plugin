@@ -2,6 +2,8 @@ from pennylane import QubitDevice
 import pennylane as qml
 import numpy as np
 
+from .operators import HWPRotStage, QWPRotStage
+
 # from pennylane import numpy as np
 
 from .version import __version__
@@ -18,9 +20,18 @@ class KinesisSimulatorDevice(QubitDevice):
     short_name = "kinesis.simulator"
     pennylane_requires = "0.29.1"
     version = __version__
-    author = "Brian Doolittle and Colin Lualdi"
+    author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
 
-    operations = {"PauliZ", "PhaseShift", "RX", "RY", "RZ", "S", "HWPRotStage", "QWPRotStage"}
+    operations = {
+        "PauliZ",
+        "PhaseShift",
+        "RX",
+        "RY",
+        "RZ",
+        "S",
+        "HWPRotStage",
+        "QWPRotStage",
+    }
     observables = {"Projector", "Identity", "PauliZ"}
 
     incidence_rate = 100000
@@ -34,14 +45,20 @@ class KinesisSimulatorDevice(QubitDevice):
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
+        shot_rate=6000,
         analytic=None,
         seed=None,
+        qwp_domain_period=None,
+        hwp_domain_period=None,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
         self.background_counts = background_counts
         if seed:
             np.random.seed(seed)
+
+        self.qwp_domain_period = qwp_domain_period
+        self.hwp_domain_period = hwp_domain_period
 
     def reset(self):
         super().reset()
@@ -62,7 +79,24 @@ class KinesisSimulatorDevice(QubitDevice):
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
         for operation in all_ops:
-            mat = qml.matrix(operation)
+            if operation.name == "HWPRotStage":
+                angle = (
+                    np.mod(operation.parameters[0], self.hwp_domain_period)
+                    if self.hwp_domain_period
+                    else operation.parameters[0]
+                )
+                mat = qml.matrix(HWPRotStage)(angle, wires=[0])
+            elif operation.name == "QWPRotStage":
+                angle = (
+                    np.mod(operation.parameters[0], self.qwp_domain_period)
+                    if self.qwp_domain_period
+                    else operation.parameters[0]
+                )
+
+                mat = qml.matrix(QWPRotStage)(angle, wires=[0])
+            else:
+                mat = qml.matrix(operation)
+
             self._state = mat @ self._state
 
     def analytic_probability(self, wires=None):
@@ -77,15 +111,19 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
-        # counts = np.ceil((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots))) + self.background_counts
-        counts = (
-            np.round((1 - p0) * np.random.poisson(self.shots - np.sqrt(self.shots)))
-            + self.background_counts
-        )
+        counts = np.random.poisson(self.shots) + self.background_counts
+
+        zero_background_counts = np.random.poisson(int(self.background_counts / 2))
+        one_background_counts = np.random.poisson(int(self.background_counts / 2))
+
+        detected_counts = self.shots - zero_background_counts - one_background_counts
+
+        zero_counts = min(int(p0 * detected_counts) + zero_background_counts, self.shots)
+        one_counts = self.shots - zero_counts
 
         return np.concatenate(
             (
-                np.ones((int(min(counts, self.shots)), 1), dtype=int),
-                np.zeros((int(max(self.shots - counts, 0)), 1), dtype=int),
+                np.ones((one_counts, 1), dtype=int),
+                np.zeros((zero_counts, 1), dtype=int),
             )
         )

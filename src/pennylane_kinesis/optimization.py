@@ -6,7 +6,7 @@ from .file_utilities import datetime_now_string, tmp_dir, write_json
 
 
 def optimize(
-    cost,
+    grad_cost,
     init_settings,
     num_steps=10,
     step_size=0.1,
@@ -14,6 +14,7 @@ def optimize(
     filename="",
     init_opt_dict=None,
     domain_periods=None,
+    eval_cost=None,
     use_adam=False,
     verbose=True,
     **meta_kwargs,
@@ -36,8 +37,8 @@ def optimize(
     a ``tmp/`` directory of the specified ``filepath``. This optimization data can be used to start
     a new optimization using the ``init_opt_dict`` argument.
 
-    :param cost: The cost function to minimize.
-    :type cost: function
+    :param grad_cost: The cost function to minimize using gradient descent.
+    :type grad_cost: function
 
     :param init_settings: The settings to initialize the gradient descent optimization with.
     :type init_settings: list[float]
@@ -64,6 +65,10 @@ def optimize(
     :param use_adam: If ``True``, uses the ADAM optimizer instead of the standard gradient descent optimizer. Default ``False``
     :type use_adam: Bool
 
+    :param eval_cost: The cost function that is used to evaluate the cost in each optimization step.
+                      This function is not used to compute gradients. Default ``None``.
+    :type eval_cost: function
+
     :param verbose: If ``True``, prints out optimization progress. Default ``True``.
     :type verbose: Bool
 
@@ -73,7 +78,6 @@ def optimize(
     :returns: Contains all optimization data.
     :rtype: dictionary
     """
-
     opt_dict = (
         init_opt_dict
         if init_opt_dict
@@ -102,7 +106,13 @@ def optimize(
         for i in range(current_step, num_steps):
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
-            settings, cost_val = opt.step_and_cost(cost, settings)
+
+            if eval_cost == None:
+                settings, cost_val = opt.step_and_cost(grad_cost, settings)
+            else:
+                cost_val = eval_cost(settings)
+                settings = opt.step(grad_cost, settings)
+
             if domain_periods:
                 settings = qnp.array(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
@@ -120,7 +130,9 @@ def optimize(
             opt_dict["opt_step_time"] += [float(new_time - curr_time)]
             curr_time = new_time
 
-        opt_dict["cost_vals"] += [float(cost(settings))]
+        opt_dict["cost_vals"] += (
+            [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
+        )
 
     except BaseException as err:
         msg_template = (
