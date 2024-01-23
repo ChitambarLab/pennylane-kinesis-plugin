@@ -72,11 +72,7 @@ for shots in shots_list:
 
     # NOTE: uncomment sim_dev_kwargs if running on simulator
     ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         [qnetvo.MeasureNode(num_out=2, wires=[0], ansatz_fn=fixed_unitary)],
         # dev_kwargs=sim_dev_kwargs,
         dev_kwargs=dev_kwargs,
@@ -87,11 +83,7 @@ for shots in shots_list:
     )
 
     ansatz_eval = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         [qnetvo.MeasureNode(num_out=2, wires=[0], ansatz_fn=fixed_unitary)],
         # dev_kwargs=sim_eval_kwargs,
         dev_kwargs=eval_kwargs,

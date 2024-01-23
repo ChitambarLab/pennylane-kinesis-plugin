@@ -31,9 +31,7 @@ opt_dicts = []
 for step_size in step_size_list:
     datetime_str = pk.datetime_now_string()
 
-    dev = qml.device(
-        "kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate
-    )
+    dev = qml.device("kinesis.cage.rotator", wires=[0], shots=shots, shot_rate=shot_rate)
     # dev = qml.device("kinesis.simulator", wires=[0], shots=shots, shot_rate=shot_rate)
 
     @qml.qnode(dev, diff_method="parameter-shift")
@@ -56,9 +54,7 @@ for step_size in step_size_list:
         probs_1 = circ([theta_a1, phi_a1])
         return -(probs_0[0] + probs_1[1])
 
-    step_size_filepath = (
-        filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-    )
+    step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
     init_settings = qnp.random.rand(4, requires_grad=True) * period_array
 
     print("Running optimization for step_size ", step_size)
