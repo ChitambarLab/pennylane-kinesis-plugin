@@ -86,9 +86,7 @@ eval_cost = qnetvo.linear_probs_cost_fn(
 for step_size in step_size_list:
     datetime_str = pk.datetime_now_string()
 
-    step_size_filepath = (
-        filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-    )
+    step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
 
     print("Running optimization for step_size ", step_size)
     opt_dict = pk.optimize(
