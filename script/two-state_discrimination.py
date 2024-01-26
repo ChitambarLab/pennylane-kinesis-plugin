@@ -9,58 +9,30 @@ import pennylane_kinesis as pk
 """
 Optimizes the state discrimination success probability for two states.
 
-Arguments:
-* `numerics` - runs on simulator device rather than on hardware 
+By default the script will run on hardware using 4 wave plates.
+
+Use the `numerics` argument to run the script using the simulator backend.
+Use the `two_wp` argument to run the script with fixed mneasurement waveplates.
+
+```
+$ python script/two-state_discrimination.py numerics
+```
 """
 
-
-def arb_unitary(settings, wires):
-    pk.HWPRotStage(settings[0], wires=[wires[0]])
-    pk.QWPRotStage(settings[1], wires=[wires[0]])
-
-
 if __name__ == "__main__":
-    if sys.argv[1] == "numerics":
-        data_path = "./data/two-state_discrimination/numerics/"
-        shots = 1000
-        dev_name = "kinesis.simulator"
-    else:
-        data_path = "./data/two-state_discrimination/hardware/"
-        shots = 3000000
-        dev_name = "kinesis.cage.rotator"
+    TWO_WP = False if len(sys.argv) == 1 else "two_wp" in sys.argv[1:]
+    NUMERICS = False if len(sys.argv) == 1 else "numerics" in sys.argv[1:]
 
-    pk.make_dir(data_path)
-
-    shot_rate = 3000000
-
-    datetime_str = pk.datetime_now_string()
-
-    # network ansatz class manages circuit construction and settings
-    state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        dev_kwargs={
-            "name": dev_name,
-            "shot_rate": shot_rate,
-            "shots": shots,
-        },
-    )
-
-    # construct a linear inequality cost function that
-    # corresponds to the minimal qubit dimensionality witness.
-    state_disc_cost = qnetvo.linear_probs_cost_fn(
-        state_disc_ansatz,
-        qnp.eye(2),
-    )
-
-    state_disc_opt_dict = pk.optimize(
-        lambda settings: state_disc_cost(*settings),
-        qnp.array(state_disc_ansatz.rand_network_settings()),
-        step_size=0.1,
+    state_disc_opt_dict = pk.two_state_discrimination(
+        filepath="./data/two-state_discrimination/",
+        shots=10000,
+        shot_rate=3000000,
+        two_wp=TWO_WP,
+        numerics=NUMERICS,
+        step_size=0.08,
         num_steps=20,
         verbose=True,
-        filepath=data_path,
-        filename="optimization_" + datetime_str,
+        fixed_settings=[0, 0],
     )
 
     """
