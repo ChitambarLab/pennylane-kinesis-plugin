@@ -3,7 +3,7 @@ from .optimization import optimize
 from .operators import HWPRotStage, QWPRotStage
 
 import qnetvo
-from pennylane import numpy as qnp
+import numpy as np
 
 
 def two_state_discrimination(
@@ -93,11 +93,11 @@ def two_state_discrimination(
 
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit dimensionality witness.
-    state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, qnp.eye(2))
+    state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2))
 
     return optimize(
         lambda settings: state_disc_cost(*settings),
-        qnp.array(
+        np.array(
             state_disc_ansatz.rand_network_settings(
                 fixed_setting_ids=fixed_setting_ids,
                 fixed_settings=fixed_settings,
