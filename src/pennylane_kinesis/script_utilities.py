@@ -1,9 +1,12 @@
-from .file_utilities import datetime_now_string, make_dir
-from .optimization import optimize
-from .operators import HWPRotStage, QWPRotStage
-
-import qnetvo
 import numpy as np
+import qnetvo
+
+from .file_utilities import datetime_now_string
+from .file_utilities import make_dir
+from .kinesis_cage_rotator_device import KinesisMotors
+from .operators import HWPRotStage
+from .operators import QWPRotStage
+from .optimization import optimize
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
@@ -90,7 +93,9 @@ def two_state_discrimination(
     if two_wp:
         data_path += "two_wp/"
         fixed_setting_ids = [4, 5]
-        fixed_settings = fixed_settings[0:2]  # these settings will be held at constant value
+        fixed_settings = fixed_settings[
+            0:2
+        ]  # these settings will be held at constant value
     else:
         data_path += "four_wp/"
         fixed_setting_ids = []
@@ -100,11 +105,26 @@ def two_state_discrimination(
 
     datetime_str = datetime_now_string()
 
+    motors = KinesisMotors()
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        dev_kwargs={"name": dev_name, "shot_rate": shot_rate, "shots": shots, **sim_dev_kwargs},
+        [
+            qnetvo.PrepareNode(
+                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        [
+            qnetvo.MeasureNode(
+                num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        dev_kwargs={
+            "name": dev_name,
+            "shot_rate": shot_rate,
+            "shots": shots,
+            "motors": motors,
+            **sim_dev_kwargs,
+        },
     )
 
     # construct a linear inequality cost function that
@@ -213,7 +233,9 @@ def qubit_dimensionality_witnessing(
     if three_wp:
         data_path += "three_wp/"
         fixed_setting_ids = [7, 9]
-        fixed_settings = fixed_settings[0:2]  # these settings will be held at constant value
+        fixed_settings = fixed_settings[
+            0:2
+        ]  # these settings will be held at constant value
     else:
         data_path += "four_wp/"
         fixed_setting_ids = []
@@ -228,9 +250,22 @@ def qubit_dimensionality_witnessing(
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        dev_kwargs={"name": dev_name, "shot_rate": shot_rate, "shots": shots, **sim_dev_kwargs},
+        [
+            qnetvo.PrepareNode(
+                num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        [
+            qnetvo.MeasureNode(
+                num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        dev_kwargs={
+            "name": dev_name,
+            "shot_rate": shot_rate,
+            "shots": shots,
+            **sim_dev_kwargs,
+        },
     )
 
     # construct a linear inequality cost function that
