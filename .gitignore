@@ -1,5 +1,5 @@
 **/**/__pycache__
 **/**/pennylane_kinesis\.egg-info/*
-tmp/
+**/**/tmp/
 .DS_Store
 .vscode/
