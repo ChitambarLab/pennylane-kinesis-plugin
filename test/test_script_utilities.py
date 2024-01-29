@@ -73,3 +73,72 @@ def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
     file_opt_dict = pk.read_json(files[0])
 
     assert np.allclose(file_opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
+
+
+@pytest.mark.parametrize(
+    "three_wp, match_cost_vals",
+    [
+        (
+            False,
+            [
+                -1.7512,
+                -2.5954,
+                -3.0074,
+                -3.1544,
+                -3.2126,
+                -3.2524,
+                -3.279,
+                -3.3146,
+                -3.3314,
+                -3.3572,
+                -3.3752,
+            ],
+        ),
+        (
+            True,
+            [
+                1.1228,
+                0.1372,
+                -1.3598,
+                -2.2446,
+                -2.4824,
+                -2.6604,
+                -2.8096,
+                -2.9498,
+                -3.0576,
+                -3.159,
+                -3.2414,
+            ],
+        ),
+    ],
+)
+def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, three_wp, match_cost_vals):
+    """Performs a sample two-state discrimination optimization for 10 steps.
+    Both two waveplate and four waveplate versions are tested.
+    """
+    np.random.seed(123)
+
+    filepath = "./test/tmp/"
+
+    num_steps = 10
+    opt_dict = pk.qubit_dimensionality_witnessing(
+        filepath, numerics=True, three_wp=three_wp, num_steps=num_steps, verbose=False
+    )
+
+    print(opt_dict["cost_vals"])
+    assert len(opt_dict["cost_vals"]) == num_steps + 1
+    assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
+
+    # Verify created filepath.
+    assert os.path.exists("./test/tmp/")
+    assert os.path.exists("./test/tmp/numerics/")
+
+    wp_dir = "three_wp/" if three_wp else "four_wp/"
+    assert os.path.exists("./test/tmp/numerics/" + wp_dir)
+
+    # Verify that created optimization json file has expected data.
+    files = pk.get_files("./test/tmp/numerics/" + wp_dir, r"optimization_.*.json")
+    assert len(files) == 1
+    file_opt_dict = pk.read_json(files[0])
+
+    assert np.allclose(file_opt_dict["cost_vals"], match_cost_vals, atol=1e-5)

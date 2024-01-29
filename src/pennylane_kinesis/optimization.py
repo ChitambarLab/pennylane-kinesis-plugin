@@ -114,6 +114,7 @@ def optimize(
                 settings = opt.step(grad_cost, settings)
 
             if domain_periods:
+                print("settings are this long: ", len(settings))
                 settings = qnp.array(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
