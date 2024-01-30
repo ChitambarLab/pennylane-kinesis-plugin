@@ -8,9 +8,10 @@ from test_file_utilities import tmp_dir_cleanup
 
 
 @pytest.mark.parametrize(
-    "two_wp, match_cost_vals",
+    "numerics, two_wp, match_cost_vals",
     [
         (
+            True,
             False,
             [
                 -1.6333,
@@ -28,6 +29,7 @@ from test_file_utilities import tmp_dir_cleanup
         ),
         (
             True,
+            True,
             [
                 -0.7659,
                 -1.5337,
@@ -42,9 +44,10 @@ from test_file_utilities import tmp_dir_cleanup
                 -1.9816,
             ],
         ),
+        (False, False, [-1] * 11),
     ],
 )
-def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
+def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_vals):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -54,21 +57,25 @@ def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
 
     num_steps = 10
     opt_dict = pk.two_state_discrimination(
-        filepath, numerics=True, two_wp=two_wp, num_steps=num_steps, verbose=False
+        filepath, numerics=numerics, two_wp=two_wp, num_steps=num_steps, verbose=False
     )
+
+    print(opt_dict["cost_vals"])
 
     assert len(opt_dict["cost_vals"]) == num_steps + 1
     assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
 
     # Verify created filepath.
     assert os.path.exists("./test/tmp/")
-    assert os.path.exists("./test/tmp/numerics/")
+
+    dev_dir = "numerics/" if numerics else "hardware/"
+    assert os.path.exists("./test/tmp/" + dev_dir)
 
     wp_dir = "two_wp/" if two_wp else "four_wp/"
-    assert os.path.exists("./test/tmp/numerics/" + wp_dir)
+    assert os.path.exists("./test/tmp/" + dev_dir + wp_dir)
 
     # Verify that created optimization json file has expected data.
-    files = pk.get_files("./test/tmp/numerics/" + wp_dir, r"optimization_.*.json")
+    files = pk.get_files("./test/tmp/" + dev_dir + wp_dir, r"optimization_.*.json")
     assert len(files) == 1
     file_opt_dict = pk.read_json(files[0])
 
@@ -76,9 +83,10 @@ def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
 
 
 @pytest.mark.parametrize(
-    "three_wp, match_cost_vals",
+    "numerics, three_wp, match_cost_vals",
     [
         (
+            True,
             False,
             [
                 -1.7512,
@@ -96,6 +104,7 @@ def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
         ),
         (
             True,
+            True,
             [
                 1.1228,
                 0.1372,
@@ -110,9 +119,10 @@ def test_two_state_discrimination(tmp_dir_cleanup, two_wp, match_cost_vals):
                 -3.2414,
             ],
         ),
+        (False, False, [0] * 11),
     ],
 )
-def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, three_wp, match_cost_vals):
+def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, numerics, three_wp, match_cost_vals):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -122,22 +132,23 @@ def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, three_wp, match_cost_v
 
     num_steps = 10
     opt_dict = pk.qubit_dimensionality_witnessing(
-        filepath, numerics=True, three_wp=three_wp, num_steps=num_steps, verbose=False
+        filepath, numerics=numerics, three_wp=three_wp, num_steps=num_steps, verbose=False
     )
 
-    print(opt_dict["cost_vals"])
     assert len(opt_dict["cost_vals"]) == num_steps + 1
     assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
 
     # Verify created filepath.
     assert os.path.exists("./test/tmp/")
-    assert os.path.exists("./test/tmp/numerics/")
+
+    dev_dir = "numerics/" if numerics else "hardware/"
+    assert os.path.exists("./test/tmp/" + dev_dir)
 
     wp_dir = "three_wp/" if three_wp else "four_wp/"
-    assert os.path.exists("./test/tmp/numerics/" + wp_dir)
+    assert os.path.exists("./test/tmp/" + dev_dir + wp_dir)
 
     # Verify that created optimization json file has expected data.
-    files = pk.get_files("./test/tmp/numerics/" + wp_dir, r"optimization_.*.json")
+    files = pk.get_files("./test/tmp/" + dev_dir + wp_dir, r"optimization_.*.json")
     assert len(files) == 1
     file_opt_dict = pk.read_json(files[0])
 

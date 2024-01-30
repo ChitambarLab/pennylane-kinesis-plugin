@@ -79,23 +79,21 @@ def two_state_discrimination(
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
-        sim_dev_kwargs = {
+        additional_dev_kwargs = {
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
         }
     else:
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
-        sim_dev_kwargs = {}
+        additional_dev_kwargs = {"motors": KinesisMotors()}
 
     make_dir(data_path)
 
     if two_wp:
         data_path += "two_wp/"
         fixed_setting_ids = [4, 5]
-        fixed_settings = fixed_settings[
-            0:2
-        ]  # these settings will be held at constant value
+        fixed_settings = fixed_settings[0:2]  # these settings will be held at constant value
     else:
         data_path += "four_wp/"
         fixed_setting_ids = []
@@ -105,25 +103,15 @@ def two_state_discrimination(
 
     datetime_str = datetime_now_string()
 
-    motors = KinesisMotors()
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
-        [
-            qnetvo.MeasureNode(
-                num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,
             "shots": shots,
-            "motors": motors,
-            **sim_dev_kwargs,
+            **additional_dev_kwargs,
         },
     )
 
@@ -219,23 +207,21 @@ def qubit_dimensionality_witnessing(
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
-        sim_dev_kwargs = {
+        additional_dev_kwargs = {
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
         }
     else:
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
-        sim_dev_kwargs = {}
+        additional_dev_kwargs = {"motors": KinesisMotors()}
 
     make_dir(data_path)
 
     if three_wp:
         data_path += "three_wp/"
         fixed_setting_ids = [7, 9]
-        fixed_settings = fixed_settings[
-            0:2
-        ]  # these settings will be held at constant value
+        fixed_settings = fixed_settings[0:2]  # these settings will be held constant
     else:
         data_path += "four_wp/"
         fixed_setting_ids = []
@@ -250,21 +236,13 @@ def qubit_dimensionality_witnessing(
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
-        [
-            qnetvo.MeasureNode(
-                num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.MeasureNode(num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,
             "shots": shots,
-            **sim_dev_kwargs,
+            **additional_dev_kwargs,
         },
     )
 
@@ -279,8 +257,6 @@ def qubit_dimensionality_witnessing(
             ]
         ),
     )
-
-    print("num setps = ", num_steps)
 
     return optimize(
         lambda settings: dim_wit_cost(*settings),
