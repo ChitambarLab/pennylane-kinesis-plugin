@@ -241,6 +241,7 @@ Direct access to libTTag's functions:
     Look at the code to find details.
 
 """
+
 # Author: Daniel Kumor
 
 import sys

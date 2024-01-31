@@ -3,7 +3,7 @@ from .version import __version__
 from .operators import *
 from .file_utilities import *
 from .kinesis_simulator_device import *
-from .kinesis_cage_rotator_prototype_device import *
 from .kinesis_cage_rotator_device import *
 from .optimization import *
 from .plot_utilities import *
+from .script_utilities import *
