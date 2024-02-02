@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pennylane-kinesis-plugin"
-version = "0.1.0"
 description = "Pennylane plugin integrating the Thorlabs Kinesis software."
 readme = "README.md"
 authors = [
@@ -17,7 +16,7 @@ maintainers = [
   {name = "Brian Doolittle", email = "brian.d.doolittle@gmail.com"}
 ]
 requires-python = ">=3.8"
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -29,6 +28,7 @@ source = "https://github.com/ChitambarLab/pennylane-kinesis-plugin"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
+version = {file = "version.txt"}
 
 [tool.setuptools.packages.find]
 where = ["src/"]
