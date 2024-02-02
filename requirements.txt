@@ -1,0 +1,5 @@
+dask[distributed]
+matplotlib
+pennylane==0.34
+pylablib==1.4.1
+qnetvo==0.4.3
