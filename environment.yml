@@ -11,7 +11,7 @@ dependencies:
   - ipykernel
   - pip
   - pip:
-    - pennylane==0.29.1
+    - pennylane==0.34
     - pylablib==1.4.1
-    - qnetvo==0.4.2
+    - qnetvo==0.4.3
     - dask[distributed]
