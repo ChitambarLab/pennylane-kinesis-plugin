@@ -1,3 +1,3 @@
-import pkg_resources
+from importlib_metadata import version
 
-__version__ = pkg_resources.get_distribution(__name__.split(".")[0]).version
+__version__ = version("pennylane_kinesis")

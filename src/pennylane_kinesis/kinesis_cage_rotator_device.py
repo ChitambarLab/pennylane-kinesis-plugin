@@ -1,8 +1,6 @@
-from pennylane import QubitDevice
-import pennylane as qml
 import numpy as np
+from pennylane import QubitDevice
 from pylablib.devices import Thorlabs
-
 import time
 
 from .version import __version__
@@ -93,7 +91,7 @@ class KinesisCageRotatorDevice(QubitDevice):
     short_name = "kinesis.cage.rotator"
     pennylane_requires = "0.34"
     version = __version__
-    author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
+    author = "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
 
     operations = {"HWPRotStage", "QWPRotStage"}
     observables = {"Projector", "Identity", "PauliZ"}
@@ -112,7 +110,6 @@ class KinesisCageRotatorDevice(QubitDevice):
         wimp_mode=False,
         ttag_channel_transmit=5,
         ttag_channel_reflect=4,
-        # integration_time=1,
         test_mode=_TEST_MODE,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
@@ -123,7 +120,6 @@ class KinesisCageRotatorDevice(QubitDevice):
 
         self.shot_rate = shot_rate  # mean num photons incident upon detector per second
         self.integration_time = shots / (self.shot_rate)
-        # self.integration_time = integration_time
 
         # Initialize device list
         self.device_list()

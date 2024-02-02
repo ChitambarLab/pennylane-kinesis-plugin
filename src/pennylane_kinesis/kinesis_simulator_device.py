@@ -3,9 +3,6 @@ import pennylane as qml
 import numpy as np
 
 from .operators import HWPRotStage, QWPRotStage
-
-# from pennylane import numpy as np
-
 from .version import __version__
 
 
@@ -20,7 +17,7 @@ class KinesisSimulatorDevice(QubitDevice):
     short_name = "kinesis.simulator"
     pennylane_requires = "0.34"
     version = __version__
-    author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
+    author = "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
 
     operations = {
         "PauliZ",

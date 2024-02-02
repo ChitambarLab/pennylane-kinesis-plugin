@@ -47,7 +47,7 @@ class TestKinesisSimulatorDevice:
         assert dev.short_name == "kinesis.cage.rotator"
         assert dev.pennylane_requires == "0.34"
         assert dev.version == pk.__version__
-        assert dev.author == "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
+        assert dev.author == "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
         assert dev.operations == {"HWPRotStage", "QWPRotStage"}
         assert dev.observables == {"Projector", "Identity", "PauliZ"}
         assert not dev.analytic
