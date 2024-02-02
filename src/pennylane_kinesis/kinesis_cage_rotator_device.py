@@ -91,7 +91,7 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     name = "Kinesis Cage Rotator Device"
     short_name = "kinesis.cage.rotator"
-    pennylane_requires = "0.29.1"
+    pennylane_requires = "0.34"
     version = __version__
     author = "Brian Doolittle, Michael Vayninger, and Colin Lualdi"
 
