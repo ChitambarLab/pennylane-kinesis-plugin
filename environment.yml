@@ -7,11 +7,7 @@ dependencies:
   - black
   - sphinx
   - pytest
-  - matplotlib
   - ipykernel
   - pip
   - pip:
-    - pennylane==0.29.1
-    - pylablib==1.4.1
-    - qnetvo==0.4.2
-    - dask[distributed]
+    - -r requirements.txt
