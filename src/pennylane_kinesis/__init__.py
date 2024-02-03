@@ -1,5 +1,4 @@
 from .version import __version__
-
 from .operators import *
 from .file_utilities import *
 from .kinesis_simulator_device import *
