@@ -29,9 +29,6 @@ class HWPRotStage(Operation):
     :param wires: The wire to which the operator is applied
     :type wires: list-like
 
-    :param do_queue: Specifies whether or not the operator is queued in a tape context. Defaults to ``True``.
-    :type do_queue: Boolean
-
     :param id: An optional custom name for the operator. Defaults to ``None``.
     :type: string-like
 
@@ -107,9 +104,6 @@ class QWPRotStage(Operation):
 
     :param wires: The wire to which the operator is applied
     :type wires: list-like
-
-    :param do_queue: Specifies whether or not the operator is queued in a tape context. Defaults to ``True``.
-    :type do_queue: Boolean
 
     :param id: An optional custom name for the operator. Defaults to ``None``.
     :type: string-like
