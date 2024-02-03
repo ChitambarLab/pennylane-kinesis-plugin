@@ -1,6 +1,45 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pennylane-kinesis"
+version = "0.1.0"
+description = "Pennylane plugin integrating the Thorlabs Kinesis software."
+readme = "README.md"
+authors = [
+  {name = "Brian Doolittle", email = "brian.d.doolittle@gmail.com"},
+  {name = "Michael Vayninger"},
+  {name = "Timur Javid"},
+  {name = "Colin Lualdi"}
+]
+maintainers = [
+  {name = "Brian Doolittle", email = "brian.d.doolittle@gmail.com"}
+]
+requires-python = ">=3.8"
+dynamic = ["dependencies"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent"
+]
+
+[project.urls]
+source = "https://github.com/ChitambarLab/pennylane-kinesis-plugin"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["src/"]
+include = ["pennylane_kinesis*"]
+namespaces = false
+
+[project.entry-points."pennylane.plugins"]
+"kinesis.simulator" = "pennylane_kinesis:KinesisSimulatorDevice"
+"kinesis.cage.rotator" = "pennylane_kinesis:KinesisCageRotatorDevice"
+
+
+
+

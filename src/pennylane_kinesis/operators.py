@@ -39,8 +39,8 @@ class HWPRotStage(Operation):
     grad_method = "A"
     parameter_frequencies = [(4,)]
 
-    def __init__(self, angle, wires, do_queue=True, id=None):
-        super().__init__(angle, wires=qml.wires.Wires(wires), do_queue=do_queue, id=id)
+    def __init__(self, angle, wires, id=None):
+        super().__init__(angle, wires=qml.wires.Wires(wires), id=id)
 
     @property
     def num_params(self):
@@ -115,8 +115,8 @@ class QWPRotStage(Operation):
     grad_method = "A"
     parameter_frequencies = [(2, 4)]
 
-    def __init__(self, theta, wires, do_queue=True, id=None):
-        super().__init__(theta, wires=qml.wires.Wires(wires), do_queue=do_queue, id=id)
+    def __init__(self, theta, wires, id=None):
+        super().__init__(theta, wires=qml.wires.Wires(wires), id=id)
 
     @property
     def num_params(self):
