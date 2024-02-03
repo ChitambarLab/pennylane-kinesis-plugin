@@ -3,3 +3,5 @@
 **/**/tmp/
 .DS_Store
 .vscode/
+build/*
+src/pennylane_kinesis_plugin.egg-info/*
