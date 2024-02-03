@@ -1,1 +1,3 @@
-__version__ = open("version.txt").read()
+from importlib.metadata import version
+
+__version__ = version('pennylane-kinesis')
