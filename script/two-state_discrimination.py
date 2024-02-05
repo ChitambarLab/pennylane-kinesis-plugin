@@ -3,6 +3,7 @@ from pennylane import numpy as qnp
 import qnetvo
 from matplotlib import pyplot as plt
 import sys
+import argparse
 
 import pennylane_kinesis as pk
 
@@ -20,19 +21,23 @@ $ python script/two-state_discrimination.py numerics
 """
 
 if __name__ == "__main__":
-    TWO_WP = False if len(sys.argv) == 1 else "two_wp" in sys.argv[1:]
-    NUMERICS = False if len(sys.argv) == 1 else "numerics" in sys.argv[1:]
+    parser = argparse.ArgumentParser(prog="Two state discrimination",
+                                     description="Optimizes the state discrimination success probability for two states.")
+
+    parser.add_argument("-2", "--two_wp",default=False, action="store_true", help="If only using two waveplates (fixed measurement waveplates).")
+    parser.add_argument("-n", "--numerics",default=False, action="store_true", help="If using the simulator backend.")
+    parser.add_argument("--less", default=False, action="store_true", help="Less verbose output. Default: False")
+    args = parser.parse_args()
 
     state_disc_opt_dict = pk.two_state_discrimination(
         filepath="./data/two-state_discrimination/",
         shots=10000,
         shot_rate=3000000,
-        two_wp=TWO_WP,
-        numerics=NUMERICS,
+        two_wp=args.two_wp,
+        numerics=args.numerics,
         step_size=0.08,
         num_steps=20,
-        verbose=True,
-        fixed_settings=[0, 0],
+        verbose=not args.less,
     )
 
     """
