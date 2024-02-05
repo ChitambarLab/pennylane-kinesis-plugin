@@ -64,8 +64,6 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_
 
     print(opt_dict["cost_vals"])
     assert len(opt_dict["cost_vals"]) == num_steps + 1
-    print(np.diff(opt_dict["cost_vals"]))
-    print(np.diff(opt_dict["cost_vals"]) < 0)
     print(np.all(np.diff(opt_dict["cost_vals"]) < 1e-3))
     # assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
     # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
