@@ -22,7 +22,6 @@ def two_state_discrimination(
     num_steps=20,
     use_adam=False,
     verbose=True,
-    fixed_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
 ):
@@ -76,6 +75,11 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=[wires[0]])
         QWPRotStage(settings[1], wires=[wires[0]])
 
+    # Function to use for MeasureNode if we are not moving the measurement waveplates.
+    def meas_fn(settings, wires):
+        HWPRotStage(0, wires=wires[0:1])
+        QWPRotStage(0, wires=wires[0:1])
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -90,14 +94,16 @@ def two_state_discrimination(
 
     make_dir(data_path)
 
+    meas_node = None
     if two_wp:
         data_path += "two_wp/"
-        fixed_setting_ids = [4, 5]
-        fixed_settings = fixed_settings[0:2]  # these settings will be held at constant value
+        meas_node = qnetvo.MeasureNode(
+            num_in=1, num_out=2, wires=[0], ansatz_fn=meas_fn, num_settings=0
+        )
+
     else:
         data_path += "four_wp/"
-        fixed_setting_ids = []
-        fixed_settings = []
+        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
 
     make_dir(data_path)
 
@@ -106,7 +112,7 @@ def two_state_discrimination(
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
         [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [meas_node],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,
@@ -121,12 +127,7 @@ def two_state_discrimination(
 
     return optimize(
         lambda settings: state_disc_cost(*settings),
-        np.array(
-            state_disc_ansatz.rand_network_settings(
-                fixed_setting_ids=fixed_setting_ids,
-                fixed_settings=fixed_settings,
-            )
-        ),
+        np.array(state_disc_ansatz.rand_network_settings()),
         step_size=step_size,
         num_steps=num_steps,
         verbose=verbose,
