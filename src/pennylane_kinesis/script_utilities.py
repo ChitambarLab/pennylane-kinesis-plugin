@@ -22,7 +22,7 @@ def two_state_discrimination(
     num_steps=20,
     use_adam=False,
     verbose=True,
-    fixed_meas_settings=[0,0],
+    fixed_meas_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
 ):
@@ -98,7 +98,11 @@ def two_state_discrimination(
     if two_wp:
         data_path += "two_wp/"
         meas_node = qnetvo.MeasureNode(
-                num_in=1, num_out=2, wires=[0], ansatz_fn=lambda *args: meas_fn(fixed_meas_settings, args[1]), num_settings=0
+            num_in=1,
+            num_out=2,
+            wires=[0],
+            ansatz_fn=lambda *args: meas_fn(fixed_meas_settings, args[1]),
+            num_settings=0,
         )
 
     else:
