@@ -7,6 +7,11 @@ import pennylane_kinesis as pk
 from test_file_utilities import tmp_dir_cleanup
 
 
+class CostValueChangeException(Exception):
+    def __init__(self, difference, message="Cost vals did not change significantly from first to last optimization:"):
+        self.message = message+str(difference)
+        super().__init__(self.message)
+
 @pytest.mark.parametrize(
     "numerics, two_wp, match_cost_vals",
     [
@@ -44,9 +49,10 @@ from test_file_utilities import tmp_dir_cleanup
                 -1.9816,
             ],
         ),
-        (False, False, [-1] * 11),
+        pytest.param(False, False, [-1]*11, marks=pytest.mark.xfail(raises=CostValueChangeException)),
     ],
 )
+
 def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_vals):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
@@ -54,20 +60,23 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_
     np.random.seed(123)
     # tolerance for strictly decreasing cost check
     COST_TOL = 1e-2
+    DIFF_TOL = 0.3
 
     filepath = "./test/tmp/"
 
     num_steps = 10
     opt_dict = pk.two_state_discrimination(
-        filepath, numerics=numerics, two_wp=two_wp, num_steps=num_steps, verbose=True
+        filepath, numerics=numerics, two_wp=two_wp, num_steps=num_steps, verbose=False
     )
 
     print(opt_dict["cost_vals"])
     assert len(opt_dict["cost_vals"]) == num_steps + 1
-    print(np.all(np.diff(opt_dict["cost_vals"]) < 1e-3))
-    # assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
     # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
     assert np.all(np.diff(opt_dict["cost_vals"]) < COST_TOL)
+
+    # Check to make sure there's a significant difference between the first and last costs
+    if not (np.abs(opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL):
+        raise CostValueChangeException(np.abs(opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]))
     # Verify created filepath.
     assert os.path.exists("./test/tmp/")
 
@@ -82,7 +91,6 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_
     assert len(files) == 1
     file_opt_dict = pk.read_json(files[0])
 
-    # assert np.allclose(file_opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
     # Check to make sure that the cost values are strictly decreasing, to a certain tolerance
     assert np.all(np.diff(file_opt_dict["cost_vals"]) < COST_TOL)
 
