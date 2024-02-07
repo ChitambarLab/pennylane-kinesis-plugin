@@ -8,9 +8,14 @@ from test_file_utilities import tmp_dir_cleanup
 
 
 class CostValueChangeException(Exception):
-    def __init__(self, difference, message="Cost vals did not change significantly from first to last optimization:"):
-        self.message = message+str(difference)
+    def __init__(
+        self,
+        difference,
+        message="Cost vals did not change significantly from first to last optimization:",
+    ):
+        self.message = message + str(difference)
         super().__init__(self.message)
+
 
 @pytest.mark.parametrize(
     "numerics, two_wp, match_cost_vals",
@@ -49,10 +54,11 @@ class CostValueChangeException(Exception):
                 -1.9816,
             ],
         ),
-        pytest.param(False, False, [-1]*11, marks=pytest.mark.xfail(raises=CostValueChangeException)),
+        pytest.param(
+            False, False, [-1] * 11, marks=pytest.mark.xfail(raises=CostValueChangeException)
+        ),
     ],
 )
-
 def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_vals):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
