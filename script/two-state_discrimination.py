@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-2", "--two_wp",default=False, action="store_true", help="If only using two waveplates (fixed measurement waveplates).")
     parser.add_argument("-n", "--numerics",default=False, action="store_true", help="If using the simulator backend.")
-    parser.add_argument("--less", default=False, action="store_true", help="Less verbose output. Default: False")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
     args = parser.parse_args()
 
     state_disc_opt_dict = pk.two_state_discrimination(
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         numerics=args.numerics,
         step_size=0.08,
         num_steps=20,
-        verbose=not args.less,
+        verbose=args.verbose,
     )
 
     """
