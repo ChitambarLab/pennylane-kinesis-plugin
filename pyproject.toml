@@ -32,7 +32,7 @@ source = "https://github.com/ChitambarLab/pennylane-kinesis-plugin"
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
-where = ["src/"]
+where = ["src"]
 include = ["pennylane_kinesis*"]
 namespaces = false
 
