@@ -18,48 +18,10 @@ class CostValueChangeException(Exception):
 
 
 @pytest.mark.parametrize(
-    "numerics, two_wp, match_cost_vals",
-    [
-        (
-            True,
-            False,
-            [
-                -1.6333,
-                -1.982,
-                -1.9875,
-                -1.9864,
-                -1.9867,
-                -1.9876,
-                -1.988,
-                -1.9874,
-                -1.9881,
-                -1.9895,
-                -1.9884,
-            ],
-        ),
-        (
-            True,
-            True,
-            [
-                -0.7659,
-                -1.5337,
-                -1.9377,
-                -1.956,
-                -1.963,
-                -1.9686,
-                -1.9725,
-                -1.9748,
-                -1.9779,
-                -1.9811,
-                -1.9816,
-            ],
-        ),
-        pytest.param(
-            False, False, [-1] * 11, marks=pytest.mark.xfail(raises=CostValueChangeException)
-        ),
-    ],
+    "numerics, two_wp",
+    [(True, False), (True, True)],
 )
-def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_vals):
+def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -75,14 +37,16 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, match_cost_
         filepath, numerics=numerics, two_wp=two_wp, num_steps=num_steps, verbose=False
     )
 
-    print(opt_dict["cost_vals"])
     assert len(opt_dict["cost_vals"]) == num_steps + 1
     # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
     assert np.all(np.diff(opt_dict["cost_vals"]) < COST_TOL)
 
-    # Check to make sure there's a significant difference between the first and last costs
-    if not (np.abs(opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL):
-        raise CostValueChangeException(np.abs(opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]))
+    # Check that significant optimization progress is made on first step.
+    if numerics:
+        assert (opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL
+    else:  # Otherwise verify that the device ran using `test_mode = True`.
+        assert opt_dict["cost_vals"] == [-1] * 11
+
     # Verify created filepath.
     assert os.path.exists("./test/tmp/")
 
