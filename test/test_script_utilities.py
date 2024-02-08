@@ -7,16 +7,6 @@ import pennylane_kinesis as pk
 from test_file_utilities import tmp_dir_cleanup
 
 
-class CostValueChangeException(Exception):
-    def __init__(
-        self,
-        difference,
-        message="Cost vals did not change significantly from first to last optimization:",
-    ):
-        self.message = message + str(difference)
-        super().__init__(self.message)
-
-
 @pytest.mark.parametrize(
     "numerics, two_wp",
     [(True, False), (True, True)],
