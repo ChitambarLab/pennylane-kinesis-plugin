@@ -2,10 +2,20 @@ import numpy as np
 from pennylane import QubitDevice
 from pylablib.devices import Thorlabs
 import time
+from enum import Enum
+import TimeTagger as TT
+import os
 
 from .version import __version__
 
 _TEST_MODE = False
+_SWABIAN_TEST_MODE = True
+
+
+class TimeTaggerType(Enum):
+    UQD = 0
+    SWABIAN = 1
+
 
 try:
     # importing the local time-tagger library
@@ -18,9 +28,11 @@ except BaseException as ex:
 
     print("\nAn error occured while importing time tagger")
 
-    _TEST_MODE = True
-    print("setting `_TEST_MODE=True`")
-
+    # Commenting out for now since we want to run the Swabian
+    # and don't want it to run TEST_MODE by default
+    # TODO: Change the functionality of test mode
+    # _TEST_MODE = True
+    # print("setting `_TEST_MODE=True`")
 
 from pylablib.devices import Thorlabs
 
@@ -108,6 +120,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         analytic=None,
         shot_rate=6000,
         wimp_mode=False,
+        ttag_type=TimeTaggerType.SWABIAN,
         ttag_channel_transmit=5,
         ttag_channel_reflect=4,
         test_mode=_TEST_MODE,
@@ -115,10 +128,11 @@ class KinesisCageRotatorDevice(QubitDevice):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
         self.wimp_mode = wimp_mode
+        self.ttag_type = ttag_type
         self.ttag_channel_transmit = ttag_channel_transmit
         self.ttag_channel_reflect = ttag_channel_reflect
-
         self.shot_rate = shot_rate  # mean num photons incident upon detector per second
+        self.shots = shots
         self.integration_time = shots / (self.shot_rate)
 
         # Initialize device list
@@ -263,14 +277,50 @@ class KinesisCageRotatorDevice(QubitDevice):
             print("detector in test mode")
             buffer = {}
             return buffer
-        else:
+        elif self.ttag_type == TimeTaggerType.UQD:
             buffer = ttag.TTBuffer(0)  # Default buffer number is 0
             print("Properties of buffer:")
             print("Channels: ", buffer.channels)
             print("Resolution: ", buffer.resolution)
             print("Datapoints: ", buffer.datapoints)
-
-            return buffer
+        elif self.ttag_type == TimeTaggerType.SWABIAN:
+            self.ttag = TT.createTimeTagger()
+            self.ttag_stream = TT.TimeTagStream(
+                self.ttag,
+                1.5 * self.shots,
+                channels=[self.ttag_channel_reflect, self.ttag_channel_transmit],
+            )
+            self.counter = TT.Countrate(
+                self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit]
+            )
+            print(
+                "Started Swabian timetagger for channels: ",
+                self.ttag_channel_reflect,
+                " and ",
+                self.ttag_channel_transmit,
+            )
+            if _SWABIAN_TEST_MODE:
+                self.ttag.setTestSignal(self.ttag_channel_reflect, True)
+                self.ttag.setTestSignal(self.ttag_channel_transmit, True)
+                print("SWABIAN_TEST_MODE is set to True, test signals are enabled.")
+                print(
+                    "Test signal on channels",
+                    self.ttag_channel_reflect,
+                    " and ",
+                    self.ttag_channel_transmit,
+                    "enabled.",
+                )
+            self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
+            self.counter.waitUntilFinished()
+            self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
+            print("Shot rates:")
+            print(
+                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
+            )
+            # self.shots is user input, calculate integration time based on shot rate from the detector
+            self.integration_time = self.shots / (np.min(self.shot_rate))
+            print(f"Set integration time to: {self.integration_time:.5f} seconds.")
+            return {}
 
     def device_home(self, device: Thorlabs.KinesisMotor):
         """Sends the specified device to the home position.
@@ -389,7 +439,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             singles_array = [0, 0, 0, 0, int(self.shots / 2), int(self.shots / 2)]
             h_counts = singles_array[self.ttag_channel_transmit]
             v_counts = singles_array[self.ttag_channel_reflect]
-        else:
+        elif self.ttag_type == TimeTaggerType.UQD:
             channels = []
             iteration = 0
             while True:
@@ -404,6 +454,20 @@ class KinesisCageRotatorDevice(QubitDevice):
                 if len(channels) >= self.shots:
                     break
             channels = channels[: self.shots]  # truncate to desired number of shots
+            h_counts = len(channels[channels == self.ttag_channel_transmit])
+            v_counts = len(channels[channels == self.ttag_channel_reflect])
+        elif self.ttag_type == TimeTaggerType.SWABIAN:
+            _ = (
+                self.ttag_stream.getData()
+            )  # Clear the buffer (it will return stored data otherwise)
+            channels = []
+            while True:
+                time.sleep(self.integration_time)  # sleep for the integration time required
+                ttag_buffer = self.ttag_stream.getData()
+                channels = np.append(channels, ttag_buffer.getChannels())
+                if len(channels) >= self.shots:
+                    break
+            channels = channels[: self.shots]
             h_counts = len(channels[channels == self.ttag_channel_transmit])
             v_counts = len(channels[channels == self.ttag_channel_reflect])
 
