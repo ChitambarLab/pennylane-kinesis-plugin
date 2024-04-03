@@ -3,7 +3,6 @@ from pennylane import QubitDevice
 from pylablib.devices import Thorlabs
 import time
 from enum import Enum
-import TimeTagger as TT
 import os
 
 from .version import __version__
@@ -13,26 +12,10 @@ _SWABIAN_TEST_MODE = True
 
 
 class TimeTaggerType(Enum):
-    UQD = 0
-    SWABIAN = 1
+    NONE = 0
+    UQD = 1
+    SWABIAN = 2
 
-
-try:
-    # importing the local time-tagger library
-    from . import ttag
-
-except BaseException as ex:
-    msg_template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-    message = msg_template.format(type(ex).__name__, ex.args)
-    print(message)
-
-    print("\nAn error occured while importing time tagger")
-
-    # Commenting out for now since we want to run the Swabian
-    # and don't want it to run TEST_MODE by default
-    # TODO: Change the functionality of test mode
-    # _TEST_MODE = True
-    # print("setting `_TEST_MODE=True`")
 
 from pylablib.devices import Thorlabs
 
@@ -127,8 +110,13 @@ class KinesisCageRotatorDevice(QubitDevice):
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
+        # Doesn't make sense to run any timetagger if we're in test mode so we ignore the ttag specification
+        if self.test_mode == True:
+            self.ttag_type = TimeTaggerType.NONE
+        else:
+            self.ttag_type = ttag_type
+
         self.wimp_mode = wimp_mode
-        self.ttag_type = ttag_type
         self.ttag_channel_transmit = ttag_channel_transmit
         self.ttag_channel_reflect = ttag_channel_reflect
         self.shot_rate = shot_rate  # mean num photons incident upon detector per second
@@ -273,17 +261,43 @@ class KinesisCageRotatorDevice(QubitDevice):
 
     def detector_setup(self):
         """Initializes the time-tagger buffer."""
-        if self.test_mode:
-            print("detector in test mode")
+        if self.ttag_type == TimeTaggerType.NONE:
+            print("Detector in test mode. No time tagger used.")
             buffer = {}
             return buffer
         elif self.ttag_type == TimeTaggerType.UQD:
+            try:
+                # importing the local time-tagger library
+                from . import ttag
+            except BaseException as ex:
+                msg_template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+                message = msg_template.format(type(ex).__name__, ex.args)
+                print(message)
+
+                print("\nAn error occured while importing time tagger")
+                print("Defaulting to TimeTaggerType.NONE due to import error.")
+                self.ttag_type = TimeTaggerType.NONE
+                self.detector_setup()
+                return
+
             buffer = ttag.TTBuffer(0)  # Default buffer number is 0
             print("Properties of buffer:")
             print("Channels: ", buffer.channels)
             print("Resolution: ", buffer.resolution)
             print("Datapoints: ", buffer.datapoints)
         elif self.ttag_type == TimeTaggerType.SWABIAN:
+            try:
+                import TimeTagger as TT
+
+            except ImportError as e:
+                print("The Swabian Time Tagger library is not installed.")
+                print("Please install it using the instructions on the github README:")
+                print("https://github.com/ChitambarLab/pennylane-kinesis-plugin")
+                print("\nDefaulting to TimeTaggerType.NONE due to import error.")
+                self.ttag_type = TimeTaggerType.NONE
+                self.detector_setup()
+                return
+
             self.ttag = TT.createTimeTagger()
             self.ttag_stream = TT.TimeTagStream(
                 self.ttag,
@@ -435,39 +449,35 @@ class KinesisCageRotatorDevice(QubitDevice):
         This data can be used to construct probability distributions and expectations.
         """
 
-        if self.test_mode:
+        if self.ttag_type == TimeTaggerType.NONE:
             singles_array = [0, 0, 0, 0, int(self.shots / 2), int(self.shots / 2)]
             h_counts = singles_array[self.ttag_channel_transmit]
             v_counts = singles_array[self.ttag_channel_reflect]
-        elif self.ttag_type == TimeTaggerType.UQD:
+        else:
             channels = []
             iteration = 0
             while True:
+                if iteration == 0 and self.ttag_type == TimeTaggerType.SWABIAN:
+                    _ = (
+                        self.ttag_stream.getData()
+                    )  # Clear the buffer (it will return stored data otherwise)
                 time.sleep(self.integration_time)
                 iteration += 1
-                channels, _ = self.buffer(self.integration_time * iteration)
-                channel_filter = np.logical_or(
-                    channels == self.ttag_channel_transmit,
-                    channels == self.ttag_channel_reflect,
-                )
-                channels = channels[channel_filter]
+                # Get data from UQD time tagger
+                if self.ttag_type == TimeTaggerType.UQD:
+                    channels, _ = self.buffer(self.integration_time * iteration)
+                    channel_filter = np.logical_or(
+                        channels == self.ttag_channel_transmit,
+                        channels == self.ttag_channel_reflect,
+                    )
+                    channels = channels[channel_filter]
+                # Get data from Swabian time tagger
+                if self.ttag_type == TimeTaggerType.SWABIAN:
+                    ttag_buffer = self.ttag_stream.getData()
+                    channels = np.append(channels, ttag_buffer.getChannels())
                 if len(channels) >= self.shots:
                     break
             channels = channels[: self.shots]  # truncate to desired number of shots
-            h_counts = len(channels[channels == self.ttag_channel_transmit])
-            v_counts = len(channels[channels == self.ttag_channel_reflect])
-        elif self.ttag_type == TimeTaggerType.SWABIAN:
-            _ = (
-                self.ttag_stream.getData()
-            )  # Clear the buffer (it will return stored data otherwise)
-            channels = []
-            while True:
-                time.sleep(self.integration_time)  # sleep for the integration time required
-                ttag_buffer = self.ttag_stream.getData()
-                channels = np.append(channels, ttag_buffer.getChannels())
-                if len(channels) >= self.shots:
-                    break
-            channels = channels[: self.shots]
             h_counts = len(channels[channels == self.ttag_channel_transmit])
             v_counts = len(channels[channels == self.ttag_channel_reflect])
 

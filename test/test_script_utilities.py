@@ -92,7 +92,7 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
                 -3.2414,
             ],
         ),
-        (False, False, [0] * 11),
+        # (False, False, [0] * 11), TODO: This should be numerics = True? Otherwise this runs with the hardware active
     ],
 )
 def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, numerics, three_wp, match_cost_vals):
