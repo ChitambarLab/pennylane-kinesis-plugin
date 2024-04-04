@@ -278,13 +278,14 @@ class KinesisCageRotatorDevice(QubitDevice):
                 print("Defaulting to TimeTaggerType.NONE due to import error.")
                 self.ttag_type = TimeTaggerType.NONE
                 self.detector_setup()
-                return
+                return {}
 
             buffer = ttag.TTBuffer(0)  # Default buffer number is 0
             print("Properties of buffer:")
             print("Channels: ", buffer.channels)
             print("Resolution: ", buffer.resolution)
             print("Datapoints: ", buffer.datapoints)
+            return buffer
         elif self.ttag_type == TimeTaggerType.SWABIAN:
             try:
                 import TimeTagger as TT
@@ -296,7 +297,7 @@ class KinesisCageRotatorDevice(QubitDevice):
                 print("\nDefaulting to TimeTaggerType.NONE due to import error.")
                 self.ttag_type = TimeTaggerType.NONE
                 self.detector_setup()
-                return
+                return {}
 
             self.ttag = TT.createTimeTagger()
             self.ttag_stream = TT.TimeTagStream(

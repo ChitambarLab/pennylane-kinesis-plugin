@@ -25,6 +25,7 @@ def two_state_discrimination(
     fixed_meas_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
+    test_mode=False,
 ):
     """
     Performs a hardware-compatible optimization of minimal error discrimination of two encoded states.
@@ -90,7 +91,10 @@ def two_state_discrimination(
     else:
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
-        additional_dev_kwargs = {"motors": KinesisMotors()}
+        additional_dev_kwargs = {
+            "motors": KinesisMotors(test_mode=test_mode),
+            "test_mode": test_mode,
+        }
 
     make_dir(data_path)
 
@@ -155,6 +159,7 @@ def qubit_dimensionality_witnessing(
     fixed_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
+    test_mode=False,
 ):
     """
     Performs a hardware-compatible optimization of a quantum violation of the simplest qubit
@@ -219,7 +224,10 @@ def qubit_dimensionality_witnessing(
     else:
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
-        additional_dev_kwargs = {"motors": KinesisMotors()}
+        additional_dev_kwargs = {
+            "motors": KinesisMotors(test_mode=test_mode),
+            "test_mode": test_mode,
+        }
 
     make_dir(data_path)
 
