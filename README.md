@@ -1,6 +1,10 @@
 # Pennylane-Kinesis Plugin
 A PennyLane device plugin for controlling rotational stages using Thorlabs Kinesis Software.
 
+## Requirements
+
+If using a Swabian timetagger, please install the software package provided [here](https://www.swabianinstruments.com/time-tagger/downloads/) and follow the corresponding instructions. This installs the Python libraries required for this project.
+
 ## Development Environment
 
 This project uses the [Anaconda](https://docs.conda.io/projects/conda/en/latest/glossary.html#anaconda-glossary) distribution of Python to ensure a consistent development environment.

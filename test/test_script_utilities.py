@@ -8,10 +8,10 @@ from test_file_utilities import tmp_dir_cleanup
 
 
 @pytest.mark.parametrize(
-    "numerics, two_wp",
-    [(True, False), (True, True)],
+    "numerics, two_wp, test_mode",
+    [(True, False, False), (True, True, False), (False, False, True), (False, True, True)],
 )
-def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
+def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, test_mode):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -24,7 +24,12 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
 
     num_steps = 10
     opt_dict = pk.two_state_discrimination(
-        filepath, numerics=numerics, two_wp=two_wp, num_steps=num_steps, verbose=False
+        filepath,
+        numerics=numerics,
+        two_wp=two_wp,
+        num_steps=num_steps,
+        verbose=False,
+        test_mode=test_mode,
     )
 
     assert len(opt_dict["cost_vals"]) == num_steps + 1
@@ -56,7 +61,7 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
 
 
 @pytest.mark.parametrize(
-    "numerics, three_wp, match_cost_vals",
+    "numerics, three_wp, match_cost_vals, test_mode",
     [
         (
             True,
@@ -74,6 +79,7 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
                 -3.3572,
                 -3.3752,
             ],
+            False,
         ),
         (
             True,
@@ -91,11 +97,14 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp):
                 -3.159,
                 -3.2414,
             ],
+            False,
         ),
-        (False, False, [0] * 11),
+        (False, False, [0] * 11, True),
     ],
 )
-def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, numerics, three_wp, match_cost_vals):
+def test_qubit_dimensionality_witnessing(
+    tmp_dir_cleanup, numerics, three_wp, match_cost_vals, test_mode
+):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -105,7 +114,12 @@ def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, numerics, three_wp, ma
 
     num_steps = 10
     opt_dict = pk.qubit_dimensionality_witnessing(
-        filepath, numerics=numerics, three_wp=three_wp, num_steps=num_steps, verbose=False
+        filepath,
+        numerics=numerics,
+        three_wp=three_wp,
+        num_steps=num_steps,
+        verbose=False,
+        test_mode=test_mode,
     )
 
     assert len(opt_dict["cost_vals"]) == num_steps + 1
