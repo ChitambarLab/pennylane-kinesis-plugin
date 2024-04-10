@@ -15,7 +15,7 @@ def optimize(
     init_opt_dict=None,
     domain_periods=None,
     eval_cost=None,
-    use_adam=False,
+    optimizer='gradient_descent',
     verbose=True,
     **meta_kwargs,
 ):
@@ -89,16 +89,19 @@ def optimize(
             "datetime": datetime_now_string(),
             "domain_periods": domain_periods,
             "opt_step_time": [],
-            "use_adam": use_adam,
+            "optimizer": optimizer,
             **meta_kwargs,
         }
     )
 
-    opt = (
-        qml.AdamOptimizer(stepsize=step_size)
-        if use_adam
-        else qml.GradientDescentOptimizer(stepsize=step_size)
-    )
+    if optimizer == 'adam':
+        opt = (qml.AdamOptimizer(stepsize=step_size))
+    elif optimizer == 'momentum':
+        opt = (qml.MomentumOptimizer(stepsize=step_size))
+    elif optimizer == 'adagrad':
+        opt = (qml.AdagradOptimizer(stepsize=step_size))
+    else:
+        opt = (qml.GradientDescentOptimizer(stepsize=step_size))
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
     try:
@@ -114,7 +117,6 @@ def optimize(
                 settings = opt.step(grad_cost, settings)
 
             if domain_periods:
-                print("settings are this long: ", len(settings))
                 settings = qnp.array(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
@@ -124,6 +126,7 @@ def optimize(
             opt_dict["cost_vals"] += [float(cost_val)]
 
             if verbose:
+                print("settings are this long: ", len(settings))
                 print("current cost : ")
                 print(opt_dict["cost_vals"])
 
