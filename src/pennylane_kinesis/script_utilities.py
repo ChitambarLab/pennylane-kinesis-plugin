@@ -20,12 +20,13 @@ def two_state_discrimination(
     numerics=False,
     step_size=0.08,
     num_steps=20,
-    use_adam=False,
+    optimizer="gradient-descent",
     verbose=True,
     fixed_meas_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
     test_mode=False,
+    diff_method='parameter-shift',
 ):
     """
     Performs a hardware-compatible optimization of minimal error discrimination of two encoded states.
@@ -66,6 +67,9 @@ def two_state_discrimination(
 
     :param qwp_period: The domain of unique quarter wave-plate operations.
     :type qwp_period: Float
+
+    :param diff_method: The differentiation method to use in the QNode ('parameter-shift' or 'finite-diff').
+    :type diff_method: String
 
     :returns: An optimization dictionary output from the `optimize` method.
     :rtype: Dict
@@ -131,7 +135,13 @@ def two_state_discrimination(
 
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit dimensionality witness.
-    state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2))
+    qnode_kwargs={'diff_method': diff_method}
+    if(diff_method == 'finite-diff'):
+        qnode_kwargs['h'] = 1e-3
+        qnode_kwargs['strategy'] = 'center'
+        qnode_kwargs['approx_order'] = 2
+    state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
+    
 
     return optimize(
         lambda settings: state_disc_cost(*settings),
@@ -140,7 +150,7 @@ def two_state_discrimination(
         num_steps=num_steps,
         verbose=verbose,
         filepath=data_path,
-        use_adam=use_adam,
+        optimizer=optimizer,
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
@@ -155,11 +165,12 @@ def qubit_dimensionality_witnessing(
     step_size=0.02,
     num_steps=50,
     verbose=True,
-    use_adam=False,
+    optimizer='gradient-descent',
     fixed_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
     test_mode=False,
+    diff_method='parameter-shift',
 ):
     """
     Performs a hardware-compatible optimization of a quantum violation of the simplest qubit
@@ -269,6 +280,7 @@ def qubit_dimensionality_witnessing(
                 [-1, -1, -1, 1, 1, 0],
             ]
         ),
+        qnode_kwargs={'diff_method': diff_method},
     )
 
     return optimize(
@@ -283,7 +295,7 @@ def qubit_dimensionality_witnessing(
         num_steps=num_steps,
         verbose=verbose,
         filepath=data_path,
-        use_adam=use_adam,
+        optimizer=optimizer,
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * prep_num_in
         + [hwp_period, qwp_period] * meas_num_in,
