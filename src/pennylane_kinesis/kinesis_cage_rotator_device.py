@@ -4,11 +4,14 @@ from pylablib.devices import Thorlabs
 import time
 from enum import Enum
 import os
+import csv
+from .file_utilities import datetime_now_string
+import pickle
 
 from .version import __version__
 
 _TEST_MODE = False
-_SWABIAN_TEST_MODE = True
+_SWABIAN_TEST_MODE = False
 
 
 class TimeTaggerType(Enum):
@@ -35,6 +38,7 @@ class KinesisMotors:
         self.prep_qwp = Thorlabs.KinesisMotor(self.prep_qwp_sn, scale="stage")
         self.meas_hwp = Thorlabs.KinesisMotor(self.meas_hwp_sn, scale="stage")
         self.meas_qwp = Thorlabs.KinesisMotor(self.meas_qwp_sn, scale="stage")
+        self.wps = [self.prep_hwp, self.prep_qwp, self.meas_hwp, self.meas_qwp]
 
     def read_config(self):
         """Read the configuration file and set the motor serial numbers."""
@@ -56,6 +60,10 @@ class KinesisMotors:
         self.prep_qwp_sn = wp_details[2][1]
         self.meas_hwp_sn = wp_details[3][1]
         self.meas_qwp_sn = wp_details[4][1]
+
+    def close(self):
+        for wp in self.wps:
+            wp.close()
 
 
 class KinesisCageRotatorDevice(QubitDevice):
@@ -107,6 +115,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         ttag_channel_transmit=5,
         ttag_channel_reflect=4,
         test_mode=_TEST_MODE,
+        filepath=None,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
@@ -123,6 +132,10 @@ class KinesisCageRotatorDevice(QubitDevice):
         self.shots = shots
         self.integration_time = shots / (self.shot_rate)
 
+        self.active_times = [[] for _ in range(4)]
+
+        datetime = datetime_now_string()
+        self.timing_file = filepath+datetime+"timing_data.pkl"
         # Initialize device list
         self.device_list()
 
@@ -180,17 +193,26 @@ class KinesisCageRotatorDevice(QubitDevice):
 
         # Home all a devices
         print("Homing all devices...")
-        self.device_home(self.dev_a_hwp)
-        self.device_home(self.dev_a_qwp)
+        self.time_rotation(self.device_home, self.active_times, 0, self.dev_a_hwp)
+        self.time_rotation(self.device_home, self.active_times, 1, self.dev_a_qwp)
         print()
 
         # Home all b devices
         print("Homing all devices...")
-        self.device_home(self.dev_b_hwp)
-        self.device_home(self.dev_b_qwp)
+        self.time_rotation(self.device_home, self.active_times, 2, self.dev_b_hwp)
+        self.time_rotation(self.device_home, self.active_times, 3, self.dev_b_qwp)
         print()
 
         self.buffer = self.detector_setup()
+    
+    def time_rotation(self, func, active_times, wp_num, *args):
+        start = time.time()
+        func(*args)
+        end = time.time()
+        active_times[wp_num].append((start, end))
+        with open(self.timing_file, "wb") as f:
+            pickle.dump(active_times, f)
+        print(f"Time taken for operation {func.__name__} on WP {wp_num}: {end - start:.2f} seconds")
 
     def device_list(self):
         """Builds device list and prints detected devices."""
@@ -333,7 +355,7 @@ class KinesisCageRotatorDevice(QubitDevice):
                 f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
             )
             # self.shots is user input, calculate integration time based on shot rate from the detector
-            self.integration_time = self.shots / (np.min(self.shot_rate))
+            self.integration_time = self.shots / (np.sum(self.shot_rate))
             print(f"Set integration time to: {self.integration_time:.5f} seconds.")
             return {}
 
@@ -370,7 +392,7 @@ class KinesisCageRotatorDevice(QubitDevice):
     def device_move_to_angle(self, device: Thorlabs.KinesisMotor, angle):
         """Rotates a device to the specified angle.
 
-        :param device: A cage rotaator device.
+        :param device: A cage rotator device.
         :type device: CageRotator object
 
         :param angle: The desired angular position (in degrees)
@@ -386,6 +408,27 @@ class KinesisCageRotatorDevice(QubitDevice):
             device.move_to(angle)  # Moves to position in degrees
             device.wait_for_stop()
             print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
+
+    def device_move_by_angle(self, device: Thorlabs.KinesisMotor, angle):
+        """Rotates a device by the specified angle.
+
+        :param device: A cage rotator device.
+        :type device: CageRotator object
+
+        :param angle: The desired angular position (in degrees)
+        :type angle: float
+
+        :returns: None
+        """
+        if self.test_mode:
+            print("Moved device S/N " + device + " by " + str(angle) + "\u00B0")
+        else:
+            device_info = device.get_device_info()
+            device_sn = str(device_info.serial_no)
+            device.move_by(angle)  # Moves by position in degrees
+            device.wait_for_stop()
+            print("Moved device S/N " + device_sn + " by " + str(angle) + "\u00B0")
+            print("Current position:", device.get_position())
 
     def disconnect(self):
         """Disconnects all Kinesis devices."""
@@ -439,9 +482,9 @@ class KinesisCageRotatorDevice(QubitDevice):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             if op.name == "HWPRotStage":
-                self.device_move_to_angle(dev_list[i], angle % 90)
+                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle%90)
             elif op.name == "QWPRotStage":
-                self.device_move_to_angle(dev_list[i], angle % 180)
+                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle%180)
             else:
                 print("Operation : ", op.name, ", is not supported")
 
