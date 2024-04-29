@@ -85,7 +85,6 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
-    motors = KinesisMotors(test_mode=test_mode)
 
     if numerics:
         data_path += "numerics/"
@@ -95,6 +94,7 @@ def two_state_discrimination(
             "hwp_domain_period": hwp_period,
         }
     else:
+        motors = KinesisMotors(test_mode=test_mode)
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
         additional_dev_kwargs = {
@@ -157,7 +157,8 @@ def two_state_discrimination(
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
-    motors.close()
+    if not numerics:
+        motors.close()
     return opt_dict
 
 
