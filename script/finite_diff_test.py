@@ -6,6 +6,7 @@ import sys
 import argparse
 import time
 import pennylane_kinesis as pk
+from pennylane_kinesis.file_utilities import datetime_now_string
 
 """
 Optimizes the state discrimination success probability for two states.
@@ -92,6 +93,10 @@ if __name__ == "__main__":
 
     print("took", end_time - start_time, "seconds to run VQO on Two-State Discrimination with", args.optimizer, "and", args.diff)
 
+    datetime_str = datetime_now_string()
+    f = open("./data/two-state_discrimination/"+datetime_str +"runtime.txt","a")
+    f.write(str(end_time-start_time))
+
     """
     Plotting
     """
@@ -127,7 +132,7 @@ if __name__ == "__main__":
 
     plt.tight_layout()
 
-    filename="two-state-discrimination"
+    filename="two-state-discrimination-detectors"
     filename+="-"+args.diff
     filename+="-"+args.optimizer
     filename+="-"+str(args.num_steps)
@@ -138,4 +143,4 @@ if __name__ == "__main__":
         filename+="-twowp"
     
 
-    plt.savefig("./data/finite-diff/"+filename+".png")
+    plt.savefig("./data/two-state_discrimination/"+datetime_str+filename+".png")
