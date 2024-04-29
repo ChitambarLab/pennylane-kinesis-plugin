@@ -85,6 +85,8 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
+    motors = KinesisMotors(test_mode=test_mode)
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -96,8 +98,9 @@ def two_state_discrimination(
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
         additional_dev_kwargs = {
-            "motors": KinesisMotors(test_mode=test_mode),
+            "motors": motors,
             "test_mode": test_mode,
+            "filepath": filepath,
         }
 
     make_dir(data_path)
@@ -143,7 +146,7 @@ def two_state_discrimination(
     state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
     
 
-    return optimize(
+    opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
         np.array(state_disc_ansatz.rand_network_settings()),
         step_size=step_size,
@@ -154,6 +157,8 @@ def two_state_discrimination(
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
+    motors.close()
+    return opt_dict
 
 
 def qubit_dimensionality_witnessing(
@@ -225,6 +230,8 @@ def qubit_dimensionality_witnessing(
         HWPRotStage(settings[0], wires=[wires[0]])
         QWPRotStage(settings[1], wires=[wires[0]])
 
+    motors = KinesisMotors(test_mode=test_mode)
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -236,7 +243,7 @@ def qubit_dimensionality_witnessing(
         data_path += "hardware/"
         dev_name = "kinesis.cage.rotator"
         additional_dev_kwargs = {
-            "motors": KinesisMotors(test_mode=test_mode),
+            "motors": motors,
             "test_mode": test_mode,
         }
 
