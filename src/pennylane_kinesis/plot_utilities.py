@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
+from pathlib import Path
 
 from .file_utilities import get_files, read_json, datetime_now_string
 
@@ -306,6 +307,8 @@ def plot_step_size_dependence(
     filepath,
     step_size_list,
     plot_filename,
+    numerics=False,
+    two_wp = False,
     date_after = None,
     add_background=False,
     background=None,
@@ -324,9 +327,12 @@ def plot_step_size_dependence(
     ax.set_xlabel("Gradient Descent Step")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
+    filepath_type = "/numerics/" if numerics else "/hardware/"
+    filepath_wp = "/two_wp/" if two_wp else "/four_wp/"
+
     c_id = 0
     for step_size in step_size_list:
-        step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/hardware/four_wp/"
+        step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
 
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
@@ -458,6 +464,7 @@ def plot_step_size_dependence(
     # fig.subplots_adjust(bottom=0.3)
     plt.legend(ncols=2, loc="lower left")
 
+    Path.mkdir(Path(filepath+"plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 
