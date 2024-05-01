@@ -2,7 +2,18 @@ from datetime import datetime
 import json
 import os
 import re
+from pathlib import Path
 
+def winapi_path(dos_path, encoding=None):
+    """ Stolen from stack overflow, this function converts a dos path to a windows api path.
+    This is to support filenames longer than 260 characters (which windows doesn't allow with DOS paths).
+    """
+    if (not isinstance(dos_path, str) and encoding is not None): 
+        dos_path = dos_path.decode(encoding)
+    path = os.path.abspath(dos_path)
+    if path.startswith(u"\\\\"):
+        return u"\\\\?\\UNC\\" + path[2:]
+    return u"\\\\?\\" + path
 
 def datetime_now_string():
     return datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -13,11 +24,9 @@ def tmp_dir(filepath):
 
 
 def make_dir(filepath):
-    if not os.path.isdir(filepath):
-        os.mkdir(filepath)
-
+    win_path = winapi_path(filepath)
+    Path.mkdir(Path(win_path), parents=True, exist_ok=True)
     return filepath
-
 
 def get_files(path, regex):
     """Retrieves all data files that match the ``regex`` in the
@@ -45,8 +54,7 @@ def write_json(json_dict, filename):
 
     :returns: ``None``
     """
-
-    with open(filename + ".json", "w") as file:
+    with open(winapi_path(filename) + ".json", "w") as file:
         file.write(json.dumps(json_dict, indent=2))
 
 

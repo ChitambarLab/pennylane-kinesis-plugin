@@ -9,7 +9,7 @@ from datetime import datetime
 
 timing_file = './data/2024-04-16T20-31-20Ztiming_data.pkl'
 
-directory = os.path.dirname('./data/state_discrimination_hardware_step_size_dependence/finite-diff/gradient-descent/')
+directory = os.path.dirname('./data/state_discrimination_hardware_step_size_dependence/finite-diff/adagrad/')
 
 step_sizes = ['0_01', '0_5', '0_2', '0_1', '0_05']
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         ax.scatter(np.arange(1,26)[3::5], total_times[3::5], c='purple', label=step_sizes[3])
         ax.scatter(np.arange(1,26)[4::5], total_times[4::5], c='orange', label=step_sizes[4])
         ax.legend(title="Step Sizes")
-        ax.set_title("Total time of each optimization (finite-diff)")
+        ax.set_title("Total time of each optimization (finite-diff, adagrad)")
         ax.set_xlabel("Optimization Run Number (Sequential)")
         ax.set_ylabel("Time (s)")
         print("writing total_times to", directory+"total_times.png")
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         bars = ax.bar([0.5,1.5,2.5,3.5], height=duty_cycle_average, yerr=duty_std, color=['blue', 'red', 'green', 'orange'])
         ax.bar_label(bars, fmt='%.2f')
         ax.set_xticks([0.5, 1.5, 2.5, 3.5], labels=['Prep HWP', 'Prep QWP', 'Meas HWP', 'Meas QWP'])
-        ax.set_title("Duty Cycle Average \n (parameter-shift, gradient-descent)")
+        ax.set_title("Duty Cycle Average \n (finite-diff, adagrad)")
         ax.set_xlabel("Waveplate")
         ax.set_ylabel("Duty Cycle")
         path = directory+"/duty_cycle"+ pk.datetime_now_string() + ".png"

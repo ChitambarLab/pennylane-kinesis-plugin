@@ -217,20 +217,29 @@ def plot_shot_dependence(
     filepath,
     shots_list,
     plot_filename,
+    numerics=False,
+    two_wp=False,
     background=None,
     shot_rate=None,
     add_background=False,
+    title="Number of Shots Vs.\nOptimization Performance",
 ):
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.suptitle("Number of Shots Vs.\nOptimization Performance", fontweight="bold", fontsize=20)
+    fig.suptitle(title, fontweight="bold", fontsize=20)
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
+    filepath_type = "/numerics/" if numerics else "/hardware/"
+    filepath_wp = "two_wp/" if two_wp else "four_wp/"
+
+    c_id = 0
+
     color_id = 0
     for shots in shots_list:
-        shots_filepath = filepath + "shots_" + str(shots) + "/"
+        shots_filepath = filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
+        # shots_filepath = filepath + "shots_" + str(shots) + "/"
         filenames = get_files(shots_filepath, r"optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
 
@@ -241,7 +250,7 @@ def plot_shot_dependence(
                     aggregate_data += [[]]
 
                 if add_background:
-                    dark_count_rate = background / shot_rate
+                    dark_count_rate = background / int(shots)
                     corrected_probs = opt_dict["cost_vals"][i] + 2 + dark_count_rate
                     aggregate_data[i] += [corrected_probs]
 
@@ -296,6 +305,7 @@ def plot_shot_dependence(
     plt.grid()
     plt.legend(ncols=2)
     plt.tight_layout()
+    Path.mkdir(Path(filepath+"plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 def get_date_from_opt_filename(filename):
@@ -328,7 +338,7 @@ def plot_step_size_dependence(
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
     filepath_type = "/numerics/" if numerics else "/hardware/"
-    filepath_wp = "/two_wp/" if two_wp else "/four_wp/"
+    filepath_wp = "two_wp/" if two_wp else "four_wp/"
 
     c_id = 0
     for step_size in step_size_list:
