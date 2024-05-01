@@ -7,6 +7,7 @@ from .kinesis_cage_rotator_device import KinesisMotors
 from .operators import HWPRotStage
 from .operators import QWPRotStage
 from .optimization import optimize
+import pennylane_kinesis as pk
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
@@ -16,6 +17,7 @@ def two_state_discrimination(
     filepath,
     shots=10000,
     shot_rate=3000000,
+    background_counts=300,
     two_wp=False,
     numerics=False,
     step_size=0.08,
@@ -90,6 +92,9 @@ def two_state_discrimination(
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
         additional_dev_kwargs = {
+            "shot_rate": shot_rate,
+            "shots": shots,
+            "background_counts": background_counts,
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
         }
