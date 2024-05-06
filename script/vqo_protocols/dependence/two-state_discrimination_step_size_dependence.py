@@ -85,14 +85,16 @@ if __name__ == "__main__":
     if args.numerics:
         filepath+= "/numerics_step_size_dependence/"
     else:
-        "/hardware_step_size_dependence/"
+        filepath+="/hardware_step_size_dependence/"
 
+    datetime_str = pk.datetime_now_string()
 
     filepath = filepath + args.diff + "/" + args.optimizer + "/"
+    script_start_time = datetime_now_string()
+    filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     step_size_list = [0.01, 0.5, 0.2, 0.1, 0.05] * 5
     for step_size in step_size_list:
-        datetime_str = pk.datetime_now_string()
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
 
@@ -166,10 +168,10 @@ if __name__ == "__main__":
             filename+="-twowp"
         
 
-        plt.savefig(step_size_filepath+datetime_str+filename+".png")
+        output_file = pk.winapi_path(step_size_filepath+datetime_str+filename+".png")
+        plt.savefig(output_file)
         plt.close()
-
-        time.sleep(3)
+        time.sleep(0.5)
 
 
 # shot_rate = 100000
