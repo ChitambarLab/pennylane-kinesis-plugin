@@ -9,9 +9,11 @@ from datetime import datetime
 
 timing_file = './data/2024-04-16T20-31-20Ztiming_data.pkl'
 
-directory = os.path.dirname('./data/state_discrimination_hardware_step_size_dependence/finite-diff/adagrad/')
+directory = os.path.dirname('./data/state_discrimination/hardware_shot_dependence/parameter-shift/gradient-descent/2024-04-30T23-30-05Z/')
 
 step_sizes = ['0_01', '0_5', '0_2', '0_1', '0_05']
+
+num_shots = ['10','100','1000','10000','100000']
 
 date_after = datetime.strptime("2024-04-25T20-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
 directories = []
@@ -81,26 +83,39 @@ if __name__ == "__main__":
         action="store_true",
         help="If true, will produce a plot for the total time taken for each step size."
     )
+    
+    parser.add_argument(
+        '--shot_dep',
+        default=False,
+        action="store_true",
+        help="Run plotting over shot dependence data instead of step-size data."
+    )
 
     args = parser.parse_args()
 
     directories = []
 
-    for step_size in step_sizes:
-        directories.append(directory + '/step_size_' + str(step_size) +"/")
+    if args.shot_dep:
+        for shot in num_shots:
+            directories.append(directory + '/shots_' + str(shot)+"/")
+    else:
+        for step_size in step_sizes:
+            directories.append(directory + '/step_size_' + str(step_size) +"/")
+
 
     pkl_files = []
 
     total_time_files = []
 
-    for step_size_directory in directories:
-        for file in os.listdir(step_size_directory):
+
+    for directory in directories:
+        for file in os.listdir(directory):
             if(("timing_data" in file or "runtime" in file) 
                and get_date_from_timing_filename(file) >= date_after):
                 if file.endswith(".txt") and args.total_times:
-                        total_time_files.append(step_size_directory + file)
+                        total_time_files.append(directory + file)
                 if file.endswith(".pkl"):
-                        pkl_files.append(step_size_directory + file)
+                        pkl_files.append(directory + file)
 # datetime.utcnow().strftime()
     total_time_files = sorted(total_time_files, key=lambda x: datetime.strptime(x.split('/')[-1].split('Z')[0], "%Y-%m-%dT%H-%M-%S").timestamp())
 
@@ -115,16 +130,24 @@ if __name__ == "__main__":
 
         fig, ax = plt.subplots()
 
+        if args.shot_dep:
+            labels=num_shots
+        else:
+            labels=step_sizes
+
         # remove_outlier = np.array(total_times[0:5])
         # remove_outlier = np.append(remove_outlier, np.array(total_times[6:26]))
         ax.plot(np.arange(1,26), total_times)
-        ax.scatter(np.arange(1,26)[::5], total_times[::5], c='red', label=step_sizes[0])
-        ax.scatter(np.arange(1,26)[1::5], total_times[1::5], c='blue', label=step_sizes[1])
-        ax.scatter(np.arange(1,26)[2::5], total_times[2::5], c='green', label=step_sizes[2])
-        ax.scatter(np.arange(1,26)[3::5], total_times[3::5], c='purple', label=step_sizes[3])
-        ax.scatter(np.arange(1,26)[4::5], total_times[4::5], c='orange', label=step_sizes[4])
-        ax.legend(title="Step Sizes")
-        ax.set_title("Total time of each optimization (finite-diff, adagrad)")
+        ax.scatter(np.arange(1,26)[::5], total_times[::5], c='red', label=labels[0])
+        ax.scatter(np.arange(1,26)[1::5], total_times[1::5], c='blue', label=labels[1])
+        ax.scatter(np.arange(1,26)[2::5], total_times[2::5], c='green', label=labels[2])
+        ax.scatter(np.arange(1,26)[3::5], total_times[3::5], c='purple', label=labels[3])
+        ax.scatter(np.arange(1,26)[4::5], total_times[4::5], c='orange', label=labels[4])
+        if args.shot_dep:
+            ax.legend(title="Number of Shots")
+        else:
+            ax.legend(title="Step Sizes")
+        ax.set_title("Total time of each optimization (parameter-shift, gradient-descent)")
         ax.set_xlabel("Optimization Run Number (Sequential)")
         ax.set_ylabel("Time (s)")
         print("writing total_times to", directory+"total_times.png")
@@ -205,7 +228,7 @@ if __name__ == "__main__":
         bars = ax.bar([0.5,1.5,2.5,3.5], height=duty_cycle_average, yerr=duty_std, color=['blue', 'red', 'green', 'orange'])
         ax.bar_label(bars, fmt='%.2f')
         ax.set_xticks([0.5, 1.5, 2.5, 3.5], labels=['Prep HWP', 'Prep QWP', 'Meas HWP', 'Meas QWP'])
-        ax.set_title("Duty Cycle Average \n (finite-diff, adagrad)")
+        ax.set_title("Duty Cycle Average \n (parameter-shift, gradient-descent)")
         ax.set_xlabel("Waveplate")
         ax.set_ylabel("Duty Cycle")
         path = directory+"/duty_cycle"+ pk.datetime_now_string() + ".png"
