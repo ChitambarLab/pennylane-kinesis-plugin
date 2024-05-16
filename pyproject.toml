@@ -39,6 +39,7 @@ namespaces = false
 [project.entry-points."pennylane.plugins"]
 "kinesis.simulator" = "pennylane_kinesis:KinesisSimulatorDevice"
 "kinesis.cage.rotator" = "pennylane_kinesis:KinesisCageRotatorDevice"
+"elliptec.rotator" = "pennylane_kinesis:ElliptecRotatorDevice"
 
 
 

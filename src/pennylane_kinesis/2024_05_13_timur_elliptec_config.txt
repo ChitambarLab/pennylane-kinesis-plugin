@@ -1,0 +1,5 @@
+Device |	address |	Angle Offset (degrees) |	Qubit Name
+aHWP	11400288	68.3	prep_HWP
+aQWP	11400288	4.5	    prep_QWP
+bHWP	11400288	178.8	proj_HWP
+bQWP	11400288	99.1	proj_QWP
