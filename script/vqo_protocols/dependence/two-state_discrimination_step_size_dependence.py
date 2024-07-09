@@ -54,6 +54,14 @@ if __name__ == "__main__":
         default="gradient-descent",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'"
     )
+
+    parser.add_argument(
+        "--shots",
+        default=10000,
+        type=float,
+        help="Number of shots to take.",
+    )
+
     parser.add_argument(
         '-d',
         '--diff',
@@ -85,7 +93,7 @@ if __name__ == "__main__":
     if args.numerics:
         filepath+= "/numerics_step_size_dependence/"
     else:
-        filepath+="/hardware_step_size_dependence/"
+        filepath+="/new_hardware_step_size_dependence/"
 
     datetime_str = pk.datetime_now_string()
 
@@ -93,7 +101,8 @@ if __name__ == "__main__":
     script_start_time = datetime_now_string()
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    step_size_list = [0.01, 0.5, 0.2, 0.1, 0.05] * 5
+    #step_size_list = [0.01, 0.5, 0.2, 0.1, 0.05] * 10
+    step_size_list = [0.01, 0.05, 0.1] * 40
     for step_size in step_size_list:
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
@@ -103,7 +112,7 @@ if __name__ == "__main__":
         start_time = time.time()
         state_disc_opt_dict = pk.two_state_discrimination(
             filepath=step_size_filepath,
-            shots=10000,
+            shots=args.shots,
             shot_rate=3000000,
             two_wp=args.two_wp,
             numerics=args.numerics,
