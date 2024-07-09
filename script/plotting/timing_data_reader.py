@@ -7,36 +7,131 @@ import pennylane_kinesis as pk
 from pathlib import Path
 from datetime import datetime
 
-timing_file = './data/2024-04-16T20-31-20Ztiming_data.pkl'
+timing_file = './data/two-state_discrimination/2024-06-11T16-19-50Ztiming_data.pkl'
 
-directory = os.path.dirname('./data/state_discrimination/hardware_shot_dependence/parameter-shift/gradient-descent/2024-04-30T23-30-05Z/')
-
-step_sizes = ['0_01', '0_5', '0_2', '0_1', '0_05']
+run_directory = os.path.dirname('./data/state_discrimination/new_hardware_step_size_dependence/parameter-shift/gradient-descent/2024-06-21T21-55-40Z/')
 
 num_shots = ['10','100','1000','10000','100000']
 
-date_after = datetime.strptime("2024-04-25T20-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
+date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
 directories = []
-
-# for step_size in step_sizes:
-#     directories.append(directory + '/step_size_' + str(step_size) +"/")
-
-# pkl_files = []
-
-# total_time_files = []
-
-# for directory in directories:
-#     for file in os.listdir(directory):
-#         if file.endswith(".txt"):
-#             total_time_files.append(directory + file)
-#         if file.endswith(".pkl"):
-#             pkl_files.append(directory + file)
 
 def get_date_from_timing_filename(filename):
     stripped_filename = filename.split("Z")[0]
     stripped_filename+= "Z"
     return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
 
+
+def plot_movements(timing_file):
+    with open(timing_file, 'rb') as f:
+        timing_data = pickle.load(f)
+
+
+        start_times = np.array(timing_data)[:,:,0]
+        end_times = np.array(timing_data)[:,:,1]
+        set_angles = np.array(timing_data)[:,:,2]
+        start_positions = np.array(timing_data)[:,:,3]
+        end_positions = np.array(timing_data)[:,:,4]
+        h_counts_start = np.array(timing_data)[:,:,5]
+        v_counts_start = np.array(timing_data)[:,:,6]
+        h_counts_end = np.array(timing_data)[:,:,7]
+        v_counts_end = np.array(timing_data)[:,:,8]
+
+        fig, ax = plt.subplots(2, 2, figsize=(10,10))
+        ax[0][0].scatter(set_angles[0,:], h_counts_end[0,:], label='prep HWP')
+        ax[0][1].scatter(set_angles[1,:], h_counts_end[1,:], label='prep QWP')
+        ax[1][0].scatter(set_angles[2,:], h_counts_end[2,:], label='meas HWP')
+        ax[1][1].scatter(set_angles[3,:], h_counts_end[3,:], label='meas QWP')
+        fig.savefig("./data/two-state_discrimination/timing_files/h_counts_end.png")
+
+
+def plot_timing(timing_file):
+    total_time = 0
+    duty_cycles = []
+    timing_file = pk.winapi_path(timing_file)
+    timing_data = []
+    # Since we save in chunks, we need to load each file separately to get all of the chunks
+    with open(timing_file, 'rb') as f:
+        while True:
+            try:
+                timing_data += pickle.load(f)
+            except EOFError:
+                break
+
+
+        new_timing_data = [[] for i in range(4)]
+        for i, wp_list in enumerate(timing_data):
+            new_timing_data[i%4]+=wp_list
+        
+        timing_data = np.array(new_timing_data)
+
+        off_times = [[] for i in range(len(timing_data))]
+        min_time = np.min(np.array(timing_data)[:,0,0])
+        max_time = np.max(np.array(timing_data))
+        total_time += (max_time - min_time)
+        print("Total time taken for" + timing_file + ":", max_time-min_time)
+        timing_data = np.array(timing_data) - min_time
+        run_times = [[] for _ in range(len(timing_data))]
+
+        for i in range(len(timing_data)):
+            for j in range(len(timing_data[0])-1):
+                # Starting time of the next one minus the end time of the current
+                off_times[i].append(timing_data[i][j+1][0]-timing_data[i][j][1])
+                # End time of the current minus the start time of the current
+                run_times[i].append((timing_data[i][j][1]-timing_data[i][j][0]))
+                if j == len(timing_data[0])-2:
+                    run_times[i].append(timing_data[i][j+1][1]-timing_data[i][j+1][0])
+
+        run_times = np.array(run_times)
+
+    
+        run_times_filtered = np.where(run_times > 0.5, run_times, 0)
+    
+        start_times = np.array(timing_data)[:,:,0]
+        start_times_filtered = np.where(run_times > 0.5, start_times, 0)
+    
+        # # Use only the first 25 instances
+        # run_times_filtered = run_times_filtered[:,0:25]
+        # start_times_filtered = start_times_filtered[:,0:25]
+        if args.run_times:
+            fig, ax = plt.subplots()
+
+            # Plot filtered data
+            # ax.broken_barh(xranges=[(start_times_filtered[0][i], run_times_filtered[0][i]) for i in range(len(run_times_filtered[0]))], yrange=(0, 1), facecolors='blue')
+            # ax.broken_barh(xranges=[(start_times_filtered[1][i], run_times_filtered[1][i]) for i in range(len(run_times_filtered[0]))], yrange=(1, 1), facecolors='red')
+            # ax.broken_barh(xranges=[(start_times_filtered[2][i], run_times_filtered[2][i]) for i in range(len(run_times_filtered[0]))], yrange=(2, 1), facecolors='green')
+            # ax.broken_barh(xranges=[(start_times_filtered[3][i], run_times_filtered[3][i]) for i in range(len(run_times_filtered[0]))], yrange=(3, 1), facecolors='orange')
+
+            # # Use unfiltered data
+            ax.broken_barh(xranges=[(start_times[0][i], run_times[0][i]) for i in range(len(run_times[0]))], yrange=(0, 1), facecolors='blue')
+            ax.broken_barh(xranges=[(start_times[1][i], run_times[1][i]) for i in range(len(run_times[0]))], yrange=(1, 1), facecolors='red')
+            ax.broken_barh(xranges=[(start_times[2][i], run_times[2][i]) for i in range(len(run_times[0]))], yrange=(2, 1), facecolors='green')
+            ax.broken_barh(xranges=[(start_times[3][i], run_times[3][i]) for i in range(len(run_times[0]))], yrange=(3, 1), facecolors='orange')
+
+            title = 'Active time of each rotation stage\n' + str(timing_file.split('\\')[2].split('.')[0].split('Z')[0])
+            ax.set_title(title)
+            ax.set_yticks([0.5, 1.5, 2.5, 3.5], labels=['Prep HWP', 'Prep QWP', 'Meas HWP', 'Meas QWP'])
+            ax.set_xlabel('Time (s)')
+          
+            Path(timing_file.rsplit('\\',1)[0]+ "/timing_files/").mkdir(parents=True, exist_ok=True)
+            fig_path = timing_file.rsplit('\\', 1)[0] + "/timing_files/"+timing_file.split('\\')[-1].split('.')[0]+'.png'
+            # print(fig_path)
+            # exit()
+            print("writing to file:"+ fig_path)
+            plt.savefig(fig_path, bbox_inches='tight')
+            plt.close()
+        diff = np.sum(run_times,axis=1) - np.sum(run_times_filtered, axis=1)
+        # For filtered data:
+        # duty_cycle = np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff)
+        duty_cycle = np.sum(run_times,axis=1)/(np.sum(off_times,axis=1)+np.sum(run_times,axis=1))
+
+
+        duty_cycles.append(duty_cycle)
+        print("Duty cycle percentage:", np.sum(run_times,axis=1)/(np.sum(off_times,axis=1)))
+        # For filtered data:
+        # print("Duty cycle percentage:", np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff))
+
+    return total_time, duty_cycles
 
 '''
 timing_data is a 2d array with shape (4, n) consisting of tuples of (start_time, end_time), denoting the running time of each rotation stage .
@@ -54,12 +149,6 @@ if __name__ == "__main__":
         default='./data/state_discrimination_hardware_step_size_dependence/',
         help="Directory to look for .pkl files in.",
     )
-    # parser.add_argument(
-    #     "-s",
-    #     "--step_sizes",
-    #     default=[],
-    #     help="Step sizes to look for in the directory as an array of strings. e.g. ['0_01', '0_5']",
-    # )
 
     parser.add_argument(
         "-r",
@@ -91,16 +180,51 @@ if __name__ == "__main__":
         help="Run plotting over shot dependence data instead of step-size data."
     )
 
+    parser.add_argument(
+        '--step_dep',
+        default=False,
+        action="store_true",
+        help="Run plotting over step size dependence data instead of shot dependence data."
+    )
+
+    parser.add_argument(
+        "-s",
+        "--step_size_list",
+        nargs="+",
+        default=[0.01, 0.05, 0.1, 0.2, 0.5],
+        help="List of step sizes to plot. default = [0.01, 0.05, 0.1, 0.2, 0.5]",
+    )
+
+    parser.add_argument(
+        '--file',
+        '-f',
+        default=None,
+        help="File to plot instead of directory."
+    )
+
     args = parser.parse_args()
+    run_directory = args.directory+"\\"
+    date_of_run = run_directory.split('\\')[-2]
 
     directories = []
 
+    if args.file:
+        plot_movements(args.file)
+        exit()
+
+    step_sizes = []
+    for step_size in args.step_size_list:
+        step_sizes.append(str(step_size).replace('.', '_'))
+    print("Running with step sizes:", step_sizes)
+
     if args.shot_dep:
         for shot in num_shots:
-            directories.append(directory + '/shots_' + str(shot)+"/")
-    else:
+            directories.append(run_directory + '/shots_' + str(shot)+"/")
+    elif args.step_dep:
         for step_size in step_sizes:
-            directories.append(directory + '/step_size_' + str(step_size) +"/")
+            directories.append(run_directory + '/step_size_' + str(step_size) +"/")
+    else:
+        directories.append(run_directory)
 
 
     pkl_files = []
@@ -116,11 +240,8 @@ if __name__ == "__main__":
                         total_time_files.append(directory + file)
                 if file.endswith(".pkl"):
                         pkl_files.append(directory + file)
-# datetime.utcnow().strftime()
     total_time_files = sorted(total_time_files, key=lambda x: datetime.strptime(x.split('/')[-1].split('Z')[0], "%Y-%m-%dT%H-%M-%S").timestamp())
 
-    # print(total_time_files)
-    # exit()
     if args.total_times:
         total_times = []
         for total_time_file in total_time_files:
@@ -135,14 +256,11 @@ if __name__ == "__main__":
         else:
             labels=step_sizes
 
-        # remove_outlier = np.array(total_times[0:5])
-        # remove_outlier = np.append(remove_outlier, np.array(total_times[6:26]))
-        ax.plot(np.arange(1,26), total_times)
-        ax.scatter(np.arange(1,26)[::5], total_times[::5], c='red', label=labels[0])
-        ax.scatter(np.arange(1,26)[1::5], total_times[1::5], c='blue', label=labels[1])
-        ax.scatter(np.arange(1,26)[2::5], total_times[2::5], c='green', label=labels[2])
-        ax.scatter(np.arange(1,26)[3::5], total_times[3::5], c='purple', label=labels[3])
-        ax.scatter(np.arange(1,26)[4::5], total_times[4::5], c='orange', label=labels[4])
+        colors = plt.get_cmap('Set1')(range(len(step_sizes)))
+        ax.plot(np.arange(1,len(total_times)+1), total_times, c='grey')
+        for i in range(len(step_sizes)):
+            ax.scatter(np.arange(1,len(total_times)+1)[i::len(step_sizes)], total_times[i::len(step_sizes)], c=np.array([colors[i]]), label=labels[i])
+            
         if args.shot_dep:
             ax.legend(title="Number of Shots")
         else:
@@ -150,80 +268,24 @@ if __name__ == "__main__":
         ax.set_title("Total time of each optimization (parameter-shift, gradient-descent)")
         ax.set_xlabel("Optimization Run Number (Sequential)")
         ax.set_ylabel("Time (s)")
-        print("writing total_times to", directory+"total_times.png")
-        plt.savefig(directory+"/total_times_"+ pk.datetime_now_string() + ".png", bbox_inches='tight')
+        print("writing total_times to", run_directory+"total_times.png")
+        
+        plt.savefig(pk.winapi_path(run_directory+"/total_times_"+ date_of_run + ".png"), bbox_inches='tight')
     
 
     total_time = 0
     duty_cycles = []
     for timing_file in pkl_files:
-        with open(timing_file, 'rb') as f:
-            timing_data = pickle.load(f)
-            off_times = [[] for i in range(len(timing_data))]
-            min_time = np.min(np.array(timing_data)[:,0,0])
-            max_time = np.max(np.array(timing_data))
-            total_time += (max_time - min_time)
-            print("Total time taken for" + timing_file + ":", max_time-min_time)
-            timing_data = np.array(timing_data) - min_time
-            run_times = [[] for _ in range(len(timing_data))]
-            for i in range(len(timing_data)):
-                for j in range(len(timing_data[0])-1):
-                    off_times[i].append(timing_data[i][j+1][0]-timing_data[i][j][1])
-                    run_times[i].append(timing_data[i][j][1]-timing_data[i][j][0])
-                    if j == len(timing_data[0])-2:
-                        run_times[i].append(timing_data[i][j+1][1]-timing_data[i][j+1][0])
+        (time, duty_cycle) = plot_timing(timing_file)
+        total_time += time
+        duty_cycles.append(duty_cycle)
 
-            run_times = np.array(run_times)
-
-        
-            run_times_filtered = np.where(run_times > 0.5, run_times, 0)
-        
-            start_times = np.array(timing_data)[:,:,0]
-            start_times_filtered = np.where(run_times > 0.5, start_times, 0)
-        
-            # # Use only the first 25 instances
-            # run_times_filtered = run_times_filtered[:,0:25]
-            # start_times_filtered = start_times_filtered[:,0:25]
-            # print(np.sum(off_times_filtered, axis=1))
-            # print(np.sum(run_times_filtered, axis=1)/np.sum(off_times_filtered, axis=1))
-            if args.run_times:
-                fig, ax = plt.subplots()
-
-                # Plot filtered data
-                ax.broken_barh(xranges=[(start_times_filtered[0][i], run_times_filtered[0][i]) for i in range(len(run_times_filtered[0]))], yrange=(0, 1), facecolors='blue')
-                ax.broken_barh(xranges=[(start_times_filtered[1][i], run_times_filtered[1][i]) for i in range(len(run_times_filtered[0]))], yrange=(1, 1), facecolors='red')
-                ax.broken_barh(xranges=[(start_times_filtered[2][i], run_times_filtered[2][i]) for i in range(len(run_times_filtered[0]))], yrange=(2, 1), facecolors='green')
-                ax.broken_barh(xranges=[(start_times_filtered[3][i], run_times_filtered[3][i]) for i in range(len(run_times_filtered[0]))], yrange=(3, 1), facecolors='orange')
-
-                # # Use unfiltered data
-                # ax.broken_barh(xranges=[(start_times[0][i], run_times[0][i]) for i in range(len(run_times[0]))], yrange=(0, 1), facecolors='blue')
-                # ax.broken_barh(xranges=[(start_times[1][i], run_times[1][i]) for i in range(len(run_times[0]))], yrange=(1, 1), facecolors='red')
-                # ax.broken_barh(xranges=[(start_times[2][i], run_times[2][i]) for i in range(len(run_times[0]))], yrange=(2, 1), facecolors='green')
-                # ax.broken_barh(xranges=[(start_times[3][i], run_times[3][i]) for i in range(len(run_times[0]))], yrange=(3, 1), facecolors='orange')
-
-                title = 'Active time of each rotation stage\n' + str(timing_file.split('/')[3]) + "\n"+ str(timing_file.split('/')[4][0:19])
-                ax.set_title(title)
-                ax.set_yticks([0.5, 1.5, 2.5, 3.5], labels=['Prep HWP', 'Prep QWP', 'Meas HWP', 'Meas QWP'])
-                ax.set_xlabel('Time (s)')
-                Path(timing_file.rsplit('/',1)[0]+ "/timing_files/").mkdir(parents=True, exist_ok=True)
-                fig_path = timing_file.rsplit('/', 1)[0] + "/timing_files/"+timing_file.split('/')[-1].split('.')[0]+'.png'
-                print("writing to file:"+ fig_path)
-                plt.savefig(fig_path, bbox_inches='tight')
-                plt.close()
-            diff = np.sum(run_times,axis=1) - np.sum(run_times_filtered, axis=1)
-            duty_cycle = np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff)
-            duty_cycles.append(duty_cycle)
-            print("Duty cycle percentage:", np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff))
-
-    # ax.plot(np.arange(1,26), total_times)
-    # ax.scatter(np.arange(1,26), total_times, c=['red','blue','green','purple','orange']*5)
-
+    print("Total time taken for all runs:", total_time)
+    duty_cycles = np.array(duty_cycles)
+    duty_cycles = np.squeeze(duty_cycles)
     if args.cycle:
-        duty_cycles = np.array(duty_cycles)
         duty_cycle_average = np.mean(duty_cycles, axis=0)
         duty_std = np.std(duty_cycles, axis=0)
-        print(duty_cycles.shape)
-        print(duty_cycle_average.shape)
         fig, ax = plt.subplots()
         bars = ax.bar([0.5,1.5,2.5,3.5], height=duty_cycle_average, yerr=duty_std, color=['blue', 'red', 'green', 'orange'])
         ax.bar_label(bars, fmt='%.2f')
@@ -231,7 +293,10 @@ if __name__ == "__main__":
         ax.set_title("Duty Cycle Average \n (parameter-shift, gradient-descent)")
         ax.set_xlabel("Waveplate")
         ax.set_ylabel("Duty Cycle")
-        path = directory+"/duty_cycle"+ pk.datetime_now_string() + ".png"
+        path = pk.winapi_path(run_directory+"/duty_cycle"+ date_of_run + ".png")
         print("writing total_times to", path)
         plt.savefig(path, bbox_inches='tight')
+
+    print("Duty cycle average", np.mean(duty_cycles,axis=0))
 print("Total total time:", total_time)
+
