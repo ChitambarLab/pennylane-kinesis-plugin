@@ -1,28 +1,74 @@
 import pennylane_kinesis as pk
 from datetime import datetime
+import argparse
 
 """This script generates a plot showing the optimization precision as
 dependent upon the optimization step size. Data for this plot is obtained numerically
 using the `./script/fiber_inversion_numeric_step_size_dependence.py` script.
 """
 
-filepath = "./data/state_discrimination/numerics_step_size_dependence/finite-diff/adagrad/"
-# step_size_list = [1.0, 0.2, 0.15, 0.1, 0.05, 0.01, 0.001]
-# step_size_list = [0.2, 0.15, 0.1, 0.05]
-step_size_list = [0.01, 0.5, 0.2, 0.1, 0.05]
 
-plot_filename = "step_size_dependence_finite_diff_numerics_adagrad"
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="Step size dependence",
+        description="Generates a plot showing the optimization precision as dependent upon the optimization step size.",
+    )
 
-date_after = datetime.strptime("2024-04-25T00-17-20Z", "%Y-%m-%dT%H-%M-%SZ")
-pk.plot_step_size_dependence(
-    filepath,
-    step_size_list,
-    plot_filename,
-    date_after=date_after,
-    numerics=True,
-    two_wp=False,
-    add_background=True,
-    background=300,
-    shot_rate=10000,
-    title="Step Size Dependence \n(adagrad, finite-diff, numerics)"
-)
+    parser.add_argument(
+        "-f",
+        "--filepath",
+        default=None,
+        help="Path to the data folder.",
+    )
+
+    parser.add_argument(
+        "-p",
+        "--plot_filename",
+        default="step_size_dependence",
+        help="Filename for the plot.",
+    )
+
+    parser.add_argument(
+        "-s",
+        "--step_size_list",
+        nargs="+",
+        default=[0.01, 0.05, 0.1, 0.2, 0.5],
+        help="List of step sizes to plot. default = [0.01, 0.05, 0.1, 0.2, 0.5]",
+    )
+
+    parser.add_argument(
+        "-n",
+        "--numerics",
+        default=False,
+        action="store_true",
+        help="If using the simulator backend.",
+    )
+
+    parser.add_argument(
+        '-2',
+        '--two_wp',
+        default=False,
+        action='store_true',
+        help='If only using two waveplates (fixed measurement waveplates).'
+    )
+
+    args = parser.parse_args()
+
+    if args.filepath is None:
+        print("Please provide a filepath to the data folder. (-f)")
+        exit()
+
+    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ")
+
+    pk.plot_step_size_dependence(
+        args.filepath,
+        args.step_size_list,
+        args.plot_filename,
+        date_after=date_after,
+        numerics=args.numerics,
+        two_wp=args.two_wp,
+        add_background=True,
+        background=300,
+        shot_rate=10000,
+        title="Step Size Dependence \n(grad descent, parameter-shift, new hardware, polarizers)",
+    )
