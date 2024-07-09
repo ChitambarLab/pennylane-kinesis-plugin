@@ -8,7 +8,7 @@ from .operators import HWPRotStage
 from .operators import QWPRotStage
 from .optimization import optimize
 import pennylane_kinesis as pk
-from .elliptec_cage_rotator_device import ElliptecMotors
+from .elliptec_rotator_device import ElliptecMotors
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
@@ -100,7 +100,7 @@ def two_state_discrimination(
             "hwp_domain_period": hwp_period,
         }
     else:
-        motors = ElliptecMotors(com_port='/dev/ttyUSB0', test_mode=test_mode)
+        motors = ElliptecMotors(test_mode=test_mode)
         data_path += "hardware/"
         dev_name = "elliptec.rotator"
         additional_dev_kwargs = {
