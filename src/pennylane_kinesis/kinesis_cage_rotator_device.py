@@ -135,7 +135,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         self.active_times = [[] for _ in range(4)]
 
         datetime = datetime_now_string()
-        self.timing_file = filepath+datetime+"timing_data.pkl"
+        self.timing_file = filepath + datetime + "timing_data.pkl"
         # Initialize device list
         self.device_list()
 
@@ -204,7 +204,7 @@ class KinesisCageRotatorDevice(QubitDevice):
         print()
 
         self.buffer = self.detector_setup()
-    
+
     def time_rotation(self, func, active_times, wp_num, *args):
         start = time.time()
         func(*args)
@@ -482,9 +482,13 @@ class KinesisCageRotatorDevice(QubitDevice):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             if op.name == "HWPRotStage":
-                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle%90)
+                self.time_rotation(
+                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 90
+                )
             elif op.name == "QWPRotStage":
-                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle%180)
+                self.time_rotation(
+                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 180
+                )
             else:
                 print("Operation : ", op.name, ", is not supported")
 

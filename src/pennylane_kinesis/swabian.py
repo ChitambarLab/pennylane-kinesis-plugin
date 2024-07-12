@@ -10,6 +10,7 @@ except ImportError as e:
     print("https://github.com/ChitambarLab/pennylane-kinesis-plugin")
     raise e
 
+
 class Counter:
     """A counter class for the Swabian timetagger.
 
@@ -28,13 +29,14 @@ class Counter:
     :param ttag_channel_reflect: The channel number for the reflect detector.
     :type ttag_channel_reflect: int
     """
+
     def __init__(
-            self,
-            shots = 10000,
-            shot_rate = 100000,
-            integration_time = 3,
-            ttag_channel_transmit=5,
-            ttag_channel_reflect=4,
+        self,
+        shots=10000,
+        shot_rate=100000,
+        integration_time=3,
+        ttag_channel_transmit=5,
+        ttag_channel_reflect=4,
     ):
         self.ttag_channel_reflect = ttag_channel_reflect
         self.ttag_channel_transmit = ttag_channel_transmit
@@ -59,16 +61,14 @@ class Counter:
             " and ",
             self.ttag_channel_transmit,
         )
-    
+
     def auto_shot_rate(self):
         self.counter.startFor(int(1 * 1e12))  # Take data for 1 second
         self.counter.waitUntilFinished()
         shot_rate = self.counter.getData()  # Get average shot rate from the channel
         self.shot_rate = shot_rate[0] + shot_rate[1]
         print("Shot rates:")
-        print(
-            f"T rate: {shot_rate[0]:.2f} counts/s. R rate: {shot_rate[1]:.2f} counts/s"
-        )
+        print(f"T rate: {shot_rate[0]:.2f} counts/s. R rate: {shot_rate[1]:.2f} counts/s")
         return self.shot_rate
 
     def set_integration_time(self, time):
@@ -90,7 +90,7 @@ class Counter:
                 )  # Clear the buffer (it will return stored data otherwise)
             time.sleep(self.integration_time)
             iteration += 1
-            
+
             ttag_buffer = self.ttag_stream.getData()
             channels = np.append(channels, ttag_buffer.getChannels())
             if self.shots is None:
@@ -110,4 +110,3 @@ class Counter:
         print("total counts : ", counts)
 
         return np.array([h_counts, v_counts])
-      

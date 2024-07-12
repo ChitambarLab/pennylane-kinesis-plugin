@@ -15,7 +15,7 @@ def optimize(
     init_opt_dict=None,
     domain_periods=None,
     eval_cost=None,
-    optimizer='gradient_descent',
+    optimizer="gradient_descent",
     verbose=True,
     **meta_kwargs,
 ):
@@ -94,14 +94,14 @@ def optimize(
         }
     )
 
-    if optimizer == 'adam':
-        opt = (qml.AdamOptimizer(stepsize=step_size))
-    elif optimizer == 'momentum':
-        opt = (qml.MomentumOptimizer(stepsize=step_size))
-    elif optimizer == 'adagrad':
-        opt = (qml.AdagradOptimizer(stepsize=step_size))
+    if optimizer == "adam":
+        opt = qml.AdamOptimizer(stepsize=step_size)
+    elif optimizer == "momentum":
+        opt = qml.MomentumOptimizer(stepsize=step_size)
+    elif optimizer == "adagrad":
+        opt = qml.AdagradOptimizer(stepsize=step_size)
     else:
-        opt = (qml.GradientDescentOptimizer(stepsize=step_size))
+        opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
     try:

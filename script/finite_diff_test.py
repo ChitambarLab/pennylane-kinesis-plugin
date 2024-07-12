@@ -46,12 +46,12 @@ if __name__ == "__main__":
         "-o",
         "--optimizer",
         default="gradient-descent",
-        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'"
+        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
     parser.add_argument(
-        '-d',
-        '--diff',
-        default='parameter-shift',
+        "-d",
+        "--diff",
+        default="parameter-shift",
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
@@ -86,16 +86,23 @@ if __name__ == "__main__":
         num_steps=args.num_steps,
         verbose=args.verbose,
         optimizer=args.optimizer,
-        diff_method=args.diff
+        diff_method=args.diff,
     )
 
     end_time = time.time()
 
-    print("took", end_time - start_time, "seconds to run VQO on Two-State Discrimination with", args.optimizer, "and", args.diff)
+    print(
+        "took",
+        end_time - start_time,
+        "seconds to run VQO on Two-State Discrimination with",
+        args.optimizer,
+        "and",
+        args.diff,
+    )
 
     datetime_str = datetime_now_string()
-    f = open("./data/two-state_discrimination/"+datetime_str +"runtime.txt","a")
-    f.write(str(end_time-start_time))
+    f = open("./data/two-state_discrimination/" + datetime_str + "runtime.txt", "a")
+    f.write(str(end_time - start_time))
 
     """
     Plotting
@@ -132,15 +139,14 @@ if __name__ == "__main__":
 
     plt.tight_layout()
 
-    filename="two-state-discrimination-detectors"
-    filename+="-"+args.diff
-    filename+="-"+args.optimizer
-    filename+="-"+str(args.num_steps)
-    filename+="-"+str(args.step_size)
+    filename = "two-state-discrimination-detectors"
+    filename += "-" + args.diff
+    filename += "-" + args.optimizer
+    filename += "-" + str(args.num_steps)
+    filename += "-" + str(args.step_size)
     if args.numerics:
-        filename+="-numerics"
+        filename += "-numerics"
     if args.two_wp:
-        filename+="-twowp"
-    
+        filename += "-twowp"
 
-    plt.savefig("./data/two-state_discrimination/"+datetime_str+filename+".png")
+    plt.savefig("./data/two-state_discrimination/" + datetime_str + filename + ".png")

@@ -29,7 +29,7 @@ def two_state_discrimination(
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
     test_mode=False,
-    diff_method='parameter-shift',
+    diff_method="parameter-shift",
 ):
     """
     Performs a hardware-compatible optimization of minimal error discrimination of two encoded states.
@@ -88,7 +88,6 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
-
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -108,16 +107,16 @@ def two_state_discrimination(
             "test_mode": test_mode,
             "filepath": filepath,
         }
-        
+
     # Legacy code: old thorlabs rotator mounts:
-        # motors = KinesisMotors(test_mode=test_mode)
-        # data_path += "hardware/"
-        # dev_name = "kinesis.cage.rotator"
-        # additional_dev_kwargs = {
-        #     "motors": motors,
-        #     "test_mode": test_mode,
-        #     "filepath": filepath,
-        # }
+    # motors = KinesisMotors(test_mode=test_mode)
+    # data_path += "hardware/"
+    # dev_name = "kinesis.cage.rotator"
+    # additional_dev_kwargs = {
+    #     "motors": motors,
+    #     "test_mode": test_mode,
+    #     "filepath": filepath,
+    # }
 
     make_dir(data_path)
 
@@ -154,13 +153,14 @@ def two_state_discrimination(
 
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit dimensionality witness.
-    qnode_kwargs={'diff_method': diff_method}
-    if(diff_method == 'finite-diff'):
-        qnode_kwargs['h'] = 1e-3
-        qnode_kwargs['strategy'] = 'center'
-        qnode_kwargs['approx_order'] = 2
-    state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
-    
+    qnode_kwargs = {"diff_method": diff_method}
+    if diff_method == "finite-diff":
+        qnode_kwargs["h"] = 1e-3
+        qnode_kwargs["strategy"] = "center"
+        qnode_kwargs["approx_order"] = 2
+    state_disc_cost = qnetvo.linear_probs_cost_fn(
+        state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
+    )
 
     opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
@@ -187,12 +187,12 @@ def qubit_dimensionality_witnessing(
     step_size=0.02,
     num_steps=50,
     verbose=True,
-    optimizer='gradient-descent',
+    optimizer="gradient-descent",
     fixed_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
     test_mode=False,
-    diff_method='parameter-shift',
+    diff_method="parameter-shift",
 ):
     """
     Performs a hardware-compatible optimization of a quantum violation of the simplest qubit
@@ -304,7 +304,7 @@ def qubit_dimensionality_witnessing(
                 [-1, -1, -1, 1, 1, 0],
             ]
         ),
-        qnode_kwargs={'diff_method': diff_method},
+        qnode_kwargs={"diff_method": diff_method},
     )
 
     return optimize(
