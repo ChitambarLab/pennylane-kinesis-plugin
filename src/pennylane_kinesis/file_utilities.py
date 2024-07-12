@@ -4,16 +4,18 @@ import os
 import re
 from pathlib import Path
 
+
 def winapi_path(dos_path, encoding=None):
-    """ Stolen from stack overflow, this function converts a dos path to a windows api path.
+    """Stolen from stack overflow, this function converts a dos path to a windows api path.
     This is to support filenames longer than 260 characters (which windows doesn't allow with DOS paths).
     """
-    if (not isinstance(dos_path, str) and encoding is not None): 
+    if not isinstance(dos_path, str) and encoding is not None:
         dos_path = dos_path.decode(encoding)
     path = os.path.abspath(dos_path)
-    if path.startswith(u"\\\\"):
-        return u"\\\\?\\UNC\\" + path[2:]
-    return u"\\\\?\\" + path
+    if path.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + path[2:]
+    return "\\\\?\\" + path
+
 
 def datetime_now_string():
     return datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -27,6 +29,7 @@ def make_dir(filepath):
     win_path = winapi_path(filepath)
     Path.mkdir(Path(win_path), parents=True, exist_ok=True)
     return filepath
+
 
 def get_files(path, regex):
     """Retrieves all data files that match the ``regex`` in the

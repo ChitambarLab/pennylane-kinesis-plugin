@@ -5,7 +5,6 @@ from pennylane_kinesis import swabian, datetime_now_string
 import time
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Take counts over a period of time",
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         "--shots",
         default=None,
         type=int,
-        help="Number of shots to take. Default: None. (will not truncate counts)"
+        help="Number of shots to take. Default: None. (will not truncate counts)",
     )
 
     parser.add_argument(
@@ -41,15 +40,17 @@ if __name__ == "__main__":
         "--auto",
         default=False,
         action="store_true",
-        help="Automatically set the integration time based on calculated shot rate."
+        help="Automatically set the integration time based on calculated shot rate.",
     )
 
     dir = "./data/counts/"
     args = parser.parse_args()
 
-    counter = swabian.Counter(shots=args.shots, shot_rate=3000000, integration_time=args.integration)
+    counter = swabian.Counter(
+        shots=args.shots, shot_rate=3000000, integration_time=args.integration
+    )
     counter.detector_setup()
-    if (args.auto):
+    if args.auto:
         counter.auto_shot_rate()
         counter.auto_integration_time()
 
@@ -65,4 +66,3 @@ if __name__ == "__main__":
 
         if time.time() - start_time > args.time:
             break
-

@@ -53,11 +53,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        '-2',
-        '--two_wp',
+        "-2",
+        "--two_wp",
         default=False,
-        action='store_true',
-        help='If only using two waveplates (fixed measurement waveplates).'
+        action="store_true",
+        help="If only using two waveplates (fixed measurement waveplates).",
     )
 
     args = parser.parse_args()
@@ -77,5 +77,5 @@ if __name__ == "__main__":
         add_background=True,
         background=300,
         shot_rate=10000,
-        title="Number of Shots Vs.\nOptimization Performance \n(gradient-descent, \n parameter-shift, hardware)"
+        title="Number of Shots Vs.\nOptimization Performance \n(gradient-descent, \n parameter-shift, hardware)",
     )

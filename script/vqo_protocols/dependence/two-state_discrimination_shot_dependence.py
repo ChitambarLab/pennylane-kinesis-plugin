@@ -52,12 +52,12 @@ if __name__ == "__main__":
         "-o",
         "--optimizer",
         default="gradient-descent",
-        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'"
+        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
     parser.add_argument(
-        '-d',
-        '--diff',
-        default='parameter-shift',
+        "-d",
+        "--diff",
+        default="parameter-shift",
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
@@ -98,10 +98,9 @@ if __name__ == "__main__":
 
     filepath = "./data/state_discrimination"
     if args.numerics:
-        filepath+= "/numerics_shot_dependence/"
+        filepath += "/numerics_shot_dependence/"
     else:
-        filepath+="/hardware_shot_dependence/"
-
+        filepath += "/hardware_shot_dependence/"
 
     filepath = filepath + args.diff + "/" + args.optimizer + "/"
     script_start_time = datetime_now_string()
@@ -128,16 +127,25 @@ if __name__ == "__main__":
             num_steps=args.num_steps,
             verbose=args.verbose,
             optimizer=args.optimizer,
-            diff_method=args.diff
+            diff_method=args.diff,
         )
 
         end_time = time.time()
-    
-        print("took", end_time - start_time, "seconds to run VQO on Two-State Discrimination with", args.optimizer, "and", args.diff, "with ", str(shot))
+
+        print(
+            "took",
+            end_time - start_time,
+            "seconds to run VQO on Two-State Discrimination with",
+            args.optimizer,
+            "and",
+            args.diff,
+            "with ",
+            str(shot),
+        )
 
         datetime_str = datetime_now_string()
-        f = open(shots_filepath+datetime_str +"runtime.txt","a")
-        f.write(str(end_time-start_time))
+        f = open(shots_filepath + datetime_str + "runtime.txt", "a")
+        f.write(str(end_time - start_time))
 
         """
         Plotting
@@ -145,7 +153,14 @@ if __name__ == "__main__":
 
         fig, (ax1, ax2) = plt.subplots(ncols=2)
 
-        fig.suptitle("VQO of Two-State Discrimination with \n" + args.optimizer + " and " + args.diff + "\n with shots " + str(shot))
+        fig.suptitle(
+            "VQO of Two-State Discrimination with \n"
+            + args.optimizer
+            + " and "
+            + args.diff
+            + "\n with shots "
+            + str(shot)
+        )
 
         ax1.plot(
             range(len(state_disc_opt_dict["cost_vals"])),
@@ -174,20 +189,20 @@ if __name__ == "__main__":
 
         plt.tight_layout()
 
-        filename="two-state-discrimination"
-        filename+="-"+args.diff
-        filename+="-"+args.optimizer
-        filename+="-"+str(args.num_steps)
-        filename+="-"+str(shot)
-        filename+="-"+str(args.step_size).replace(".", "-")
+        filename = "two-state-discrimination"
+        filename += "-" + args.diff
+        filename += "-" + args.optimizer
+        filename += "-" + str(args.num_steps)
+        filename += "-" + str(shot)
+        filename += "-" + str(args.step_size).replace(".", "-")
         if args.numerics:
-            filename+="-numerics"
+            filename += "-numerics"
         if args.two_wp:
-            filename+="-twowp"
+            filename += "-twowp"
 
         import os
 
-        output_file = pk.winapi_path(shots_filepath+datetime_str+filename+".png")
+        output_file = pk.winapi_path(shots_filepath + datetime_str + filename + ".png")
         plt.savefig(output_file)
         plt.close()
 
