@@ -192,35 +192,3 @@ if __name__ == "__main__":
         plt.close()
 
         time.sleep(0.5)
-
-
-# shot_rate = 100000
-# shots = 10000
-
-
-# if __name__ == "__main__":
-#     if sys.argv[1] == "numerics":
-#         data_path = "./data/two-state_discrimination/numerics/"
-#         dev_name = "kinesis.simulator"
-#     else:
-#         data_path = "./data/two-state_discrimination/hardware/"
-#         dev_name = "kinesis.cage.rotator"
-
-#     # step_size_list = [0.12, 0.17, 0.1325, 0.135, 0.15, 0.2] * 5
-
-#     for step_size in step_size_list:
-#             datetime_str = pk.datetime_now_string()
-
-#             step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-
-#             print("Running optimization for step_size ", step_size)
-#             state_disc_opt_dict = pk.two_state_discrimination(
-#                 filepath=step_size_filepath,
-#                 shots=10000,
-#                 shot_rate=3000000,
-#                 # two_wp=args.two_wp,
-#                 # numerics=args.numerics,
-#                 step_size=step_size,
-#                 num_steps=20,
-#                 # verbose=args.verbose,
-#             )
