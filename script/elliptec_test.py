@@ -1,6 +1,3 @@
-import serial
-
-
 import sys
 import glob
 import serial
