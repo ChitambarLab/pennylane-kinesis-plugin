@@ -261,11 +261,13 @@ class ElliptecRotatorDevice(QubitDevice):
         print("set angles to 0")
 
 
-        print("Setting measurement HWP to 45 to balance detector counts")
+        print("Setting measurement HWP angle to 22.5 to balance detector counts")
         self.dev_b_hwp.set_angle(self.b_hwp_offset+22.5)
+        print("Setting measurement QWP angle to 45 to balance detector counts")
         self.dev_b_qwp.set_angle(self.b_qwp_offset+45)
         
-        print("Set angle of ", self.dev_b_hwp.info["Serial No."], "to ", self.b_hwp_offset+45)
+        print("Set angle of ", self.dev_b_hwp.info["Serial No."], "to ", self.b_hwp_offset+22.5)
+        print("Set angle of ", self.dev_b_qwp.info["Serial No."], "to ", self.b_qwp_offset+45)
         self.buffer = self.detector_setup()
     
     def time_rotation(self, func, active_times, wp_num, *args):
