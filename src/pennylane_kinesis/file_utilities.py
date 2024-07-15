@@ -10,15 +10,16 @@ def winapi_path(dos_path, encoding=None):
     """Stolen from stack overflow, this function converts a dos path to a windows api path.
     This is to support filenames longer than 260 characters (which windows doesn't allow with DOS paths).
     """
-    if sys.platform == 'win32':
-        if (not isinstance(dos_path, str) and encoding is not None): 
+    if sys.platform == "win32":
+        if not isinstance(dos_path, str) and encoding is not None:
             dos_path = dos_path.decode(encoding)
         path = os.path.abspath(dos_path)
-        if path.startswith(u"\\\\"):
-            return u"\\\\?\\UNC\\" + path[2:]
-        return u"\\\\?\\" + path
+        if path.startswith("\\\\"):
+            return "\\\\?\\UNC\\" + path[2:]
+        return "\\\\?\\" + path
     else:
         return dos_path
+
 
 def datetime_now_string():
     return datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")

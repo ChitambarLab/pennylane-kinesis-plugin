@@ -45,7 +45,6 @@ class Counter:
         self.shot_rate = shot_rate
 
     def detector_setup(self):
-
         self.ttag = TT.createTimeTagger()
         self.ttag_stream = TT.TimeTagStream(
             self.ttag,
