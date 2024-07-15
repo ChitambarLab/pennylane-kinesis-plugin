@@ -238,7 +238,9 @@ def plot_shot_dependence(
 
     color_id = 0
     for shots in shots_list:
-        shots_filepath = filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
+        shots_filepath = (
+            filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
+        )
         # shots_filepath = filepath + "shots_" + str(shots) + "/"
         filenames = get_files(shots_filepath, r"optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
@@ -305,21 +307,23 @@ def plot_shot_dependence(
     plt.grid()
     plt.legend(ncols=2)
     plt.tight_layout()
-    Path.mkdir(Path(filepath+"plots/"), exist_ok=True)
+    Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+
 
 def get_date_from_opt_filename(filename):
     stripped_filename = filename.split("_")[-1]
     stripped_filename = stripped_filename.split(".")[0]
     return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
 
+
 def plot_step_size_dependence(
     filepath,
     step_size_list,
     plot_filename,
     numerics=False,
-    two_wp = False,
-    date_after = None,
+    two_wp=False,
+    date_after=None,
     add_background=False,
     background=None,
     shot_rate=None,
@@ -342,7 +346,9 @@ def plot_step_size_dependence(
 
     c_id = 0
     for step_size in step_size_list:
-        step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
+        step_size_filepath = (
+            filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
+        )
 
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
@@ -474,7 +480,7 @@ def plot_step_size_dependence(
     # fig.subplots_adjust(bottom=0.3)
     plt.legend(ncols=2, loc="lower left")
 
-    Path.mkdir(Path(filepath+"plots/"), exist_ok=True)
+    Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 

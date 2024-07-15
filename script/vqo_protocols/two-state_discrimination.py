@@ -22,7 +22,8 @@ $ python script/two-state_discrimination.py numerics
 ```
 """
 
-def plot_state_discrimination(state_disc_opt_dict, args, datetime =None):
+
+def plot_state_discrimination(state_disc_opt_dict, args, datetime=None):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle("VQO of Two-State Discrimination")
@@ -53,33 +54,33 @@ def plot_state_discrimination(state_disc_opt_dict, args, datetime =None):
     ax2.set_xlabel("Optimization Iteration")
 
     plt.tight_layout()
-    
+
     filepath = "./data/two-state_discrimination/"
     if args.numerics:
         filepath += "numerics/"
     else:
         filepath += "hardware/"
-    
+
     if args.two_wp:
         filepath += "two_wp/"
     else:
         filepath += "four_wp/"
 
-    filename="two-state-discrimination"
-    filename+="-"+str(args.step_size)
+    filename = "two-state-discrimination"
+    filename += "-" + str(args.step_size)
     if args.numerics:
-        filename+="-numerics"
+        filename += "-numerics"
     if args.two_wp:
-        filename+="-twowp"
+        filename += "-twowp"
 
     if datetime is None:
         datetime_str = pk.datetime_now_string()
     else:
         datetime_str = datetime
-    
 
-    output_file = pk.winapi_path(filepath+datetime_str+filename+".png")
+    output_file = pk.winapi_path(filepath + datetime_str + filename + ".png")
     plt.savefig(output_file)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -105,17 +106,11 @@ if __name__ == "__main__":
         "-v", "--verbose", default=False, action="store_true", help="More verbose output."
     )
 
-    parser.add_argument(
-        "-s", "--step_size", default=0.08, help="Step size to use."
-    )
+    parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 
-    parser.add_argument(
-        "-p", "--plot", default=None, help="Only plot given filename, do not run"
-    )
+    parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
 
-    parser.add_argument(
-        "--num_steps", default=20, help="Num steps to use per optimization."
-    )
+    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
     args = parser.parse_args()
 
@@ -131,13 +126,14 @@ if __name__ == "__main__":
             numerics=args.numerics,
             step_size=float(args.step_size),
             num_steps=int(args.num_steps),
-            verbose=args.verbose,)
+            verbose=args.verbose,
+        )
         prof.disable()
         prof.print_stats()
         plot_state_discrimination(state_disc_opt_dict, args)
     else:
         print(args.plot)
-        datetime_str = args.plot.split('\\')[-1].split('_')[1].split('.')[0]
+        datetime_str = args.plot.split("\\")[-1].split("_")[1].split(".")[0]
         print(datetime_str)
         opt_dict = pk.read_json(pk.winapi_path(args.plot))
         plot_state_discrimination(opt_dict, args, datetime_str)
@@ -145,6 +141,3 @@ if __name__ == "__main__":
     """
     Plotting
     """
-
-   
-
