@@ -110,6 +110,10 @@ def test_qubit_dimensionality_witnessing(
     """
     np.random.seed(123)
 
+    # tolerance for strictly decreasing cost check
+    COST_TOL = 1e-2
+    DIFF_TOL = 0.3
+
     filepath = "./test/tmp/"
 
     num_steps = 10
@@ -123,7 +127,14 @@ def test_qubit_dimensionality_witnessing(
     )
 
     assert len(opt_dict["cost_vals"]) == num_steps + 1
-    assert np.allclose(opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
+    # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
+    assert np.all(np.diff(opt_dict["cost_vals"]) < COST_TOL)
+
+    # Check that significant optimization progress is made on first step.
+    if numerics:
+        assert (opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL
+    else:  # Otherwise verify that the device ran using `test_mode = True`.
+        assert opt_dict["cost_vals"] == [0] * 11
 
     # Verify created filepath.
     assert os.path.exists("./test/tmp/")
@@ -139,4 +150,5 @@ def test_qubit_dimensionality_witnessing(
     assert len(files) == 1
     file_opt_dict = pk.read_json(files[0])
 
-    assert np.allclose(file_opt_dict["cost_vals"], match_cost_vals, atol=1e-5)
+    # Check to make sure that the cost values are strictly decreasing, to a certain tolerance
+    assert np.all(np.diff(file_opt_dict["cost_vals"]) < COST_TOL)

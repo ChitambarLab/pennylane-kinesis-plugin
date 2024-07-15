@@ -7,25 +7,30 @@ import numpy as np
 import pennylane_kinesis as pk
 
 
-def _setup_device(interface, wimp_mode):
-    motors = pk.KinesisMotors(test_mode=True)
-    dev_kwargs = {
-        "shots": 500,
-        "motors": motors,
-        "shot_rate": 1000,
-        "wires": [0],
-        "test_mode": True,
-        "wimp_mode": wimp_mode,
-        "ttag_channel_transmit": 5,
-        "ttag_channel_reflect": 4,
-    }
-
+def _setup_device(interface, analytic=False, domain_period=False):
+    shots = 10000 if not analytic else None
+    wires = [0]
     dev = None
+    qwp_domain_period = np.pi / 2 if domain_period else None
+    hwp_domain_period = np.pi / 2 if domain_period else None
 
     if interface == "class":
-        dev = pk.KinesisCageRotatorDevice(**dev_kwargs)
+        dev = pk.KinesisSimulatorDevice(
+            shots=shots,
+            wires=wires,
+            seed=37,
+            qwp_domain_period=qwp_domain_period,
+            hwp_domain_period=hwp_domain_period,
+        )
     elif interface == "pennylane":
-        dev = qml.device("kinesis.cage.rotator", **dev_kwargs)
+        dev = qml.device(
+            "kinesis.simulator",
+            shots=shots,
+            wires=wires,
+            seed=37,
+            qwp_domain_period=qwp_domain_period,
+            hwp_domain_period=hwp_domain_period,
+        )
     else:
         raise ValueError(
             "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
@@ -34,84 +39,237 @@ def _setup_device(interface, wimp_mode):
     return dev
 
 
-@pytest.mark.parametrize("interface", ["class", "pennylane"])
-@pytest.mark.parametrize("wimp_mode", [True, False])
-class TestKinesisSimulatorDevice:
-    def test_device_attributes(self, interface, wimp_mode):
-        dev = _setup_device(interface, wimp_mode)
+def _HWP(theta, wires):
+    qml.RY(-1 * theta, wires=wires)
+    qml.PauliZ(wires=wires)
+    qml.RY(theta, wires=wires)
 
-        assert dev.test_mode
+
+def _QWP(theta, wires):
+    qml.RY(-1 * theta, wires=wires)
+    qml.S(wires=wires)
+    qml.RY(theta, wires=wires)
+
+
+@pytest.mark.parametrize("interface", ["class", "pennylane"])
+class TestKinesisSimulatorDevice:
+    @pytest.mark.parametrize("analytic", [False, True])
+    def test_device_attributes(self, interface, analytic):
+        dev = _setup_device(interface, analytic)
 
         # pennylane-kinesis attributes
-        assert dev.name == "Kinesis Cage Rotator Device"
-        assert dev.short_name == "kinesis.cage.rotator"
+        assert dev.name == "Kinesis Simulator Device"
+        assert dev.short_name == "kinesis.simulator"
         assert dev.pennylane_requires == "0.34"
         assert dev.version == pk.__version__
         assert dev.author == "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
-        assert dev.operations == {"HWPRotStage", "QWPRotStage"}
+        assert dev.operations == {
+            "PauliZ",
+            "PhaseShift",
+            "RX",
+            "RY",
+            "RZ",
+            "S",
+            "HWPRotStage",
+            "QWPRotStage",
+        }
         assert dev.observables == {"Projector", "Identity", "PauliZ"}
-        assert not dev.analytic
+        assert dev.analytic == analytic
         assert all(dev.init_state == [1, 0])
 
         # test-defined attributes
-        assert dev.shots == 500
-        assert dev.shot_rate == 1000
+        assert dev.shots == None if analytic else 10000
         assert dev.num_wires == 1
         assert list(dev.wires) == [0]
+        assert dev.background_counts == 100
 
-        assert dev.integration_time == 0.5
+        assert dev.qwp_domain_period == None
+        assert dev.hwp_domain_period == None
 
-        assert dev.device_list() == []
+    @pytest.mark.parametrize(
+        "domain_period,angle,match_state",
+        [
+            (True, 0, [1, 0]),
+            (True, np.pi / 2, [1, 0]),
+            (False, 0, [1, 0]),
+            (False, np.pi / 2, [-1, 0]),
+        ],
+    )
+    def test_hwp_domain_range(self, interface, domain_period, angle, match_state):
+        dev = _setup_device(interface, True, domain_period)
 
-        assert dev.a_hwp_sn == "27501110"
-        assert dev.a_qwp_sn == "27002915"
-        assert dev.b_hwp_sn == "27252048"
-        assert dev.b_qwp_sn == "27501224"
+        if domain_period:
+            assert np.isclose(dev.hwp_domain_period, np.pi / 2)
+        else:
+            assert dev.hwp_domain_period == None
 
-        assert dev.a_hwp_off == 68.3
-        assert dev.a_qwp_off == 4.5
-        assert dev.b_hwp_off == 178.8
-        assert dev.b_qwp_off == 99.1
+        @qml.qnode(dev)
+        def hwp_circ(setting):
+            pk.HWPRotStage(setting, wires=[0])
+            return qml.expval(qml.PauliZ([0]))
 
-        assert dev.dev_a_hwp == "27501110"
-        assert dev.dev_a_qwp == "27002915"
-        assert dev.dev_b_hwp == "27252048"
-        assert dev.dev_b_qwp == "27501224"
+        hwp_circ(angle)
+        assert np.allclose(dev._state, match_state)
 
-        assert dev.a_hwp_config["device_vel"] == 5 if wimp_mode else 10
-        assert dev.a_qwp_config["device_vel"] == 5 if wimp_mode else 10
-        assert dev.b_hwp_config["device_vel"] == 5 if wimp_mode else 10
-        assert dev.b_qwp_config["device_vel"] == 5 if wimp_mode else 10
+    @pytest.mark.parametrize(
+        "domain_period,angle,match_state",
+        [
+            (True, 0, [1, 0]),
+            (True, np.pi / 2, [1, 0]),
+            (False, 0, [1, 0]),
+            (False, np.pi / 2, [1j, 0]),
+        ],
+    )
+    def test_qwp_domain_range(self, interface, domain_period, angle, match_state):
+        dev = _setup_device(interface, True, domain_period)
 
-        assert dev.buffer == {}
-        assert dev.ttag_channel_transmit == 5
-        assert dev.ttag_channel_reflect == 4
+        if domain_period:
+            assert np.isclose(dev.qwp_domain_period, np.pi / 2)
+        else:
+            assert dev.qwp_domain_period == None
 
-        assert dev.wimp_mode == wimp_mode
+        @qml.qnode(dev)
+        def qwp_circ(setting):
+            pk.QWPRotStage(setting, wires=[0])
+            return qml.expval(qml.PauliZ([0]))
 
-    def test_qnode_execution(self, interface, wimp_mode):
-        dev = _setup_device(interface, wimp_mode)
+        qwp_circ(angle)
+        assert np.allclose(dev._state, match_state)
 
-        @qml.qnode(dev, diff_method="parameter-shift")
-        def circ(settings):
-            pk.HWPRotStage(settings[0], wires=dev.wires[0])
-            pk.QWPRotStage(settings[1], wires=dev.wires[0])
+    @pytest.mark.parametrize(
+        "ops,match",
+        [
+            ([qml.RY(qnp.array(0.0), [0]), qml.PauliZ([0]), qml.RY(qnp.array(0.0), [0])], [1, 0]),
+            ([qml.RY(qnp.array(-np.pi), [0]), qml.S([0]), qml.RY(qnp.array(np.pi), [0])], [1j, 0]),
+        ],
+    )
+    def test_device_apply(self, interface, ops, match):
+        dev = _setup_device(interface)
+        assert all(dev._state == dev.init_state)
 
-            return qml.expval(qml.Projector(qnp.array([1]), wires=[0]))
+        dev.apply(ops)
+        assert np.allclose(dev._state, match)
 
-        assert circ(qnp.array([0.5, 0.5])) == 0.5
+        dev.reset()
+        assert all(dev._state == dev.init_state)
 
-    def test_device_qnode_samples(self, interface, wimp_mode):
-        dev = _setup_device(interface, wimp_mode)
+    @pytest.mark.parametrize(
+        "analytic, atol",
+        [
+            (True, 1e-6),
+            (False, 2e-2),
+        ],
+    )
+    def test_device_qnode_projector_expval(self, interface, analytic, atol):
+        dev = _setup_device(interface, analytic)
 
-        @qml.qnode(dev, diff_method="parameter-shift")
-        def circ(settings):
-            pk.HWPRotStage(settings[0], wires=dev.wires[0])
-            pk.QWPRotStage(settings[1], wires=dev.wires[0])
+        @qml.qnode(dev)
+        def circ(theta):
+            _HWP(theta, wires=[0])
+            return qml.expval(qml.Projector([1], wires=[0]))
 
-            return qml.sample(wires=dev.wires[0])
+        assert np.isclose(circ(0), 0, atol=atol)
+        assert np.isclose(circ(np.pi / 4), 0.5, atol=atol)
+        assert np.isclose(circ(np.pi / 2), 1, atol=atol)
 
-        samples = circ(qnp.array([0.5, 0.5]))
+    @pytest.mark.parametrize(
+        "analytic, atol",
+        [
+            (True, 1e-6),
+            (False, 2e-2),
+        ],
+    )
+    def test_device_qnode_probs(self, interface, analytic, atol):
+        dev = _setup_device(interface, analytic)
+        atol = 1e-6 if analytic else 2e-2
 
-        assert len(samples) == 500
+        @qml.qnode(dev)
+        def circ(theta):
+            _HWP(theta, wires=[0])
+            return qml.probs(wires=[0])
+
+        assert np.allclose(circ(0), [1, 0], atol=atol)
+        assert np.allclose(circ(np.pi / 4), [0.5, 0.5], atol=atol)
+        assert np.allclose(circ(np.pi / 2), [0.0, 1], atol=atol)
+
+    def test_device_qnode_samples(self, interface):
+        dev = _setup_device(interface)
+
+        @qml.qnode(dev)
+        def circ(theta):
+            _QWP(theta, wires=[0])
+            return qml.sample(wires=[0])
+
+        samples = circ(np.pi / 4)
+
+        assert len(samples) == 10000
         assert all([s == 0 or s == 1 for s in samples])
+
+    @pytest.mark.parametrize(
+        "analytic, atol",
+        [
+            (True, 5e-2),
+            (False, 5e-2),
+        ],
+    )
+    def test_device_parameter_shift_opt(self, interface, analytic, atol):
+        dev = _setup_device(interface, analytic)
+
+        @qml.qnode(dev, diff_method="parameter-shift")
+        def circ(settings):
+            theta, phi = settings
+            _HWP(theta, wires=[0])
+            _QWP(phi, wires=[0])
+
+            # fiber transformation to invert
+            qml.Rot(np.pi / 4, np.pi / 2, np.pi / 3, wires=[0])
+
+            # minimize projection onto |1> state
+            return qml.expval(qml.Projector([1], wires=[0]))
+
+        opt = qml.GradientDescentOptimizer(stepsize=0.4)
+
+        settings = qnp.zeros(2)
+        cost_vals = []
+        for i in range(40):
+            settings, cost = opt.step_and_cost(circ, settings)
+            cost_vals += [cost]
+
+        cost_vals += [circ(settings)]
+
+        assert np.isclose(min(cost_vals), 0, atol=atol)
+
+    @pytest.mark.parametrize("analytic, atol", [(True, 1e-6), (False, 5e-2)])
+    def test_device_backprop_opt_match(self, interface, analytic, atol):
+        dev_test = _setup_device(interface, analytic=analytic)
+        dev_match = qml.device("default.qubit", wires=[0])
+
+        def circ(settings):
+            theta, phi = settings
+            _HWP(theta, wires=[0])
+            _QWP(phi, wires=[0])
+
+            # fiber transformation to invert
+            qml.Rot(np.pi / 4, np.pi / 2, np.pi / 3, wires=[0])
+
+            # minimize projection onto |1> state
+            return qml.expval(qml.Projector([1], wires=[0]))
+
+        qnode_test = qml.QNode(circ, dev_test, diff_method="parameter-shift")
+        qnode_match = qml.QNode(circ, dev_match, diff_method="backprop")
+
+        opt = qml.GradientDescentOptimizer(stepsize=0.4)
+
+        settings_test = qnp.zeros(2)
+        settings_match = qnp.zeros(2)
+        cost_vals_test = []
+        cost_vals_match = []
+        for i in range(20):
+            settings_test, cost_test = opt.step_and_cost(qnode_test, settings_test)
+            cost_vals_test += [cost_test]
+
+            settings_match, cost_match = opt.step_and_cost(qnode_match, settings_match)
+            cost_vals_match += [cost_match]
+
+            assert np.allclose(settings_test, settings_match, atol=atol)
+            assert np.isclose(cost_test, cost_match, atol=atol)

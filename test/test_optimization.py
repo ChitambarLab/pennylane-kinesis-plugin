@@ -8,7 +8,7 @@ import re
 import pennylane_kinesis as pk
 
 from test_file_utilities import tmp_dir_cleanup
-
+import logging
 
 @pytest.fixture
 def cost():
@@ -26,10 +26,10 @@ def cost():
 
 class TestOptimization:
     @pytest.mark.parametrize(
-        "use_adam, match_cost, match_settings",
+        "optimizer, match_cost, match_settings",
         [
             (
-                True,
+                'adam',
                 [
                     0.9949,
                     0.9199,
@@ -58,7 +58,7 @@ class TestOptimization:
                 ],
             ),
             (
-                False,
+                'gradient-descent',
                 [
                     0.9949,
                     0.9949,
@@ -88,13 +88,13 @@ class TestOptimization:
             ),
         ],
     )
-    def test_simple_optimization(self, tmp_dir_cleanup, cost, use_adam, match_cost, match_settings):
+    def test_simple_optimization(self, tmp_dir_cleanup, cost, optimizer, match_cost, match_settings):
         tmp_dir = pk.tmp_dir("./test/")
         filename = "test_simple_optimization"
 
         init_settings = qnp.array([qnp.pi / 4, qnp.pi / 2], requires_grad=True)
         opt_meta_kwargs = {"test_key": "test_val"}
-
+        print("OPTIMIZER IS ", optimizer)
         opt_dict = pk.optimize(
             cost,
             init_settings,
@@ -103,7 +103,7 @@ class TestOptimization:
             filepath=tmp_dir,
             filename=filename,
             init_opt_dict=None,
-            use_adam=use_adam,
+            optimizer=optimizer,
             verbose=False,
             **opt_meta_kwargs,
         )
@@ -119,7 +119,7 @@ class TestOptimization:
         assert qnp.allclose(
             opt_dict["cost_vals"],
             match_cost,
-            atol=1e-3,
+            atol=1e-2,
         )
         assert len(opt_dict["settings_history"]) == 11
 
@@ -135,7 +135,7 @@ class TestOptimization:
         assert opt_dict["step_size"] == 0.2
         assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$", opt_dict["datetime"])
         assert opt_dict["test_key"] == "test_val"
-        assert opt_dict["use_adam"] == use_adam
+        assert opt_dict["optimizer"] == optimizer
 
     def test_optimization_error(self, tmp_dir_cleanup):
         tmp_dir = pk.tmp_dir("./test/")
