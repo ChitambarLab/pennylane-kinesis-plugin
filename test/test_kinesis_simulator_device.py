@@ -60,7 +60,7 @@ class TestKinesisSimulatorDevice:
         # pennylane-kinesis attributes
         assert dev.name == "Kinesis Simulator Device"
         assert dev.short_name == "kinesis.simulator"
-        assert dev.pennylane_requires == "0.34"
+        assert dev.pennylane_requires == "0.36"
         assert dev.version == pk.__version__
         assert dev.author == "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
         assert dev.operations == {
