@@ -36,6 +36,9 @@ where = ["src"]
 include = ["pennylane_kinesis*"]
 namespaces = false
 
+[tool.pytest.ini_options]
+norecursedirs = "data"
+
 [project.entry-points."pennylane.plugins"]
 "kinesis.simulator" = "pennylane_kinesis:KinesisSimulatorDevice"
 "kinesis.cage.rotator" = "pennylane_kinesis:KinesisCageRotatorDevice"
