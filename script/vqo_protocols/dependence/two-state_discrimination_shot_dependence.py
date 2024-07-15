@@ -52,12 +52,12 @@ if __name__ == "__main__":
         "-o",
         "--optimizer",
         default="gradient-descent",
-        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'"
+        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
     parser.add_argument(
-        '-d',
-        '--diff',
-        default='parameter-shift',
+        "-d",
+        "--diff",
+        default="parameter-shift",
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
@@ -98,10 +98,9 @@ if __name__ == "__main__":
 
     filepath = "./data/state_discrimination"
     if args.numerics:
-        filepath+= "/numerics_shot_dependence/"
+        filepath += "/numerics_shot_dependence/"
     else:
-        filepath+="/hardware_shot_dependence/"
-
+        filepath += "/hardware_shot_dependence/"
 
     filepath = filepath + args.diff + "/" + args.optimizer + "/"
     script_start_time = datetime_now_string()
@@ -128,16 +127,25 @@ if __name__ == "__main__":
             num_steps=args.num_steps,
             verbose=args.verbose,
             optimizer=args.optimizer,
-            diff_method=args.diff
+            diff_method=args.diff,
         )
 
         end_time = time.time()
-    
-        print("took", end_time - start_time, "seconds to run VQO on Two-State Discrimination with", args.optimizer, "and", args.diff, "with ", str(shot))
+
+        print(
+            "took",
+            end_time - start_time,
+            "seconds to run VQO on Two-State Discrimination with",
+            args.optimizer,
+            "and",
+            args.diff,
+            "with ",
+            str(shot),
+        )
 
         datetime_str = datetime_now_string()
-        f = open(shots_filepath+datetime_str +"runtime.txt","a")
-        f.write(str(end_time-start_time))
+        f = open(shots_filepath + datetime_str + "runtime.txt", "a")
+        f.write(str(end_time - start_time))
 
         """
         Plotting
@@ -145,7 +153,14 @@ if __name__ == "__main__":
 
         fig, (ax1, ax2) = plt.subplots(ncols=2)
 
-        fig.suptitle("VQO of Two-State Discrimination with \n" + args.optimizer + " and " + args.diff + "\n with shots " + str(shot))
+        fig.suptitle(
+            "VQO of Two-State Discrimination with \n"
+            + args.optimizer
+            + " and "
+            + args.diff
+            + "\n with shots "
+            + str(shot)
+        )
 
         ax1.plot(
             range(len(state_disc_opt_dict["cost_vals"])),
@@ -174,53 +189,21 @@ if __name__ == "__main__":
 
         plt.tight_layout()
 
-        filename="two-state-discrimination"
-        filename+="-"+args.diff
-        filename+="-"+args.optimizer
-        filename+="-"+str(args.num_steps)
-        filename+="-"+str(shot)
-        filename+="-"+str(args.step_size).replace(".", "-")
+        filename = "two-state-discrimination"
+        filename += "-" + args.diff
+        filename += "-" + args.optimizer
+        filename += "-" + str(args.num_steps)
+        filename += "-" + str(shot)
+        filename += "-" + str(args.step_size).replace(".", "-")
         if args.numerics:
-            filename+="-numerics"
+            filename += "-numerics"
         if args.two_wp:
-            filename+="-twowp"
+            filename += "-twowp"
 
         import os
 
-        output_file = pk.winapi_path(shots_filepath+datetime_str+filename+".png")
+        output_file = pk.winapi_path(shots_filepath + datetime_str + filename + ".png")
         plt.savefig(output_file)
         plt.close()
 
         time.sleep(0.5)
-
-
-# shot_rate = 100000
-# shots = 10000
-
-
-# if __name__ == "__main__":
-#     if sys.argv[1] == "numerics":
-#         data_path = "./data/two-state_discrimination/numerics/"
-#         dev_name = "kinesis.simulator"
-#     else:
-#         data_path = "./data/two-state_discrimination/hardware/"
-#         dev_name = "kinesis.cage.rotator"
-
-#     # step_size_list = [0.12, 0.17, 0.1325, 0.135, 0.15, 0.2] * 5
-
-#     for step_size in step_size_list:
-#             datetime_str = pk.datetime_now_string()
-
-#             step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-
-#             print("Running optimization for step_size ", step_size)
-#             state_disc_opt_dict = pk.two_state_discrimination(
-#                 filepath=step_size_filepath,
-#                 shots=10000,
-#                 shot_rate=3000000,
-#                 # two_wp=args.two_wp,
-#                 # numerics=args.numerics,
-#                 step_size=step_size,
-#                 num_steps=20,
-#                 # verbose=args.verbose,
-#             )

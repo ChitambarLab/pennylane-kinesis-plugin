@@ -5,8 +5,9 @@ import re
 from pathlib import Path
 import sys
 
+
 def winapi_path(dos_path, encoding=None):
-    """ Stolen from stack overflow, this function converts a dos path to a windows api path.
+    """Stolen from stack overflow, this function converts a dos path to a windows api path.
     This is to support filenames longer than 260 characters (which windows doesn't allow with DOS paths).
     """
     if sys.platform == 'win32':
@@ -31,6 +32,7 @@ def make_dir(filepath):
     win_path = winapi_path(filepath)
     Path.mkdir(Path(win_path), parents=True, exist_ok=True)
     return filepath
+
 
 def get_files(path, regex):
     """Retrieves all data files that match the ``regex`` in the
