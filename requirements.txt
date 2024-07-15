@@ -3,3 +3,4 @@ matplotlib
 pennylane==0.36
 pylablib==1.4.1
 qnetvo==0.4.3
+elliptec==0.0.5
