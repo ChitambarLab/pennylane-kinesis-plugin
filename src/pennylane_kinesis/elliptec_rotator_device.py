@@ -46,7 +46,7 @@ class ElliptecMotors:
         addresses = [int(device["address"]) for device in self.wp_details]
         serial_nos = [device["serial_number"] for device in self.wp_details]
         self.wps = [None, None, None, None]
-        
+
         scanned_devices = elliptec.scan_for_devices(
             self.controller, start_address=1, stop_address=4
         )
@@ -198,7 +198,6 @@ class ElliptecRotatorDevice(QubitDevice):
         self.timing_file = Path(winapi_path(filepath + datetime + "timing_data.pkl"))
         self.timing_file.parent.mkdir(parents=True, exist_ok=True)
 
-
         # Connect and initlaize devices
         print()
         print("Status Updates:")
@@ -265,7 +264,7 @@ class ElliptecRotatorDevice(QubitDevice):
         self.time_rotation(self.device_home, self.active_times, 2, self.dev_b_hwp)
         self.time_rotation(self.device_home, self.active_times, 3, self.dev_b_qwp)
         print()
-        
+
         print("Setting angle to zero")
         self.device_move_to_angle(self.dev_a_hwp, 0)
         self.device_move_to_angle(self.dev_a_qwp, 0)
@@ -326,7 +325,7 @@ class ElliptecRotatorDevice(QubitDevice):
                     end_pos = self.dev_b_qwp.get_angle()
         else:
             end_pos = 0
-        
+
         if self.ttag_stream:
             end_counts = self.generate_samples()
             h_counts_end, v_counts_end = len(end_counts) - np.sum(end_counts), np.sum(end_counts)

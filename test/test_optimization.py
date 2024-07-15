@@ -10,6 +10,7 @@ import pennylane_kinesis as pk
 from test_file_utilities import tmp_dir_cleanup
 import logging
 
+
 @pytest.fixture
 def cost():
     dev = qml.device("kinesis.simulator", shots=10000, wires=[0], seed=2)
@@ -29,7 +30,7 @@ class TestOptimization:
         "optimizer, match_cost, match_settings",
         [
             (
-                'adam',
+                "adam",
                 [
                     0.9949,
                     0.9199,
@@ -58,7 +59,7 @@ class TestOptimization:
                 ],
             ),
             (
-                'gradient-descent',
+                "gradient-descent",
                 [
                     0.9949,
                     0.9949,
@@ -88,7 +89,9 @@ class TestOptimization:
             ),
         ],
     )
-    def test_simple_optimization(self, tmp_dir_cleanup, cost, optimizer, match_cost, match_settings):
+    def test_simple_optimization(
+        self, tmp_dir_cleanup, cost, optimizer, match_cost, match_settings
+    ):
         tmp_dir = pk.tmp_dir("./test/")
         filename = "test_simple_optimization"
 
