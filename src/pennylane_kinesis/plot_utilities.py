@@ -569,7 +569,6 @@ def plot_step_size_dependence_convergence(
         convergence_times += [idx]
         convergence_values += [min(std_np_mean)]
 
-
     ax.scatter(step_size_list, convergence_times, s=50, label="Convergence time", color="red")
     ax_2.scatter(
         step_size_list,
