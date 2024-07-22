@@ -3,7 +3,7 @@ from datetime import datetime
 import argparse
 
 """This script generates a plot showing the optimization precision as
-dependent upon the optimization step size. Data for this plot is obtained numerically
+dependent upon the number of measured samples. Data for this plot is obtained numerically
 using the `./script/fiber_inversion_numeric_step_size_dependence.py` script.
 """
 
