@@ -66,7 +66,6 @@ class Counter:
         if self.integration_time is None:
             self.auto_integration_time()
 
-
     def auto_shot_rate(self):
         self.counter.startFor(int(1 * 1e12))  # Take data for 1 second
         self.counter.waitUntilFinished()
