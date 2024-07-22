@@ -148,7 +148,7 @@ class ElliptecRotatorDevice(QubitDevice):
 
     name = "Elliptec Rotator Device"
     short_name = "elliptec.rotator"
-    pennylane_requires = "0.36"
+    pennylane_requires = "0.34"
     version = __version__
     author = "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
 
