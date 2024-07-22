@@ -241,7 +241,6 @@ def plot_shot_dependence(
         shots_filepath = (
             filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
         )
-        # shots_filepath = filepath + "shots_" + str(shots) + "/"
         filenames = get_files(shots_filepath, r"optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
 
@@ -371,7 +370,6 @@ def plot_step_size_dependence(
 
         for f in std_filenames:
             print(f"Using {f}")
-        # print((f"Using {f}", f) for f in std_filenames)
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
         adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
 
@@ -428,6 +426,7 @@ def plot_step_size_dependence(
         #     color=_COLORS[c_id],
         #     linestyle="-"
         # )
+
         ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
@@ -473,11 +472,9 @@ def plot_step_size_dependence(
             label="Background (" + str(background) + " cps)",
         )
 
-    # plt.tight_layout(pad=2)
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     plt.grid()
-    # fig.subplots_adjust(bottom=0.3)
     plt.legend(ncols=2, loc="lower left")
 
     Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
@@ -572,8 +569,6 @@ def plot_step_size_dependence_convergence(
         convergence_times += [idx]
         convergence_values += [min(std_np_mean)]
 
-        # convergence_times += [np.argmin(std_np_mean)]
-        # convergence_values += [np.min(std_np_mean)]
 
     ax.scatter(step_size_list, convergence_times, s=50, label="Convergence time", color="red")
     ax_2.scatter(
@@ -584,10 +579,8 @@ def plot_step_size_dependence_convergence(
         color="black",
     )
 
-    # plt.tight_layout(pad=2)
     plt.xscale("log")
     ax_2.set_yscale("log")
     plt.grid()
-    # fig.subplots_adjust(bottom=0.3)
 
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)

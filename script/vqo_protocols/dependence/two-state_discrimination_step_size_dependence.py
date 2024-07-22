@@ -10,22 +10,11 @@ import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 
 """
-Optimizes the state discrimination success probability for two states.
+Runs multiple two-state discrimination optimizations with different step-sizes for each
+to determine the dependence of the optimization on the step-size.
 
 By default the script will run on hardware using 4 wave plates.
-
-Use the `numerics` argument to run the script using the simulator backend.
-Use the `two_wp` argument to run the script with fixed mneasurement waveplates.
-
-```
-$ python script/two-state_discrimination.py numerics
-```
 """
-
-
-theta_period = qnp.pi / 2
-phi_period = qnp.pi
-period_array = qnp.array([theta_period, theta_period, phi_period, phi_period])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -60,6 +49,19 @@ if __name__ == "__main__":
         default=10000,
         type=float,
         help="Number of shots to take.",
+    )
+
+    parser.add_argument(
+        "--step_size_list",
+        nargs="+",
+        default=[0.01, 0.05, 0.1, 0.2, 0.5],
+    )
+
+    parser.add_argument(
+        "--num_trials",
+        default=40,
+        type=int,
+        help="Number of trials to run for each step size in the step-size list.",
     )
 
     parser.add_argument(
@@ -101,8 +103,7 @@ if __name__ == "__main__":
     script_start_time = datetime_now_string()
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    # step_size_list = [0.01, 0.5, 0.2, 0.1, 0.05] * 10
-    step_size_list = [0.01, 0.05, 0.1] * 40
+    step_size_list = args.step_size_list * args.num_trials
     for step_size in step_size_list:
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"

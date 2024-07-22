@@ -54,10 +54,6 @@ try:
     print(ser.readline())
     ser.write(b"4in")
     print(ser.readline())
-    # ser.write(b'0ca4')
-    # print(ser.readline())
-except KeyboardInterrupt:
+finally:
     ser.close()
     exit()
-
-ser.close()

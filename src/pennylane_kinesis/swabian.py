@@ -33,8 +33,8 @@ class Counter:
     def __init__(
         self,
         shots=10000,
-        shot_rate=100000,
-        integration_time=3,
+        shot_rate=None,
+        integration_time=None,
         ttag_channel_transmit=5,
         ttag_channel_reflect=4,
     ):
@@ -60,6 +60,12 @@ class Counter:
             " and ",
             self.ttag_channel_transmit,
         )
+
+        if self.shot_rate is None:
+            self.auto_shot_rate()
+        if self.integration_time is None:
+            self.auto_integration_time()
+
 
     def auto_shot_rate(self):
         self.counter.startFor(int(1 * 1e12))  # Take data for 1 second

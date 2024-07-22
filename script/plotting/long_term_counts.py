@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+
+# TODO: move this to argparse
 data_file = "./data/counts/counts_2024-04-24T17-22-24Z.txt"
 
 if __name__ == "__main__":
@@ -13,16 +15,9 @@ if __name__ == "__main__":
             data.append(datum)
 
     data = np.array(data)
-    print(data)
-
-    # data -= np.min(data)
 
     data_sum = np.sum(data, axis=1)
-    print(data_sum)
     data_norm = data / data_sum[:, None]
-    print(data_norm)
-    # print(data.shape)
-    # print(data_sum.shape)
     fig, ax = plt.subplots()
     ax.plot(data[:, 0], color="red", label="H")
     ax.plot(data[:, 1], color="blue", label="V")
@@ -33,7 +28,7 @@ if __name__ == "__main__":
     ax.set_ylabel("Counts")
     filename = data_file.split("/")[3].split(".")[0] + ".png"
 
-    print(filename)
+    print("Saving plot to", filename)
     plt.savefig("./data/counts/" + filename)
     plt.cla()
     ax.plot(data_norm[:, 0], color="red", label="H")
