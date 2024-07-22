@@ -7,17 +7,7 @@ import pennylane_kinesis as pk
 from pathlib import Path
 from datetime import datetime
 
-timing_file = "./data/two-state_discrimination/2024-06-11T16-19-50Ztiming_data.pkl"
-
-run_directory = os.path.dirname(
-    "./data/state_discrimination/new_hardware_step_size_dependence/parameter-shift/gradient-descent/2024-06-21T21-55-40Z/"
-)
-
-num_shots = ["10", "100", "1000", "10000", "100000"]
-
 date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
-directories = []
-
 
 def get_date_from_timing_filename(filename):
     stripped_filename = filename.split("Z")[0]
@@ -90,19 +80,10 @@ def plot_timing(timing_file):
         start_times = np.array(timing_data)[:, :, 0]
         start_times_filtered = np.where(run_times > 0.5, start_times, 0)
 
-        # # Use only the first 25 instances
-        # run_times_filtered = run_times_filtered[:,0:25]
-        # start_times_filtered = start_times_filtered[:,0:25]
         if args.run_times:
             fig, ax = plt.subplots()
 
-            # Plot filtered data
-            # ax.broken_barh(xranges=[(start_times_filtered[0][i], run_times_filtered[0][i]) for i in range(len(run_times_filtered[0]))], yrange=(0, 1), facecolors='blue')
-            # ax.broken_barh(xranges=[(start_times_filtered[1][i], run_times_filtered[1][i]) for i in range(len(run_times_filtered[0]))], yrange=(1, 1), facecolors='red')
-            # ax.broken_barh(xranges=[(start_times_filtered[2][i], run_times_filtered[2][i]) for i in range(len(run_times_filtered[0]))], yrange=(2, 1), facecolors='green')
-            # ax.broken_barh(xranges=[(start_times_filtered[3][i], run_times_filtered[3][i]) for i in range(len(run_times_filtered[0]))], yrange=(3, 1), facecolors='orange')
-
-            # # Use unfiltered data
+            # Use unfiltered data
             ax.broken_barh(
                 xranges=[(start_times[0][i], run_times[0][i]) for i in range(len(run_times[0]))],
                 yrange=(0, 1),
@@ -142,22 +123,16 @@ def plot_timing(timing_file):
                 + timing_file.split("\\")[-1].split(".")[0]
                 + ".png"
             )
-            # print(fig_path)
-            # exit()
             print("writing to file:" + fig_path)
             plt.savefig(fig_path, bbox_inches="tight")
             plt.close()
         diff = np.sum(run_times, axis=1) - np.sum(run_times_filtered, axis=1)
-        # For filtered data:
-        # duty_cycle = np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff)
         duty_cycle = np.sum(run_times, axis=1) / (
             np.sum(off_times, axis=1) + np.sum(run_times, axis=1)
         )
 
         duty_cycles.append(duty_cycle)
         print("Duty cycle percentage:", np.sum(run_times, axis=1) / (np.sum(off_times, axis=1)))
-        # For filtered data:
-        # print("Duty cycle percentage:", np.sum(run_times_filtered,axis=1)/(np.sum(off_times,axis=1) + diff))
 
     return total_time, duty_cycles
 
@@ -224,6 +199,13 @@ if __name__ == "__main__":
         help="List of step sizes to plot. default = [0.01, 0.05, 0.1, 0.2, 0.5]",
     )
 
+    parser.add_argument(
+        "--shots_list",
+        nargs="+",
+        default=[100, 1000, 10000, 100000],
+        help="List of shots to plot. default = [100, 1000, 10000, 100000]",
+    )
+
     parser.add_argument("--file", "-f", default=None, help="File to plot instead of directory.")
 
     args = parser.parse_args()
@@ -237,12 +219,16 @@ if __name__ == "__main__":
         exit()
 
     step_sizes = []
+    shots_list = []
     for step_size in args.step_size_list:
         step_sizes.append(str(step_size).replace(".", "_"))
+
+    for shot in args.shots_list:
+        shots_list.append(str(shot))
     print("Running with step sizes:", step_sizes)
 
     if args.shot_dep:
-        for shot in num_shots:
+        for shot in shots_list:
             directories.append(run_directory + "/shots_" + str(shot) + "/")
     elif args.step_dep:
         for step_size in step_sizes:

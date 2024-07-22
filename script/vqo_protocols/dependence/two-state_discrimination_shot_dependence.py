@@ -10,27 +10,16 @@ import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 
 """
-Optimizes the state discrimination success probability for two states.
+Runs multiple two-state discrimination optimizations with different numbers of shots for each
+to determine the dependence of the optimization on the step-size.
 
 By default the script will run on hardware using 4 wave plates.
-
-Use the `numerics` argument to run the script using the simulator backend.
-Use the `two_wp` argument to run the script with fixed mneasurement waveplates.
-
-```
-$ python script/two-state_discrimination.py numerics
-```
 """
-
-
-theta_period = qnp.pi / 2
-phi_period = qnp.pi
-period_array = qnp.array([theta_period, theta_period, phi_period, phi_period])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="Two state discrimination",
-        description="Optimizes the state discrimination success probability for two states.",
+        prog="Two state discrimination shot dependence.",
+        description="Runs multiple two-state discrimination optimizations with different numbers of shots for each to determine the dependence of the optimization on the step-size.",
     )
 
     parser.add_argument(
@@ -54,6 +43,7 @@ if __name__ == "__main__":
         default="gradient-descent",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
+    
     parser.add_argument(
         "-d",
         "--diff",
@@ -71,6 +61,18 @@ if __name__ == "__main__":
         default=0.08,
         type=float,
         help="Step size to use for optimizer.",
+    )
+
+    parser.add_argument(
+        "--shots_list",
+        nargs="+",
+        default=[100, 1000, 10000, 100000],
+    )
+
+    parser.add_argument(
+        "--num_trials",
+        default=40,
+        type=int,
     )
 
     parser.add_argument(
@@ -106,8 +108,9 @@ if __name__ == "__main__":
     script_start_time = datetime_now_string()
     filepath += script_start_time + "/"
     pk.make_dir(filepath)
-    shots_list = [10, 100, 1000, 10000, 100000] * 5
-    backgrounds = [1, 10, 100, 1000, 10000] * 5
+
+    shots_list = args.shots_list * args.num_trials
+
     for i, shot in enumerate(shots_list):
         datetime_str = pk.datetime_now_string()
 
@@ -123,7 +126,6 @@ if __name__ == "__main__":
             two_wp=args.two_wp,
             numerics=args.numerics,
             step_size=args.step_size,
-            background_counts=backgrounds[i],
             num_steps=args.num_steps,
             verbose=args.verbose,
             optimizer=args.optimizer,

@@ -67,8 +67,6 @@ if __name__ == "__main__":
 
     tt = swabian.Counter()
     tt.detector_setup()
-    # tt.auto_shot_rate()
-    # tt.auto_integration_time()
 
     def handle_input(move_type, motor):
         print("Enter an angle to move to (in degrees)")
