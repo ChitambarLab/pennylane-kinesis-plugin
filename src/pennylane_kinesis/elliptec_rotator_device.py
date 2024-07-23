@@ -195,6 +195,7 @@ class ElliptecRotatorDevice(QubitDevice):
         self.active_times = [[] for _ in range(4)]
 
         datetime = datetime_now_string()
+        self.datetime = datetime
         self.timing_file = Path(winapi_path(filepath + "timing_data_" + datetime + ".pkl"))
         self.timing_file.parent.mkdir(parents=True, exist_ok=True)
 
