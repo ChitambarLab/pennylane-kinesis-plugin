@@ -9,12 +9,6 @@ from datetime import datetime
 
 date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
 
-def get_date_from_timing_filename(filename):
-    stripped_filename = filename.split("Z")[0]
-    stripped_filename += "Z"
-    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
-
-
 def plot_movements(timing_file):
     with open(timing_file, "rb") as f:
         timing_data = pickle.load(f)
@@ -242,7 +236,7 @@ if __name__ == "__main__":
 
     for directory in directories:
         for file in os.listdir(directory):
-            if ("timing_data" in file or "runtime" in file) and get_date_from_timing_filename(
+            if ("timing_data" in file or "runtime" in file) and pk.file_utilities.get_date_from_filename(
                 file
             ) >= date_after:
                 if file.endswith(".txt") and args.total_times:

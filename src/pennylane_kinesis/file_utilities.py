@@ -24,6 +24,10 @@ def winapi_path(dos_path, encoding=None):
 def datetime_now_string():
     return datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
 
+def get_date_from_filename(filename):
+    stripped_filename = filename.split("_")[-1]
+    stripped_filename = stripped_filename.split(".")[0]
+    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
 
 def tmp_dir(filepath):
     return make_dir(filepath + "tmp/")
