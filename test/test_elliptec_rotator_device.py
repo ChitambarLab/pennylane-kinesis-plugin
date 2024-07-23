@@ -5,11 +5,13 @@ from pathlib import Path
 
 # Can't really test much other than this without using the hardware...
 
+
 def setup_module():
     global motors
     global device
     motors = pk.ElliptecMotors(test_mode=True)
     device = pk.ElliptecRotatorDevice(wires=[0], motors=motors, test_mode=True)
+
 
 class TestElliptecMotors:
     def test_config_serial_nos(self):
@@ -26,8 +28,8 @@ class TestElliptecMotors:
         assert float(motors.wp_details[2]["angle_offset"]) == 97.551
         assert float(motors.wp_details[3]["angle_offset"]) == -23.635
 
+
 class TestElliptecRotatorDevice:
-    
     def test_device_timing_file_path(self):
         global device
         assert os.path.exists("./test/tmp/")
