@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 
-from .file_utilities import get_files, read_json, datetime_now_string
+from .file_utilities import get_files, read_json, datetime_now_string, get_date_from_filename
 
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
@@ -310,12 +310,6 @@ def plot_shot_dependence(
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 
-def get_date_from_opt_filename(filename):
-    stripped_filename = filename.split("_")[-1]
-    stripped_filename = stripped_filename.split(".")[0]
-    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
-
-
 def plot_step_size_dependence(
     filepath,
     step_size_list,
@@ -360,10 +354,10 @@ def plot_step_size_dependence(
             new_std_filenames = []
             new_adam_filenames = []
             for filename in std_filenames:
-                if get_date_from_opt_filename(filename) >= date_after:
+                if get_date_from_filename(filename) >= date_after:
                     new_std_filenames.append(filename)
             for filename in adam_filenames:
-                if get_date_from_opt_filename(filename) >= date_after:
+                if get_date_from_filename(filename) >= date_after:
                     new_adam_filenames.append(filename)
             std_filenames = new_std_filenames
             adam_filenames = new_adam_filenames
