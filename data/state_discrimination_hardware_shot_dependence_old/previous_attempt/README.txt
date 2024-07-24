@@ -1,2 +1,0 @@
-These runs used an older version of the code which created artificial counts whenever the buffer did not fill up within 5 times the expected integration time.
-This likely did not ever occur during data collection, but we will not use this data since it is impossible to know how many counts were actually collected.
