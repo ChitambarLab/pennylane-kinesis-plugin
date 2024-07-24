@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 import re
@@ -28,7 +28,7 @@ def datetime_now_string():
 def get_date_from_filename(filename):
     stripped_filename = filename.split("_")[-1]
     stripped_filename = stripped_filename.split(".")[0]
-    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ")
+    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
 
 
 def tmp_dir(filepath):
