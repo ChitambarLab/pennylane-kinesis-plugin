@@ -1,6 +1,7 @@
 import numpy as np
 import qnetvo
 
+import pennylane as qml
 from .file_utilities import datetime_now_string
 from .file_utilities import make_dir
 from .kinesis_cage_rotator_device import KinesisMotors
@@ -162,6 +163,8 @@ def two_state_discrimination(
         state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
     )
 
+    device = qml.device(**state_disc_ansatz.dev_kwargs)
+
     opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
         np.array(state_disc_ansatz.rand_network_settings()),
@@ -170,6 +173,7 @@ def two_state_discrimination(
         verbose=verbose,
         filepath=data_path,
         optimizer=optimizer,
+        device=device,
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )

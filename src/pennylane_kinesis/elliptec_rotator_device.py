@@ -224,6 +224,7 @@ class ElliptecRotatorDevice(QubitDevice):
             rot_mount["serial_number"] = entries[2]
             rot_mount["angle_offset"] = entries[3]
             rot_mount["name"] = entries[4]
+            rot_mount["background_angle"] = entries[5]
             wp_details.append(rot_mount)
 
         print("Configuration File:")
@@ -241,6 +242,11 @@ class ElliptecRotatorDevice(QubitDevice):
         self.a_qwp_offset = float(wp_details[1]["angle_offset"])
         self.b_hwp_offset = float(wp_details[2]["angle_offset"])
         self.b_qwp_offset = float(wp_details[3]["angle_offset"])
+        
+        self.a_hwp_background_angle = float(wp_details[0]["background_angle"])
+        self.a_qwp_background_angle = float(wp_details[1]["background_angle"])
+        self.b_hwp_background_angle = float(wp_details[2]["background_angle"])
+        self.b_qwp_background_angle = float(wp_details[3]["background_angle"])
 
         # a waveplates are 1550
         self.dev_a_hwp = motors.prep_hwp
@@ -489,7 +495,7 @@ class ElliptecRotatorDevice(QubitDevice):
     def device_home(self, device: elliptec.Rotator):
         """Sends the specified device to the home position.
 
-        :param device: A cage rotaator device.
+        :param device: A cage rotator device.
         :type device: CageRotator object
 
         :returns: None
@@ -504,6 +510,32 @@ class ElliptecRotatorDevice(QubitDevice):
             device.home()
             print("Device S/N " + device.info["Serial No."] + " is homed.")
         return True
+    
+    def take_background(self):
+        """Takes background by moving the device to the specified angle that blocks
+        the beam.
+
+        :param device: A cage rotator device.
+        :type device: CageRotator object
+
+        :returns: None
+        """
+        if not self.test_mode:
+            print("Taking background measurement, moving")
+            for device in [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]:
+                print("device S/N " + device.info["Serial No"] + " to background angle" + device.info["background_angle"])
+                device.set_angle(device.info["background_angle"])
+
+            print("Taking background measurement for 3 seconds...")
+            self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
+            self.counter.waitUntilFinished()
+            self.shot_rate = self.counter.getData() / 3  # Get average shot rate from the channel
+            print("Background Shot rates:")
+            print(
+                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
+            )
+
+        return self.shot_rate
 
     def device_move_to_angle(self, device: elliptec.Rotator, angle):
         """Rotates a device to the specified angle.

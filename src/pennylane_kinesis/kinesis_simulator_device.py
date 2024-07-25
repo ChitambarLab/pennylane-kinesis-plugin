@@ -96,6 +96,12 @@ class KinesisSimulatorDevice(QubitDevice):
 
             self._state = mat @ self._state
 
+    def take_background(self):
+        zero_background_counts = np.random.poisson(int(self.background_counts / 2))
+        one_background_counts = np.random.poisson(int(self.background_counts / 2))
+
+        return (zero_background_counts, one_background_counts)
+
     def analytic_probability(self, wires=None):
         if self._state is None:
             return None

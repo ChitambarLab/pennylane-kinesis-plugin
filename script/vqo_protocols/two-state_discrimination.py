@@ -112,6 +112,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
+    parser.add_argument("--background", default=300, help="Number of background counts.")
+
     args = parser.parse_args()
 
     if not args.plot:
@@ -122,6 +124,7 @@ if __name__ == "__main__":
             filepath="./data/two-state_discrimination/",
             shots=10000,
             shot_rate=3000000,
+            background_counts=int(args.background),
             two_wp=args.two_wp,
             numerics=args.numerics,
             step_size=float(args.step_size),
