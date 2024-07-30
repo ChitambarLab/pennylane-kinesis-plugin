@@ -117,7 +117,7 @@ if __name__ == "__main__":
             shot_rate=3000000,
             two_wp=args.two_wp,
             numerics=args.numerics,
-            step_size=step_size,
+            step_size=float(step_size),
             num_steps=args.num_steps,
             verbose=args.verbose,
             optimizer=args.optimizer,
