@@ -242,7 +242,7 @@ class ElliptecRotatorDevice(QubitDevice):
         self.a_qwp_offset = float(self.wp_details[1]["angle_offset"])
         self.b_hwp_offset = float(self.wp_details[2]["angle_offset"])
         self.b_qwp_offset = float(self.wp_details[3]["angle_offset"])
-        
+
         self.a_hwp_background_angle = float(self.wp_details[0]["background_angle"])
         self.a_qwp_background_angle = float(self.wp_details[1]["background_angle"])
         self.b_hwp_background_angle = float(self.wp_details[2]["background_angle"])
@@ -482,8 +482,8 @@ class ElliptecRotatorDevice(QubitDevice):
                 )
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
-            #counter.getData() returns per-second average
-            self.shot_rate = self.counter.getData() # Get average shot rate from the channel
+            # counter.getData() returns per-second average
+            self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Shot rates:")
             print(
                 f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
@@ -511,7 +511,7 @@ class ElliptecRotatorDevice(QubitDevice):
             device.home()
             print("Device S/N " + device.info["Serial No."] + " is homed.")
         return True
-    
+
     def take_background(self):
         """Takes background by moving the device to the specified angle that blocks
         the beam.
@@ -523,15 +523,20 @@ class ElliptecRotatorDevice(QubitDevice):
         """
         if not self.test_mode:
             print("Taking background measurement, moving")
-            for i, device in enumerate([self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]):
-                print("device S/N " + device.info["Serial No."] + " to background angle", self.wp_details[i]["background_angle"])
+            for i, device in enumerate(
+                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
+            ):
+                print(
+                    "device S/N " + device.info["Serial No."] + " to background angle",
+                    self.wp_details[i]["background_angle"],
+                )
                 device.set_angle(self.wp_details[i]["background_angle"])
 
             print("Taking background measurement for 3 seconds...")
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
             # counter.getData() returns per-second average
-            self.shot_rate = self.counter.getData() # Get average shot rate from the channel
+            self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Background Shot rates:")
             print(
                 f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
@@ -639,11 +644,19 @@ class ElliptecRotatorDevice(QubitDevice):
 
             if op.name == "HWPRotStage":
                 self.time_rotation(
-                    self.device_move_to_angle, self.active_times, i, dev_list[i], ((angle % 90) + float(self.wp_details[i]["angle_offset"]))
+                    self.device_move_to_angle,
+                    self.active_times,
+                    i,
+                    dev_list[i],
+                    ((angle % 90) + float(self.wp_details[i]["angle_offset"])),
                 )
             elif op.name == "QWPRotStage":
                 self.time_rotation(
-                    self.device_move_to_angle, self.active_times, i, dev_list[i], ((angle % 180) + float(self.wp_details[i]["angle_offset"]))
+                    self.device_move_to_angle,
+                    self.active_times,
+                    i,
+                    dev_list[i],
+                    ((angle % 180) + float(self.wp_details[i]["angle_offset"])),
                 )
             else:
                 print("Operation : ", op.name, ", is not supported")

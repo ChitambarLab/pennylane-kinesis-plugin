@@ -8,7 +8,7 @@ from .file_utilities import datetime_now_string, tmp_dir, write_json
 def optimize(
     grad_cost,
     init_settings,
-    device = None,
+    device=None,
     num_steps=10,
     step_size=0.1,
     filepath="./",
