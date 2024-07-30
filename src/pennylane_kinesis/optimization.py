@@ -17,6 +17,7 @@ def optimize(
     domain_periods=None,
     eval_cost=None,
     optimizer="gradient_descent",
+    background_rates=None,
     verbose=True,
     **meta_kwargs,
 ):
@@ -91,7 +92,7 @@ def optimize(
             "domain_periods": domain_periods,
             "opt_step_time": [],
             "optimizer": optimizer,
-            "background_rate": 0,
+            "background_rate": [],
             **meta_kwargs,
         }
     )
@@ -106,7 +107,6 @@ def optimize(
         opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
-    background_rates = device.take_background()
     opt_dict["background_rate"] = background_rates
     try:
         curr_time = time.time()
