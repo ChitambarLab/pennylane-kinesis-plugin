@@ -5,9 +5,9 @@ import os
 import argparse
 import pennylane_kinesis as pk
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
-date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
+date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
 
 def plot_movements(timing_file):
     with open(timing_file, "rb") as f:
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     for directory in directories:
         for file in os.listdir(directory):
-            if ("timing_data" in file or "runtime" in file) and pk.file_utilities.get_date_from_filename(
+            if ("timing_data" in file or "runtime" in file) and pk.file_utilities.get_date_from_timing_filename(
                 file
             ) >= date_after:
                 if file.endswith(".txt") and args.total_times:
@@ -278,7 +278,7 @@ if __name__ == "__main__":
             ax.legend(title="Number of Shots")
         else:
             ax.legend(title="Step Sizes")
-        ax.set_title("Total time of each optimization (parameter-shift, gradient-descent)")
+        ax.set_title("Total time of each optimization (parameter-shift, adagrad)")
         ax.set_xlabel("Optimization Run Number (Sequential)")
         ax.set_ylabel("Time (s)")
         print("writing total_times to", run_directory + "total_times.png")
@@ -310,7 +310,7 @@ if __name__ == "__main__":
         )
         ax.bar_label(bars, fmt="%.2f")
         ax.set_xticks([0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"])
-        ax.set_title("Duty Cycle Average \n (parameter-shift, gradient-descent)")
+        ax.set_title("Duty Cycle Average \n (parameter-shift, adagrad)")
         ax.set_xlabel("Waveplate")
         ax.set_ylabel("Duty Cycle")
         path = pk.winapi_path(run_directory + "/duty_cycle" + date_of_run + ".png")
