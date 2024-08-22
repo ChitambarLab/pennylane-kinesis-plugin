@@ -17,7 +17,8 @@ def optimize(
     domain_periods=None,
     eval_cost=None,
     optimizer="gradient_descent",
-    background_rates=None,
+    background_rate=None,
+    shot_rate=None,
     verbose=True,
     **meta_kwargs,
 ):
@@ -93,6 +94,7 @@ def optimize(
             "opt_step_time": [],
             "optimizer": optimizer,
             "background_rate": [],
+            "shot_rate":[],
             **meta_kwargs,
         }
     )
@@ -107,7 +109,8 @@ def optimize(
         opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
-    opt_dict["background_rate"] = background_rates
+    opt_dict["background_rate"] = background_rate
+    opt_dict["shot_rate"] = shot_rate
     try:
         curr_time = time.time()
         for i in range(current_step, num_steps):

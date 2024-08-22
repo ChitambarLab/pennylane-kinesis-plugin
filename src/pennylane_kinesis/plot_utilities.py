@@ -245,6 +245,7 @@ def plot_shot_dependence(
         opt_dicts = [read_json(filename) for filename in filenames]
 
         aggregate_data = []
+        background_rates = []
         for opt_dict in opt_dicts:
             for i in range(len(opt_dict["cost_vals"])):
                 if len(aggregate_data) <= i:
@@ -257,6 +258,7 @@ def plot_shot_dependence(
 
                 else:
                     aggregate_data[i] += [opt_dict["cost_vals"][i] + 2]
+                background_rates += [opt_dict["background_rate"]]
 
         mean_cost_vals = []
         std_err_cost_vals = []
@@ -297,7 +299,7 @@ def plot_shot_dependence(
     if background:
         ax.plot(
             range(len(mean_cost_vals)),
-            [background / shot_rate] * len(mean_cost_vals),
+            [np.mean(background_rates) / shot_rate] * len(mean_cost_vals),
             "k--",
             label="Background (" + str(background) + " cps)",
         )
@@ -368,16 +370,16 @@ def plot_step_size_dependence(
         adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
 
         std_aggregate_data = []
+        background_rate = []
+        std_opt_dicts = std_opt_dicts[:int(len(std_opt_dicts)/2)]
         for std_opt_dict in std_opt_dicts:
             for i in range(len(std_opt_dict["cost_vals"])):
                 if len(std_aggregate_data) <= i:
                     std_aggregate_data += [[]]
 
-                if add_background:
-                    corrected_val = std_opt_dict["cost_vals"][i] + 2 + background / shot_rate
-                    std_aggregate_data[i] += [corrected_val]
-                else:
-                    std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
+                std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
+                if background:
+                    background_rate += [np.sum(std_opt_dict["background_rate"])]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:
@@ -459,17 +461,19 @@ def plot_step_size_dependence(
         c_id += 1
 
     if background:
+        background_rate = np.array(background_rate)
+        background_rate = np.mean(background_rate)
         ax.plot(
             range(len(std_np_mean)),
-            [background / shot_rate] * len(std_np_mean),
+            [background_rate/ shot_rate] * len(std_np_mean),
             "k--",
-            label="Background (" + str(background) + " cps)",
+            label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
         )
 
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     plt.grid()
-    plt.legend(ncols=2, loc="lower left")
+    plt.legend(ncols=2, loc="upper right")
 
     Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)

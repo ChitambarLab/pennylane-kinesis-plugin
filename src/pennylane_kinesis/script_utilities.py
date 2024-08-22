@@ -155,7 +155,8 @@ def two_state_discrimination(
     )
 
     device = qml.device(**state_disc_ansatz.dev_kwargs)
-    background_rates = device.take_background()
+    shot_rate = device.shot_rate.tolist()
+    background_rate = device.take_background()
 
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit dimensionality witness.
@@ -176,7 +177,8 @@ def two_state_discrimination(
         verbose=verbose,
         filepath=data_path,
         optimizer=optimizer,
-        background_rates=background_rates,
+        background_rate=background_rate,
+        shot_rate=shot_rate,
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
