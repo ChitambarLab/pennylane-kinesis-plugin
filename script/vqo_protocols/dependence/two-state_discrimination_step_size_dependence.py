@@ -76,14 +76,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-s",
-        "--step_size",
-        default=0.08,
-        type=float,
-        help="Step size to use for optimizer.",
-    )
-
-    parser.add_argument(
         "--num_steps",
         default=20,
         type=int,
