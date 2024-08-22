@@ -51,6 +51,13 @@ if __name__ == "__main__":
         help="If only using two waveplates (fixed measurement waveplates).",
     )
 
+    parser.add_argument(
+        "-b",
+        "--background",
+        default=None,
+        help="Plot background count line."
+    )
+
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -67,7 +74,7 @@ if __name__ == "__main__":
         numerics=args.numerics,
         two_wp=args.two_wp,
         # add_background=True,
-        # background=300,
-        shot_rate=10000,
-        title="Step Size Dependence \n(adagrad, parameter-shift, new hardware, two waveplate)",
+        background= args.background,
+        shot_rate=250000,
+        title="Step Size Dependence \n(adagrad, parameter-shift)",
     )
