@@ -372,17 +372,16 @@ def plot_step_size_dependence(
         std_aggregate_data = []
         background_rate = []
         shot_rates = []
-        std_opt_dicts = std_opt_dicts[:int(len(std_opt_dicts)/2)]
         for std_opt_dict in std_opt_dicts:
             for i in range(len(std_opt_dict["cost_vals"])):
                 if len(std_aggregate_data) <= i:
                     std_aggregate_data += [[]]
 
                 std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
-                if background:
-                    background_rate += [np.sum(std_opt_dict["background_rate"])]
+            if background:
+                background_rate += [np.sum(std_opt_dict["background_rate"])]
                 
-                shot_rates += [np.sum(std_opt_dict["shot_rate"])]
+            shot_rates += [np.sum(std_opt_dict["shot_rate"])]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:
