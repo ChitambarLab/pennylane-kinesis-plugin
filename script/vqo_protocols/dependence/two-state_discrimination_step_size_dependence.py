@@ -52,6 +52,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--shot_rate",
+        default=800000,
+        type=float,
+        help="The shot rate of the experiment (for numerics).",
+    )
+
+    parser.add_argument(
         "--step_size_list",
         nargs="+",
         default=[0.01, 0.05, 0.1, 0.2, 0.5],
@@ -81,6 +88,13 @@ if __name__ == "__main__":
         default=0.08,
         type=float,
         help="Step size to use for optimizer.",
+    )
+
+    parser.add_argument(
+        "--background_counts",
+        default=420,
+        type=int,
+        help="Background count rate for the experiment (for numerics)",
     )
 
     parser.add_argument(
@@ -114,14 +128,15 @@ if __name__ == "__main__":
         state_disc_opt_dict = pk.two_state_discrimination(
             filepath=step_size_filepath,
             shots=args.shots,
-            shot_rate=3000000,
+            shot_rate=args.shot_rate,
             two_wp=args.two_wp,
             numerics=args.numerics,
-            step_size=step_size,
+            step_size=float(step_size),
             num_steps=args.num_steps,
             verbose=args.verbose,
             optimizer=args.optimizer,
             diff_method=args.diff,
+            background_counts=args.background_counts,
         )
 
         end_time = time.time()
