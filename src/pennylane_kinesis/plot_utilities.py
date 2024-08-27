@@ -340,6 +340,8 @@ def plot_step_size_dependence(
     filepath_type = "/numerics/" if numerics else "/hardware/"
     filepath_wp = "two_wp/" if two_wp else "four_wp/"
 
+    background_rate = []
+    shot_rates = []
     c_id = 0
     for step_size in step_size_list:
         step_size_filepath = Path(filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp)
@@ -370,19 +372,24 @@ def plot_step_size_dependence(
         adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
 
         std_aggregate_data = []
-        background_rate = []
-        shot_rates = []
-        std_opt_dicts = std_opt_dicts[:int(len(std_opt_dicts)/2)]
-        for std_opt_dict in std_opt_dicts:
+        for j,std_opt_dict in enumerate(std_opt_dicts):
             for i in range(len(std_opt_dict["cost_vals"])):
                 if len(std_aggregate_data) <= i:
                     std_aggregate_data += [[]]
 
                 std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
-                if background:
+            if background:
+                if np.sum(std_opt_dict["background_rate"]) > 1000:
+                    print("Background rate too high!")
+                    print(f"Background rate: {np.sum(std_opt_dict['background_rate'])}")
+                    print(f"std_opt_dict['background_rate']: {std_opt_dict['background_rate']}")
+                    print(f"filename: {std_filenames[j]}")
+                    input()
+                else:
                     background_rate += [np.sum(std_opt_dict["background_rate"])]
                 
-                shot_rates += [np.sum(std_opt_dict["shot_rate"])]
+                                                              
+            shot_rates += [np.sum(std_opt_dict["shot_rate"])]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:

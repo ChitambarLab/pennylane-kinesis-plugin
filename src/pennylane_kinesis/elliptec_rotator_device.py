@@ -527,7 +527,7 @@ class ElliptecRotatorDevice(QubitDevice):
                     "device S/N " + device.info["Serial No."] + " to background angle",
                     self.wp_details[i]["background_angle"],
                 )
-                device.set_angle(self.wp_details[i]["background_angle"])
+                self.device_move_to_angle(device, self.wp_details[i]["background_angle"])
 
             print("Taking background measurement for 3 seconds...")
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
