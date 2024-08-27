@@ -53,8 +53,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--shot_rate",
-        default=800000,
-        type=float,
+        default=qnp.array([418000,400000]),
+        type=list,
         help="The shot rate of the experiment (for numerics).",
     )
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--background_counts",
-        default=420,
+        default=400,
         type=int,
         help="Background count rate for the experiment (for numerics)",
     )
