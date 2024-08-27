@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+import os
 
 from .file_utilities import get_files, read_json, datetime_now_string, get_date_from_filename
 
@@ -341,9 +342,8 @@ def plot_step_size_dependence(
 
     c_id = 0
     for step_size in step_size_list:
-        step_size_filepath = (
-            filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
-        )
+        step_size_filepath = Path(filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp)
+        
 
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
@@ -371,6 +371,7 @@ def plot_step_size_dependence(
 
         std_aggregate_data = []
         background_rate = []
+        shot_rates = []
         std_opt_dicts = std_opt_dicts[:int(len(std_opt_dicts)/2)]
         for std_opt_dict in std_opt_dicts:
             for i in range(len(std_opt_dict["cost_vals"])):
@@ -380,6 +381,8 @@ def plot_step_size_dependence(
                 std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
                 if background:
                     background_rate += [np.sum(std_opt_dict["background_rate"])]
+                
+                shot_rates += [np.sum(std_opt_dict["shot_rate"])]
 
         adam_aggregate_data = []
         for adam_opt_dict in adam_opt_dicts:
@@ -431,6 +434,14 @@ def plot_step_size_dependence(
             color=_COLORS[c_id],
             linestyle="--",
         )
+        # ax.plot(
+        #     range(len(std_mean_cost_vals)),
+        #     std_mean_cost_vals,
+        #     alpha=3 / 4,
+        #     label="step_size = " + str(step_size),
+        #     color=_COLORS[c_id],
+        #     linestyle="--",
+        # )
         ax.fill_between(
             range(len(std_mean_cost_vals)),
             std_np_mean - std_np_std_err,
@@ -461,13 +472,35 @@ def plot_step_size_dependence(
         c_id += 1
 
     if background:
+        shot_rates = np.array(shot_rates)
+        print(f"Average shot rates: {np.mean(shot_rates)}")
+        shot_rate_std_err = np.std(shot_rates) / np.sqrt(len(shot_rates))
+        print(f"Shot rate std err: {shot_rate_std_err}")
         background_rate = np.array(background_rate)
-        background_rate = np.mean(background_rate)
+        background_std_dev = np.std(background_rate)
+        background_std_err = np.std(background_rate)/np.sqrt(len(background_rate))
+        # print(f"bakcgorund rate: {background_rate}")
+        print(f"max background rate: {np.max(background_rate)}")
+        print(f"min background rate: {np.min(background_rate)}")
+        # print(f"Background rate: {background_rate}")
+        print(f"Background std dev: {background_std_dev}")
+        print(f"background mean: {np.mean(background_rate)}")
+        print(f"sqrt(n):", np.sqrt(len(background_rate)))
+        print(f"Background std err: {background_std_err}")
+        background_mean = np.mean(background_rate)
         ax.plot(
             range(len(std_np_mean)),
-            [background_rate/ shot_rate] * len(std_np_mean),
+            [background_mean/ np.mean(shot_rates)] * len(std_np_mean),
             "k--",
             label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
+        )
+        ax.fill_between(
+            range(len(std_np_mean)),
+            ([(background_mean-background_std_err)/ np.mean(shot_rates) ] * len(std_np_mean)),
+            ([(background_mean + background_std_err)/ np.mean(shot_rates)] * len(std_np_mean)),
+            alpha=1 / 4,
+            color="black",
+            linestyle="--",
         )
 
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])

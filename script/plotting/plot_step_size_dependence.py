@@ -76,5 +76,5 @@ if __name__ == "__main__":
         # add_background=True,
         background= args.background,
         shot_rate=250000,
-        title="Step Size Dependence \n(adagrad, parameter-shift)",
+        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
     )
