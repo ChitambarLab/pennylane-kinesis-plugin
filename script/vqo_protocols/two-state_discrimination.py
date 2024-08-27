@@ -114,12 +114,36 @@ if __name__ == "__main__":
 
     parser.add_argument("--background", default=300, help="Number of background counts.")
 
+    parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
+
+    parser.add_argument(
+        "-d",
+        "--diff",
+        default="parameter-shift",
+        help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--optimizer",
+        default="gradient-descent",
+        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
+    )
+
+    parser.add_argument(
+        "--shots",
+        default=10000,
+        type=float,
+        help="Number of shots to take.",
+    )
+    
     args = parser.parse_args()
 
     if not args.plot:
-        prof = cProfile.Profile()
-        print("Starting Profiler")
-        prof.enable()
+        if args.profile:
+            prof = cProfile.Profile()
+            print("Starting Profiler")
+            prof.enable()
         state_disc_opt_dict = pk.two_state_discrimination(
             filepath="./data/two-state_discrimination/",
             shots=10000,
@@ -131,8 +155,9 @@ if __name__ == "__main__":
             num_steps=int(args.num_steps),
             verbose=args.verbose,
         )
-        prof.disable()
-        prof.print_stats()
+        if args.profile:
+            prof.disable()
+            prof.print_stats()
         plot_state_discrimination(state_disc_opt_dict, args)
     else:
         print(args.plot)

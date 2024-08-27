@@ -83,14 +83,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-s",
-        "--step_size",
-        default=0.08,
-        type=float,
-        help="Step size to use for optimizer.",
-    )
-
-    parser.add_argument(
         "--background_counts",
         default=420,
         type=int,
@@ -131,6 +123,7 @@ if __name__ == "__main__":
             shot_rate=args.shot_rate,
             two_wp=args.two_wp,
             numerics=args.numerics,
+            step_size=float(step_size),
             step_size=float(step_size),
             num_steps=args.num_steps,
             verbose=args.verbose,

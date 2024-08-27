@@ -11,6 +11,8 @@ from .optimization import optimize
 import pennylane_kinesis as pk
 from .elliptec_rotator_device import ElliptecMotors
 
+import time
+
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
 
@@ -152,6 +154,10 @@ def two_state_discrimination(
         },
     )
 
+    device = qml.device(**state_disc_ansatz.dev_kwargs)
+    shot_rate = device.shot_rate.tolist()
+    background_rate = device.take_background()
+
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit dimensionality witness.
     qnode_kwargs = {"diff_method": diff_method}
@@ -163,8 +169,6 @@ def two_state_discrimination(
         state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
     )
 
-    device = qml.device(**state_disc_ansatz.dev_kwargs)
-
     opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
         np.array(state_disc_ansatz.rand_network_settings()),
@@ -173,7 +177,8 @@ def two_state_discrimination(
         verbose=verbose,
         filepath=data_path,
         optimizer=optimizer,
-        device=device,
+        background_rate=background_rate,
+        shot_rate=shot_rate,
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )

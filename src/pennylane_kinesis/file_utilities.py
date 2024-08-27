@@ -31,6 +31,13 @@ def get_date_from_filename(filename):
     return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
 
 
+# Old data files have different naming conventions, so we need to handle them differently
+def get_date_from_timing_filename(filename):
+    stripped_filename = filename.split("Z")[0]
+    stripped_filename += "Z"
+    return datetime.strptime(stripped_filename, "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
+
+
 def tmp_dir(filepath):
     return make_dir(filepath + "tmp/")
 

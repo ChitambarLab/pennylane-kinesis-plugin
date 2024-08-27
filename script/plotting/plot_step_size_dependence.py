@@ -1,5 +1,5 @@
 import pennylane_kinesis as pk
-from datetime import datetime
+from datetime import datetime, timezone
 import argparse
 
 """This script generates a plot showing the optimization precision as
@@ -51,13 +51,20 @@ if __name__ == "__main__":
         help="If only using two waveplates (fixed measurement waveplates).",
     )
 
+    parser.add_argument(
+        "-b",
+        "--background",
+        default=None,
+        help="Plot background count line."
+    )
+
     args = parser.parse_args()
 
     if args.filepath is None:
         print("Please provide a filepath to the data folder. (-f)")
         exit()
 
-    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ")
+    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
 
     pk.plot_step_size_dependence(
         args.filepath,
@@ -66,8 +73,8 @@ if __name__ == "__main__":
         date_after=date_after,
         numerics=args.numerics,
         two_wp=args.two_wp,
-        add_background=True,
-        background=300,
-        shot_rate=10000,
-        title="Step Size Dependence \n(grad descent, parameter-shift, new hardware, polarizers)",
+        # add_background=True,
+        background= args.background,
+        shot_rate=250000,
+        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
     )
