@@ -42,11 +42,11 @@ class KinesisSimulatorDevice(QubitDevice):
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
-        shot_rate=6000,
+        shot_rate=[400000,400000],
         analytic=None,
         seed=None,
-        qwp_domain_period=None,
-        hwp_domain_period=None,
+        qwp_domain_period=np.pi,
+        hwp_domain_period=np.pi/2,
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
@@ -56,6 +56,8 @@ class KinesisSimulatorDevice(QubitDevice):
 
         self.qwp_domain_period = qwp_domain_period
         self.hwp_domain_period = hwp_domain_period
+        self.shot_rate = shot_rate
+        self.background_ratio = background_counts/np.sum(self.shot_rate)
 
     def reset(self):
         super().reset()
@@ -97,8 +99,8 @@ class KinesisSimulatorDevice(QubitDevice):
             self._state = mat @ self._state
 
     def take_background(self):
-        zero_background_counts = np.random.poisson(int(self.background_counts / 2))
-        one_background_counts = np.random.poisson(int(self.background_counts / 2))
+        zero_background_counts = np.random.poisson(int((self.background_counts)*0.666))
+        one_background_counts = np.random.poisson(int((self.background_counts)*0.333))
 
         return (zero_background_counts, one_background_counts)
 
@@ -115,10 +117,8 @@ class KinesisSimulatorDevice(QubitDevice):
         p0 = np.linalg.norm(self._state[0]) ** 2
 
         counts = np.random.poisson(self.shots) + self.background_counts
-
-        zero_background_counts = np.random.poisson(int(self.background_counts / 2))
-        one_background_counts = np.random.poisson(int(self.background_counts / 2))
-
+        zero_background_counts = np.random.poisson(int((self.background_ratio * self.shots)*0.666))
+        one_background_counts = np.random.poisson(int((self.background_ratio*self.shots)*0.333))
         detected_counts = self.shots - zero_background_counts - one_background_counts
 
         zero_counts = min(int(p0 * detected_counts) + zero_background_counts, self.shots)
