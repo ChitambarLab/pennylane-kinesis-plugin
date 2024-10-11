@@ -87,7 +87,7 @@ class ElliptecMotors:
 
     def read_config(self):
         """Read the configuration file and set the motor serial numbers."""
-        config_file = "./src/pennylane_kinesis/2024_08_20_brittany_elliptec_config.txt"
+        config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
 
         with open(config_file) as f:
             config_lines = f.readlines()
@@ -207,7 +207,7 @@ class ElliptecRotatorDevice(QubitDevice):
         print("Reading configuration file...")
         print()
 
-        config_file = "./src/pennylane_kinesis/2024_08_20_brittany_elliptec_config.txt"
+        config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
 
         with open(config_file) as f:
             config_lines = f.readlines()
