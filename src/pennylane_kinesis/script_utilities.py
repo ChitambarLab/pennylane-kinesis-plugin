@@ -150,6 +150,7 @@ def two_state_discrimination(
             "name": dev_name,
             "shot_rate": shot_rate,
             "shots": shots,
+            "debug": verbose,
             **additional_dev_kwargs,
         },
     )
@@ -168,10 +169,12 @@ def two_state_discrimination(
     state_disc_cost = qnetvo.linear_probs_cost_fn(
         state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
     )
+    behavior_fn = qnetvo.behavior_fn(state_disc_ansatz, qnode_kwargs=qnode_kwargs)
 
     opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
         np.array(state_disc_ansatz.rand_network_settings()),
+        behavior_fn=behavior_fn,
         step_size=step_size,
         num_steps=num_steps,
         verbose=verbose,
