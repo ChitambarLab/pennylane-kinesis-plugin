@@ -58,6 +58,13 @@ if __name__ == "__main__":
         help="Plot background count line."
     )
 
+    parser.add_argument(
+        "--no_plot",
+        default=False,
+        action="store_true",
+        help="If you don't want to plot the data and only want the statistics at the end."
+    )
+
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -74,7 +81,8 @@ if __name__ == "__main__":
         numerics=args.numerics,
         two_wp=args.two_wp,
         # add_background=True,
+        no_plot=args.no_plot,
         background= args.background,
         shot_rate=250000,
-        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
+        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, no fiber)",
     )
