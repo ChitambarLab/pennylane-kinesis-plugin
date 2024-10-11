@@ -62,6 +62,26 @@ def get_files(path, regex):
         )
     ]
 
+def read_config(config_file):
+
+    with open(config_file) as f:
+        config_lines = f.readlines()
+
+    wp_details = []
+
+    for i in range(1, 5):
+        config_line = re.sub(r"[\n\t\s]*", "", config_lines[i])
+
+        entries = config_line.strip().split(",")
+        rot_mount = {}
+        rot_mount["device"] = entries[0]
+        rot_mount["address"] = entries[1]
+        rot_mount["serial_number"] = entries[2]
+        rot_mount["angle_offset"] = float(entries[3])
+        rot_mount["name"] = entries[4]
+        wp_details.append(rot_mount)
+    
+    return wp_details
 
 def write_json(json_dict, filename):
     """Writes the dictionary to JSON file with name ``filename``.
