@@ -83,6 +83,6 @@ if __name__ == "__main__":
         # add_background=True,
         no_plot=args.no_plot,
         background= args.background,
-        shot_rate=250000,
-        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, no fiber)",
+        shot_rate=500000,
+        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, numerics fiber)",
     )

@@ -47,13 +47,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shots",
         default=10000,
-        type=float,
+        type=int,
         help="Number of shots to take.",
     )
 
     parser.add_argument(
         "--shot_rate",
-        default=qnp.array([418000,400000]),
+        default=qnp.array([400000,400000]),
         type=list,
         help="The shot rate of the experiment (for numerics).",
     )
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--background_counts",
-        default=400,
+        default=424,
         type=int,
         help="Background count rate for the experiment (for numerics)",
     )
@@ -114,6 +114,7 @@ if __name__ == "__main__":
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
 
+        os.makedirs(step_size_filepath,exist_ok=True)
         print("Running optimization for step_size ", step_size)
 
         start_time = time.time()
