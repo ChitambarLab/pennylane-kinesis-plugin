@@ -91,11 +91,30 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
+    def noise_fn(settings, wires):
+        kraus_ops = np.array([np.array([[-0.          -0.0002942703j, -0.0002479573+0.0003335218j],
+        [ 0.0001471868-0.0003881948j,  0.0002449062-0.0001600182j]]), np.array([[-0.4631602185+0.j          , -0.2155893064-0.2431043248j],
+        [ 0.1961021954+0.2219089974j,  0.0472430107-0.4582840886j]]), np.array([[ 0.094095367 +0.j          , -0.5641493785-0.0240887712j],
+        [-0.5830054333+0.1036906179j, -0.0366819535-0.0199708075j]]), np.array([[ 0.5757213317+0.j          ,  0.1297760343-0.0452150921j],
+        [ 0.0076585096+0.0822707401j, -0.0615962266-0.582147817j ]])],dtype=complex)
+        qml.QubitChannel(kraus_ops, wires=wires[0])
+
+    def arb_rot(settings, wires):
+        qml.Rot(settings[0], settings[1], settings[2], wires)
+
+    def arb_prep(settings,wires):
+        print("prep settings", settings)
+        qml.ArbitraryStatePreparation(settings.astype(float),wires)
+
+    def arb_meas(settings, wires):
+        print("meas settings", settings)
+        qml.ArbitraryUnitary(settings.astype(float), wires)
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
         additional_dev_kwargs = {
-            "shot_rate": shot_rate,
+            # "shot_rate": shot_rate,
             "shots": shots,
             "background_counts": background_counts,
             "qwp_domain_period": qwp_period,
@@ -143,18 +162,33 @@ def two_state_discrimination(
     datetime_str = datetime_now_string()
 
     # network ansatz class manages circuit construction and settings
+    # state_disc_ansatz = qnetvo.NetworkAnsatz(
+    #     [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+    #     [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+    #     [meas_node],
+    #     dev_kwargs={
+    #         "name": dev_name,
+    #         # "shot_rate": shot_rate,
+    #         "shots": shots,
+    #         **additional_dev_kwargs,
+    #     },
+    # )
+
+    # Ansatz with arbitrary rotation
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [meas_node],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_prep, num_settings=2)],
+        # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_meas, num_settings=3)],
         dev_kwargs={
             "name": dev_name,
-            "shot_rate": shot_rate,
+            # "shot_rate": shot_rate,
             "shots": shots,
             **additional_dev_kwargs,
         },
     )
 
     device = qml.device(**state_disc_ansatz.dev_kwargs)
+    print(device.shot_rate)
     shot_rate = device.shot_rate.tolist()
     background_rate = device.take_background()
 
@@ -180,7 +214,7 @@ def two_state_discrimination(
         background_rate=background_rate,
         shot_rate=shot_rate,
         filename="optimization_" + datetime_str,
-        domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
+        # domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
     if not numerics:
         motors.close()

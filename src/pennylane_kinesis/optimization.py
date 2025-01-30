@@ -105,6 +105,8 @@ def optimize(
         opt = qml.MomentumOptimizer(stepsize=step_size)
     elif optimizer == "adagrad":
         opt = qml.AdagradOptimizer(stepsize=step_size)
+    elif optimizer == 'spsa':
+        opt = qml.SPSAOptimizer(maxiter=num_steps)
     else:
         opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
@@ -116,7 +118,7 @@ def optimize(
         for i in range(current_step, num_steps):
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
-
+            print("settings:", settings)
             if eval_cost == None:
                 settings, cost_val = opt.step_and_cost(grad_cost, settings)
             else:
@@ -128,7 +130,7 @@ def optimize(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
                 )
-
+            print("after step")
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
 

@@ -28,6 +28,7 @@ class KinesisSimulatorDevice(QubitDevice):
         "S",
         "HWPRotStage",
         "QWPRotStage",
+        "QubitChannel"
     }
     observables = {"Projector", "Identity", "PauliZ"}
 
@@ -56,7 +57,7 @@ class KinesisSimulatorDevice(QubitDevice):
 
         self.qwp_domain_period = qwp_domain_period
         self.hwp_domain_period = hwp_domain_period
-        self.shot_rate = shot_rate
+        self.shot_rate = np.array(shot_rate)
         self.background_ratio = background_counts/np.sum(self.shot_rate)
 
     def reset(self):
@@ -85,6 +86,7 @@ class KinesisSimulatorDevice(QubitDevice):
                     else operation.parameters[0]
                 )
                 mat = qml.matrix(HWPRotStage)(angle, wires=[0])
+                self._state = mat @ self._state
             elif operation.name == "QWPRotStage":
                 angle = (
                     np.mod(operation.parameters[0], self.qwp_domain_period)
@@ -93,10 +95,18 @@ class KinesisSimulatorDevice(QubitDevice):
                 )
 
                 mat = qml.matrix(QWPRotStage)(angle, wires=[0])
+                self._state = mat @ self._state
+            elif operation.name == "QubitChannel":
+                kraus_ops = operation.kraus_matrices()
+                output_state = np.zeros(self._state.shape,dtype=complex)
+                for op in kraus_ops:
+                    output_state += op @ self._state @ op.conj().T
+                self._state = output_state
             else:
                 mat = qml.matrix(operation)
+                self._state = mat @ self._state
 
-            self._state = mat @ self._state
+
 
     def take_background(self):
         zero_background_counts = np.random.poisson(int((self.background_counts)*0.666))
