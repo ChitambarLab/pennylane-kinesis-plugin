@@ -33,6 +33,7 @@ def two_state_discrimination(
     qwp_period=QWP_PERIOD,
     test_mode=False,
     diff_method="parameter-shift",
+    meas_only=False,
 ):
     """
     Performs a hardware-compatible optimization of minimal error discrimination of two encoded states.
@@ -91,6 +92,10 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
+    def prep_fn(settings, wires):
+        HWPRotStage(settings[0], wires=wires[0:1])
+        QWPRotStage(settings[1], wires=wires[0:1])
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -125,15 +130,21 @@ def two_state_discrimination(
 
     meas_node = None
     if two_wp:
-        data_path += "two_wp/"
-        meas_node = qnetvo.MeasureNode(
-            num_in=1,
-            num_out=2,
-            wires=[0],
-            ansatz_fn=lambda *args: meas_fn(fixed_meas_settings, args[1]),
-            num_settings=0,
-        )
-
+        data_path += "two_wp/meas_only/" if meas_only else "two_wp/"
+        if meas_only:
+            prep_node = qnetvo.PrepareNode(num_in=2,
+                                           wires=[0], 
+                                           ansatz_fn= lambda *args: prep_fn(fixed_meas_settings, args[1]), 
+                                           num_settings=0)
+            meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
+        else:
+            meas_node = qnetvo.MeasureNode(
+                num_in=1,
+                num_out=2,
+                wires=[0],
+                ansatz_fn=lambda *args: meas_fn(fixed_meas_settings, args[1]),
+                num_settings=0,
+            )
     else:
         data_path += "four_wp/"
         meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
@@ -144,7 +155,7 @@ def two_state_discrimination(
 
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2) if not meas_only else prep_node],
         [meas_node],
         dev_kwargs={
             "name": dev_name,
