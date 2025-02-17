@@ -132,11 +132,15 @@ def two_state_discrimination(
     if two_wp:
         data_path += "two_wp/meas_only/" if meas_only else "two_wp/"
         if meas_only:
-            prep_node = qnetvo.PrepareNode(num_in=2,
-                                           wires=[0], 
-                                           ansatz_fn= lambda *args: prep_fn(fixed_meas_settings, args[1]), 
-                                           num_settings=0)
-            meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
+            prep_node = qnetvo.PrepareNode(
+                num_in=2,
+                wires=[0],
+                ansatz_fn=lambda *args: prep_fn(fixed_meas_settings, args[1]),
+                num_settings=0,
+            )
+            meas_node = qnetvo.MeasureNode(
+                num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
         else:
             meas_node = qnetvo.MeasureNode(
                 num_in=1,
@@ -155,7 +159,13 @@ def two_state_discrimination(
 
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2) if not meas_only else prep_node],
+        [
+            (
+                qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
+                if not meas_only
+                else prep_node
+            )
+        ],
         [meas_node],
         dev_kwargs={
             "name": dev_name,

@@ -2,8 +2,14 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 from pathlib import Path
-from pennylane_kinesis.file_utilities import get_files, read_json, datetime_now_string, get_date_from_filename
+from pennylane_kinesis.file_utilities import (
+    get_files,
+    read_json,
+    datetime_now_string,
+    get_date_from_filename,
+)
 import argparse
+
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
 if __name__ == "__main__":
@@ -13,7 +19,7 @@ if __name__ == "__main__":
         "--filepath",
         default=None,
         help="Path to the data folder.",
-    )    
+    )
     parser.add_argument(
         "-s",
         "--step_size_list",
@@ -29,17 +35,13 @@ if __name__ == "__main__":
         help="If only using two waveplates (fixed measurement waveplates).",
     )
     parser.add_argument(
-        "-b",
-        "--background",
-        default=False,
-        action="store_true",
-        help="Plot background count line."
+        "-b", "--background", default=False, action="store_true", help="Plot background count line."
     )
 
     parser.add_argument(
-        '--numerics',
+        "--numerics",
         default=False,
-        action='store_true',
+        action="store_true",
         help="If using the simulator backend.",
     )
     parser.add_argument(
@@ -76,8 +78,9 @@ if __name__ == "__main__":
     shot_rates = []
     c_id = 0
     for step_size in args.step_size_list:
-        step_size_filepath = Path(filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp)
-        
+        step_size_filepath = Path(
+            filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
+        )
 
         # data naming is inconsistent between numerics and hardware.
         filenames = get_files(step_size_filepath, r"optimization_.*\.json")
@@ -88,7 +91,7 @@ if __name__ == "__main__":
 
         aggregate_data = []
         aggregate_behavior_mats = []
-        for j,opt_dict in enumerate(opt_dicts):
+        for j, opt_dict in enumerate(opt_dicts):
             for i in range(len(opt_dict["cost_vals"])):
                 if len(aggregate_data) <= i:
                     aggregate_data += [[]]
@@ -98,8 +101,8 @@ if __name__ == "__main__":
                 # print(opt_dict["behavior_mat"][i])
                 # print(i)
                 # print(len(opt_dict["cost_vals"]))
-                if i == len(opt_dict["cost_vals"])-1:
-                    aggregate_behavior_mats[i] += [[[0,0],[0,0]]]
+                if i == len(opt_dict["cost_vals"]) - 1:
+                    aggregate_behavior_mats[i] += [[[0, 0], [0, 0]]]
                 else:
                     aggregate_behavior_mats[i] += [opt_dict["behavior_mat"][i]]
             if background:
@@ -111,8 +114,7 @@ if __name__ == "__main__":
                     input()
                 else:
                     background_rate += [np.sum(opt_dict["background_rate"])]
-                
-                                                              
+
             shot_rates += [np.sum(opt_dict["shot_rate"])]
 
         # print(aggregate_data)
@@ -124,9 +126,7 @@ if __name__ == "__main__":
         worst_cost_vals = []
         for i in range(len(aggregate_data)):
             mean_cost_vals += [np.mean(aggregate_data[i])]
-            std_err_cost_vals += [
-                np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))
-            ]
+            std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
             min_cost_vals += [np.min(aggregate_data[i])]
             worst_cost_vals += [np.max(aggregate_data[i])]
 
@@ -140,20 +140,20 @@ if __name__ == "__main__":
         best_final_cost_val = np.min(aggregate_data[:, -1])
         # print(best_final_cost_val)
         # print(aggregate_data.shape)
-        run_with_best_final_cost = np.argmin(aggregate_data[-1,:])
+        run_with_best_final_cost = np.argmin(aggregate_data[-1, :])
         # print(run_with_best_final_cost)
         # print(aggregate_data[-1,run_with_best_final_cost])
-        behavior_mats_best_final = aggregate_behavior_mats[:,run_with_best_final_cost]
+        behavior_mats_best_final = aggregate_behavior_mats[:, run_with_best_final_cost]
         # print(behavior_mats_best_final)
-        print(np.max(aggregate_data[-1,:]))
+        print(np.max(aggregate_data[-1, :]))
         print(best_final_cost_val)
         # print(len(aggregate_behavior_mats))
         # print(run_with_best_final_cost)
         # print(aggregate_behavior_mats[run_with_best_final_cost])
         # behavior_mats_best_final = aggregate_behavior_mats[run_with_best_final_cost]
 
-        runs_with_worst_cost = np.argmax(aggregate_data[-1,:])
-        behavior_mats_worst = aggregate_behavior_mats[:,runs_with_worst_cost]
+        runs_with_worst_cost = np.argmax(aggregate_data[-1, :])
+        behavior_mats_worst = aggregate_behavior_mats[:, runs_with_worst_cost]
 
         # print(behavior_mats_worst)
 
@@ -163,13 +163,23 @@ if __name__ == "__main__":
 
         behavior_mats_best_final = np.array(behavior_mats_best_final)
         print(behavior_mats_best_final[:, 0, 0])
-        ax.semilogy(range(len(behavior_mats_best_final)-1), 1-behavior_mats_best_final[:-1, 0, 0], label="1-P(0,0)", color=_COLORS[c_id])
-        c_id +=1
+        ax.semilogy(
+            range(len(behavior_mats_best_final) - 1),
+            1 - behavior_mats_best_final[:-1, 0, 0],
+            label="1-P(0,0)",
+            color=_COLORS[c_id],
+        )
+        c_id += 1
         # ax.semilogy(range(len(behavior_mats_best_final)-1), behavior_mats_best_final[:-1, 0, 1], label="P(0,1)", color=_COLORS[c_id])
-        c_id +=1
+        c_id += 1
         # ax.semilogy(range(len(behavior_mats_best_final)-1), behavior_mats_best_final[:-1, 1, 0], label="P(1,0)", color=_COLORS[c_id])
-        c_id +=1
-        ax.semilogy(range(len(behavior_mats_best_final)-1), 1-behavior_mats_best_final[:-1, 1, 1], label="1-P(1,1)", color=_COLORS[c_id])
+        c_id += 1
+        ax.semilogy(
+            range(len(behavior_mats_best_final) - 1),
+            1 - behavior_mats_best_final[:-1, 1, 1],
+            label="1-P(1,1)",
+            color=_COLORS[c_id],
+        )
 
         # behavior_mats_worst = np.array(behavior_mats_worst)
         # print(behavior_mats_worst[:, 0, 0])
@@ -221,7 +231,7 @@ if __name__ == "__main__":
         print(f"Shot rate std err: {shot_rate_std_err}")
         background_rate = np.array(background_rate)
         background_std_dev = np.std(background_rate)
-        background_std_err = np.std(background_rate)/np.sqrt(len(background_rate))
+        background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
         # print(f"bakcgorund rate: {background_rate}")
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
@@ -233,14 +243,14 @@ if __name__ == "__main__":
         background_mean = np.mean(background_rate)
         ax.plot(
             range(len(np_mean)),
-            [background_mean/ np.mean(shot_rates)] * len(np_mean),
+            [background_mean / np.mean(shot_rates)] * len(np_mean),
             "k--",
             label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
         )
         ax.fill_between(
             range(len(np_mean)),
-            ([(background_mean-background_std_err)/ np.mean(shot_rates) ] * len(np_mean)),
-            ([(background_mean + background_std_err)/ np.mean(shot_rates)] * len(np_mean)),
+            ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(np_mean)),
+            ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(np_mean)),
             alpha=1 / 4,
             color="black",
             linestyle="--",

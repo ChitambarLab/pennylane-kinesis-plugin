@@ -51,18 +51,13 @@ if __name__ == "__main__":
         help="If only using two waveplates (fixed measurement waveplates).",
     )
 
-    parser.add_argument(
-        "-b",
-        "--background",
-        default=None,
-        help="Plot background count line."
-    )
+    parser.add_argument("-b", "--background", default=None, help="Plot background count line.")
 
     parser.add_argument(
         "--no_plot",
         default=False,
         action="store_true",
-        help="If you don't want to plot the data and only want the statistics at the end."
+        help="If you don't want to plot the data and only want the statistics at the end.",
     )
 
     args = parser.parse_args()
@@ -71,7 +66,9 @@ if __name__ == "__main__":
         print("Please provide a filepath to the data folder. (-f)")
         exit()
 
-    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
+    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(
+        tzinfo=timezone.utc
+    )
 
     pk.plot_step_size_dependence(
         args.filepath,
@@ -82,7 +79,7 @@ if __name__ == "__main__":
         two_wp=args.two_wp,
         # add_background=True,
         no_plot=args.no_plot,
-        background= args.background,
+        background=args.background,
         shot_rate=250000,
-        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, no fiber)",
+        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, fiber)",
     )

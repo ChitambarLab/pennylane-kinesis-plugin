@@ -236,10 +236,10 @@ if __name__ == "__main__":
 
     for directory in directories:
         for file in os.listdir(directory):
-            if ("timing_data" in file):
+            if "timing_data" in file:
                 if file.endswith(".pkl"):
                     pkl_files.append(directory + file)
-            if ("runtime" in file):
+            if "runtime" in file:
                 if file.endswith(".txt"):
                     total_time_files.append(directory + file)
     total_time_files = sorted(

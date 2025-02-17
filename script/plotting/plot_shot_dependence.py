@@ -67,8 +67,8 @@ if __name__ == "__main__":
         plot_filename=args.plot_filename,
         numerics=args.numerics,
         two_wp=args.two_wp,
-        add_background=True,
+        add_background=False,
         background=300,
         shot_rate=10000,
-        title="Number of Shots Vs.\nOptimization Performance \n(gradient-descent, \n parameter-shift, hardware)",
+        title=f"Number of Shots vs. Optimization Performance \n (adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
     )

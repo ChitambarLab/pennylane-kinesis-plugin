@@ -43,7 +43,7 @@ if __name__ == "__main__":
         default="gradient-descent",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
-    
+
     parser.add_argument(
         "-d",
         "--diff",

@@ -136,7 +136,7 @@ if __name__ == "__main__":
         type=float,
         help="Number of shots to take.",
     )
-    
+
     args = parser.parse_args()
 
     if not args.plot:

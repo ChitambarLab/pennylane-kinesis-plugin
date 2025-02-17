@@ -62,6 +62,7 @@ def get_files(path, regex):
         )
     ]
 
+
 def read_config(config_file):
 
     with open(config_file) as f:
@@ -81,8 +82,9 @@ def read_config(config_file):
         rot_mount["name"] = entries[4]
         rot_mount["background_angle"] = float(entries[5])
         wp_details.append(rot_mount)
-    
+
     return wp_details
+
 
 def write_json(json_dict, filename):
     """Writes the dictionary to JSON file with name ``filename``.

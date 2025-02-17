@@ -8,18 +8,18 @@ if __name__ == "__main__":
         prog="Elliptec Setup",
         description="Set up elliptec rotation mounts.",
     )
-     
+
     parser.add_argument(
-         "-a",
-         "--address",
-         help="What address to set for the newly connected rotation mount (assumes new one is at address 0)."
+        "-a",
+        "--address",
+        help="What address to set for the newly connected rotation mount (assumes new one is at address 0).",
     )
 
     parser.add_argument(
         "-c",
         "--change_address",
         nargs=2,
-        help="Change the address of a rotation mount (first is original addres, second is new address)"
+        help="Change the address of a rotation mount (first is original addres, second is new address)",
     )
 
     parser.add_argument(
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     controller = elliptec.Controller(args.port, timeout=3, write_timeout=3)
 
     if args.address:
-        device = elliptec.Rotator(controller, address='0')
+        device = elliptec.Rotator(controller, address="0")
         print("Setting address to: ", args.address)
         device.change_address(str(args.address))
         print("Homing device.")
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     elif args.change_address:
         (old_addr, new_addr) = args.change_address
         device = elliptec.Rotator(controller, address=str(old_addr))
-        print("Setting address from", old_addr,  "to: ", new_addr)
+        print("Setting address from", old_addr, "to: ", new_addr)
         device.change_address(str(new_addr))
         print("Homing device.")
         device.home()
@@ -76,9 +76,12 @@ if __name__ == "__main__":
             wp_details.append(rot_mount)
 
         print("Testing all devices.")
-        for i in range(1,5):
-            print("Testing device: ", wp_details[i-1]["name"])
+        for i in range(1, 5):
+            print("Testing device: ", wp_details[i - 1]["name"])
             device = elliptec.Rotator(controller, address=str(i))
-            print("Device Serial Numbers match:", device.info["Serial No."] == wp_details[i-1]["serial_number"])
-            device.set_angle(wp_details[i-1]["angle_offset"])
+            print(
+                "Device Serial Numbers match:",
+                device.info["Serial No."] == wp_details[i - 1]["serial_number"],
+            )
+            device.set_angle(wp_details[i - 1]["angle_offset"])
             device.home()

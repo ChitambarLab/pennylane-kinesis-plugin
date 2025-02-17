@@ -95,7 +95,7 @@ def optimize(
             "opt_step_time": [],
             "optimizer": optimizer,
             "background_rate": [],
-            "shot_rate":[],
+            "shot_rate": [],
             "behavior_mat": [],
             **meta_kwargs,
         }

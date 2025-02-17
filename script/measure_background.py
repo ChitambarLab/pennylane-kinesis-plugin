@@ -15,7 +15,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-
     if args.file:
         with open(args.file, "r") as file:
             data = qnp.loadtxt(file)

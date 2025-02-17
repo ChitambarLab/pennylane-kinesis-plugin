@@ -9,6 +9,7 @@ from pennylane_kinesis.operators import HWPRotStage, QWPRotStage
 import pennylane as qml
 import pickle as pkl
 
+
 class Operation:
     def __init__(self, name, parameters=[]):
         self.name = name
@@ -19,6 +20,8 @@ class Operation:
 
     def __repr__(self):
         return self.__str__()
+
+
 aHWP_op = Operation("HWPRotStage")
 aQWP_op = Operation("QWPRotStage")
 bHWP_op = Operation("HWPRotStage")
@@ -32,8 +35,8 @@ numerics = False
 shots = 10000
 background_counts = 400
 qwp_period = np.pi
-hwp_period = np.pi/2
-test_mode=False
+hwp_period = np.pi / 2
+test_mode = False
 diff_method = "parameter-shift"
 eval_num = 0
 
@@ -41,31 +44,48 @@ eval_num = 0
 two_wp = False
 filepath = "./data/surface_collection/"
 
-fixed_meas_settings = [0,0]
+fixed_meas_settings = [0, 0]
 data_path = make_dir(filepath)
+
 
 def arb_unitary(settings, wires):
     HWPRotStage(settings[0], wires=[wires[0]])
     QWPRotStage(settings[1], wires=[wires[0]])
+
 
 # Function to use for MeasureNode if we are not moving the measurement waveplates.
 def meas_fn(settings, wires):
     HWPRotStage(settings[0], wires=wires[0:1])
     QWPRotStage(settings[1], wires=wires[0:1])
 
+
 def noise_fn(settings, wires):
-    kraus_ops = np.array(np.array([[[ 0.          +0.0749752072j, -0.1032453648+0.2310816375j],
-        [ 0.1029833616-0.2309243091j,  0.0546661044-0.0500401343j]],
-
-       [[-0.3030531991+0.j          , -0.0216678152+0.0362852244j],
-        [-0.0323707284+0.0524531731j, -0.1515895127-0.2620140203j]],
-
-       [[-0.0730095495+0.j          ,  0.2646422792-0.293498816j ],
-        [ 0.2543979443-0.2870121043j, -0.0081668458-0.0622479936j]],
-
-       [[-0.4051025135+0.j          ,  0.086442595 +0.0585767426j],
-        [-0.1170769182-0.0643395223j,  0.1932879045+0.3592735014j]]]),dtype=complex)
+    kraus_ops = np.array(
+        np.array(
+            [
+                [
+                    [0.0 + 0.0749752072j, -0.1032453648 + 0.2310816375j],
+                    [0.1029833616 - 0.2309243091j, 0.0546661044 - 0.0500401343j],
+                ],
+                [
+                    [-0.3030531991 + 0.0j, -0.0216678152 + 0.0362852244j],
+                    [-0.0323707284 + 0.0524531731j, -0.1515895127 - 0.2620140203j],
+                ],
+                [
+                    [-0.0730095495 + 0.0j, 0.2646422792 - 0.293498816j],
+                    [0.2543979443 - 0.2870121043j, -0.0081668458 - 0.0622479936j],
+                ],
+                [
+                    [-0.4051025135 + 0.0j, 0.086442595 + 0.0585767426j],
+                    [-0.1170769182 - 0.0643395223j, 0.1932879045 + 0.3592735014j],
+                ],
+            ]
+        ),
+        dtype=complex,
+    )
     qml.QubitChannel(kraus_ops, wires=wires[0])
+
+
 if numerics:
     data_path += "numerics/"
     dev_name = "kinesis.simulator"
@@ -139,10 +159,14 @@ state_disc_cost = qnetvo.linear_probs_cost_fn(
 # loss = lambda settings: state_disc_cost(*settings)
 
 eval_num = 0
+
+
 def loss(settings):
     global eval_num
     eval_num += 1
     return state_disc_cost(*settings)
+
+
 # print(np.array(state_disc_ansatz.rand_network_settings()))
 # def loss(x):
 #     # put your loss function here
@@ -194,9 +218,10 @@ def loss(settings):
 #         score += np.sum(game[:, i] * behavior_matrix[i])
 #     return -score
 
+
 def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
-    assert(directions.shape[0] == 2)
-    assert(directions.shape[1] == steps.shape[1])
+    assert directions.shape[0] == 2
+    assert directions.shape[1] == steps.shape[1]
     N = directions.shape[1]
 
     mean = np.mean(steps, axis=0)
@@ -208,7 +233,7 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
 
     x = np.linspace(-1, 1, res)
     y = np.linspace(-1, 1, res)
-    xx, yy = np.meshgrid(x, y, indexing='ij')
+    xx, yy = np.meshgrid(x, y, indexing="ij")
     ll = np.zeros_like(xx)
 
     # Evaluate loss on grid
@@ -216,7 +241,7 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
         for j, _y in enumerate(y):
             xy = np.array([_x, _y])
             # print(mean+Q@xy*scale)
-            ll[i, j] = loss(mean + Q@xy*scale)
+            ll[i, j] = loss(mean + Q @ xy * scale)
 
     params_x = []
     params_y = []
@@ -224,42 +249,43 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
 
     for step in steps:
         # Project each step onto principal directions
-        proj = Q.T@((step - mean).flatten())
+        proj = Q.T @ ((step - mean).flatten())
         params_x.append(proj[0].item() / scale)
         params_y.append(proj[1].item() / scale)
         params_z.append(loss(step).item())
 
-
     data = [
         go.Surface(z=ll, x=xx, y=yy, opacity=0.95),
-        go.Scatter3d(x=params_x, y=params_y, z=params_z, mode='markers+lines', marker={"size": 1})
+        go.Scatter3d(x=params_x, y=params_y, z=params_z, mode="markers+lines", marker={"size": 1}),
     ]
 
     print("plotting")
     fig = go.Figure(data=data)
     fig.update_layout(width=800, height=800)
-    fig.write_html(data_path+"plot_hardware_11-21.html",auto_open=False)
-    pkl.dump([ll, mean, Q, xy, scale, step], open(data_path+"loss_landscape_hardware_11-21.pkl", "wb"))
+    fig.write_html(data_path + "plot_hardware_11-21.html", auto_open=False)
+    pkl.dump(
+        [ll, mean, Q, xy, scale, step], open(data_path + "loss_landscape_hardware_11-21.pkl", "wb")
+    )
     print(np.unravel_index(ll.argmin(), ll.shape))
     argmin_idx = np.unravel_index(ll.argmin(), ll.shape)
     argmin = [np.array(x[argmin_idx[0]]), np.array(y[argmin_idx[1]])]
     # argmin = [np.array(x[8]), np.array(y[3])]
     print(ll.min())
-    global_min = mean+ Q@argmin*scale
+    global_min = mean + Q @ argmin * scale
     print("Loss at global min:", loss(global_min))
     print("Global minimum:", global_min)
-    a0hwp_angle = global_min[0]%(np.pi/2)
-    a0qwp_angle = global_min[1]%(np.pi)
+    a0hwp_angle = global_min[0] % (np.pi / 2)
+    a0qwp_angle = global_min[1] % (np.pi)
     print("prep 0 angles", a0hwp_angle, a0qwp_angle)
-    a1hwp_angle = global_min[2]%(np.pi/2)
-    a1qwp_angle = global_min[3]%(np.pi)
-    print("prep 1 angles",a1hwp_angle, a1qwp_angle)
-    bhwp_angle = global_min[2]%(np.pi/2)
-    bqwp_angle = global_min[3]%(np.pi)
+    a1hwp_angle = global_min[2] % (np.pi / 2)
+    a1qwp_angle = global_min[3] % (np.pi)
+    print("prep 1 angles", a1hwp_angle, a1qwp_angle)
+    bhwp_angle = global_min[2] % (np.pi / 2)
+    bqwp_angle = global_min[3] % (np.pi)
     print("meas angles", bhwp_angle, bqwp_angle)
     print("optimization min:", params_z[-1])
-    print("Optimization angles:", mean+Q@[params_x[-1],params_y[-1]]*scale)
-    print("loss at optimization min:", loss(mean+Q@[params_x[-1],params_y[-1]]*scale))
+    print("Optimization angles:", mean + Q @ [params_x[-1], params_y[-1]] * scale)
+    print("loss at optimization min:", loss(mean + Q @ [params_x[-1], params_y[-1]] * scale))
     # print(params_z[-1])
     # print(mean+Q@[params_x[-1],params_y[-1]]*scale, loss(mean+Q@[params_x[-1],params_y[-1]]*scale))
     # final_params = mean+Q@[params_x[-1],params_y[-1]]*scale
@@ -267,6 +293,7 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
     # print(loss2(final_params))
     # print(-2*(loss(final_params)+loss2(final_params)))
     # print(params_z[-1])
+
 
 # get rid of this junk
 alpha = np.linspace(0, 1, 1001)[:-1]

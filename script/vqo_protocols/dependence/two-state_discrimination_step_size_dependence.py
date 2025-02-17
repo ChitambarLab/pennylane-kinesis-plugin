@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--shot_rate",
-        default=qnp.array([418000,400000]),
+        default=qnp.array([418000, 400000]),
         type=list,
         help="The shot rate of the experiment (for numerics).",
     )
@@ -95,6 +95,12 @@ if __name__ == "__main__":
         type=int,
         help="Number of optimization steps.",
     )
+    parser.add_argument(
+        "--meas_only",
+        default=False,
+        action="store_true",
+        help="For two waveplates, use only measurement waveplates instead of prepare.",
+    )
     args = parser.parse_args()
 
     filepath = "./data/state_discrimination"
@@ -129,6 +135,7 @@ if __name__ == "__main__":
             optimizer=args.optimizer,
             diff_method=args.diff,
             background_counts=args.background_counts,
+            meas_only=args.meas_only,
         )
 
         end_time = time.time()

@@ -18,8 +18,9 @@ Arguments:
 hwp_period = qnp.pi / 2
 qwp_period = qnp.pi
 
+
 def print_bar(msg):
-    bar_length = len(msg)+15  # Set the bar length to match the message length
+    bar_length = len(msg) + 15  # Set the bar length to match the message length
     bar = "#" * bar_length  # Generate the bar dynamically
     padding = (len(bar) - len(msg)) // 2
 
@@ -28,6 +29,7 @@ def print_bar(msg):
     print(bar)
     print(formatted_msg)
     print(bar)
+
 
 def arb_unitary(settings, wires):
     pk.HWPRotStage(settings[0], wires=[wires[0]])
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         "-v", "--verbose", default=False, action="store_true", help="More verbose output."
     )
 
-    parser.add_argument("--num_trials",default=40, help="number of trials to run.")
+    parser.add_argument("--num_trials", default=40, help="number of trials to run.")
 
     parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
         "--test",
         default=False,
     )
-    
+
     parser.add_argument(
         "--rac_3",
         default=False,
@@ -126,16 +128,15 @@ if __name__ == "__main__":
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-    pk.make_dir(filepath+"runtimes/")
-
+    pk.make_dir(filepath + "runtimes/")
 
     for i in range(num_trials):
-        shot_rate = qnp.array([400000,400000])
+        shot_rate = qnp.array([400000, 400000])
         print_bar(f"Starting trial {i} out of {num_trials}")
         start_time = time.time()
         if args.numerics:
 
-            data_path = pk.make_dir(filepath+"numerics/")
+            data_path = pk.make_dir(filepath + "numerics/")
             shots = args.shots
             dev_name = "kinesis.simulator"
             additional_dev_kwargs = {
@@ -148,11 +149,11 @@ if __name__ == "__main__":
             }
         else:
             motors = pk.elliptec_rotator_device.ElliptecMotors(test_mode=args.test)
-            data_path = pk.make_dir(filepath+"hardware/")
+            data_path = pk.make_dir(filepath + "hardware/")
             shots = args.shots
             dev_name = "elliptec.rotator"
             additional_dev_kwargs = {
-                "motors":motors,
+                "motors": motors,
                 "name": dev_name,
                 "filepath": filepath,
                 "test_mode": args.test,
@@ -163,37 +164,40 @@ if __name__ == "__main__":
 
         datetime_str = pk.datetime_now_string()
 
-
         # network ansatz class manages circuit construction and settings
         if args.rac_3:
             rac_ansatz = qnetvo.NetworkAnsatz(
                 [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                [qnetvo.MeasureNode(num_in=3,num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+                [
+                    qnetvo.MeasureNode(
+                        num_in=3, num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+                    )
+                ],
                 dev_kwargs={
-                "name": dev_name,
-                "shot_rate": shot_rate,
-                "shots": shots,
-                **additional_dev_kwargs,
-            },
+                    "name": dev_name,
+                    "shot_rate": shot_rate,
+                    "shots": shots,
+                    **additional_dev_kwargs,
+                },
             )
         else:
             rac_ansatz = qnetvo.NetworkAnsatz(
                 [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                 [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1)],
                 dev_kwargs={
-                "name": dev_name,
-                "shot_rate": shot_rate,
-                "shots": shots,
-                **additional_dev_kwargs,
-            },
+                    "name": dev_name,
+                    "shot_rate": shot_rate,
+                    "shots": shots,
+                    **additional_dev_kwargs,
+                },
             )
 
-        #Take background and shot_rate data
+        # Take background and shot_rate data
         device = qml.device(**rac_ansatz.dev_kwargs)
         shot_rate = device.shot_rate.tolist()
         background_rate = device.take_background()
 
-        _qnode_kwargs = {"diff_method":args.diff}
+        _qnode_kwargs = {"diff_method": args.diff}
         # construct a linear inequality cost function that
         # corresponds to the minimal qubit random access code.
         if args.rac_3:
@@ -201,11 +205,11 @@ if __name__ == "__main__":
                 rac_ansatz,
                 qnp.array(
                     [
-                        [1,1,1,1,1,0,1,0,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0],
-                        [0,0,0,0,0,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,1,1],
+                        [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
                     ]
                 ),
-                qnode_kwargs=_qnode_kwargs
+                qnode_kwargs=_qnode_kwargs,
             )
         else:
             rac_cost = qnetvo.linear_probs_cost_fn(
@@ -216,13 +220,13 @@ if __name__ == "__main__":
                         [0, 1, 1, 0, 0, 0, 1, 1],
                     ]
                 ),
-                qnode_kwargs=_qnode_kwargs
+                qnode_kwargs=_qnode_kwargs,
             )
 
         behavior_fn = qnetvo.behavior_fn(rac_ansatz, qnode_kwargs=_qnode_kwargs)
 
         if args.rac_3:
-            domain_periods = [hwp_period,qwp_period]*11
+            domain_periods = [hwp_period, qwp_period] * 11
         else:
             domain_periods = [hwp_period, qwp_period] * 4 + [hwp_period] * 2
 
@@ -232,12 +236,12 @@ if __name__ == "__main__":
             background_rate=background_rate,
             shot_rate=shot_rate,
             verbose=args.verbose,
-            behavior_fn = behavior_fn,
+            behavior_fn=behavior_fn,
             shots=int(args.shots),
             numerics=args.numerics,
             step_size=float(args.step_size),
-            num_steps = int(args.num_steps),
-            diff_method = args.diff,
+            num_steps=int(args.num_steps),
+            diff_method=args.diff,
             background_counts=int(args.background),
             optimizer=args.optimizer,
             filepath=data_path,
@@ -250,12 +254,16 @@ if __name__ == "__main__":
         end_time = time.time()
         time_taken = end_time - start_time
 
-        print_bar(f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with {str(args.step_size)}.")
-        f = open(filepath +"runtimes/"+ datetime_str + "runtime.txt", "a")
+        print_bar(
+            f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with {str(args.step_size)}."
+        )
+        f = open(filepath + "runtimes/" + datetime_str + "runtime.txt", "a")
         f.write(str(time_taken))
         f.close()
-        time_remaining = time_taken*(num_trials-i)
-        print_bar(f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours.")
+        time_remaining = time_taken * (num_trials - i)
+        print_bar(
+            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours."
+        )
 
         """
         Plotting
@@ -263,8 +271,11 @@ if __name__ == "__main__":
 
         fig, (ax1, ax2) = plt.subplots(ncols=2)
 
-
-        fig.suptitle("VQO of Random Access Code (2 bits)" if not args.rac_3 else "VQO of Random Access Code (3 bits)")
+        fig.suptitle(
+            "VQO of Random Access Code (2 bits)"
+            if not args.rac_3
+            else "VQO of Random Access Code (3 bits)"
+        )
 
         ax1.plot(
             range(len(rac_opt_dict["cost_vals"])),
@@ -273,13 +284,21 @@ if __name__ == "__main__":
         )
         ax1.plot(
             range(len(rac_opt_dict["cost_vals"])),
-            [18] * len(rac_opt_dict["cost_vals"]) if args.rac_3 else [6] * len(rac_opt_dict["cost_vals"]),
+            (
+                [18] * len(rac_opt_dict["cost_vals"])
+                if args.rac_3
+                else [6] * len(rac_opt_dict["cost_vals"])
+            ),
             label="Classical Bound",
         )
 
         ax1.plot(
             range(len(rac_opt_dict["cost_vals"])),
-            [12+12/qnp.sqrt(3)] * len(rac_opt_dict["cost_vals"]) if args.rac_3 else [4 + 2 * qnp.sqrt(2)] * len(rac_opt_dict["cost_vals"]),
+            (
+                [12 + 12 / qnp.sqrt(3)] * len(rac_opt_dict["cost_vals"])
+                if args.rac_3
+                else [4 + 2 * qnp.sqrt(2)] * len(rac_opt_dict["cost_vals"])
+            ),
             label="Quantum Bound",
         )
 
@@ -287,12 +306,20 @@ if __name__ == "__main__":
 
         ax2.semilogy(
             range(len(rac_opt_dict["cost_vals"])),
-            [12+12/qnp.sqrt(3)]+qnp.array(rac_opt_dict["cost_vals"]) if args.rac_3 else [4 + 2 * qnp.sqrt(2)] + qnp.array(rac_opt_dict["cost_vals"]),
+            (
+                [12 + 12 / qnp.sqrt(3)] + qnp.array(rac_opt_dict["cost_vals"])
+                if args.rac_3
+                else [4 + 2 * qnp.sqrt(2)] + qnp.array(rac_opt_dict["cost_vals"])
+            ),
             label="optimization trajectory",
         )
         ax2.semilogy(
             range(len(rac_opt_dict["cost_vals"])),
-            [18-(12+12/qnp.sqrt(3))]*len(rac_opt_dict["cost_vals"]) if args.rac_3 else [4 + 2 * qnp.sqrt(2) - 6] * len(rac_opt_dict["cost_vals"]),
+            (
+                [18 - (12 + 12 / qnp.sqrt(3))] * len(rac_opt_dict["cost_vals"])
+                if args.rac_3
+                else [4 + 2 * qnp.sqrt(2) - 6] * len(rac_opt_dict["cost_vals"])
+            ),
             label="classical bound",
         )
 
@@ -318,6 +345,6 @@ if __name__ == "__main__":
         if args.two_wp:
             filename += "-twowp"
 
-        plt.savefig(pk.file_utilities.winapi_path(filepath+datetime_str+filename+".png"))
+        plt.savefig(pk.file_utilities.winapi_path(filepath + datetime_str + filename + ".png"))
         plt.close()
         time.sleep(0.1)

@@ -487,7 +487,7 @@ class ElliptecRotatorDevice(QubitDevice):
             )
         if not self.test_mode:
             device.home()
-        
+
         if self.debug:
             print("Device S/N " + device.info["Serial No."] + " is homed.")
 
@@ -517,14 +517,16 @@ class ElliptecRotatorDevice(QubitDevice):
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
             # counter.getData() returns per-second average
-            self.background_shot_rate = self.counter.getData()  # Get average shot rate from the channel
+            self.background_shot_rate = (
+                self.counter.getData()
+            )  # Get average shot rate from the channel
             print("Background Shot rates:")
             print(
                 f"T rate: {self.background_shot_rate[0]:.2f} counts/s. R rate: {self.background_shot_rate[1]:.2f} counts/s"
             )
 
         return self.background_shot_rate.tolist()
-    
+
     def get_shot_rate(self):
         if not self.test_mode:
             print("Taking background measurement, moving")
@@ -536,10 +538,10 @@ class ElliptecRotatorDevice(QubitDevice):
                     self.wp_details[i]["angle_offset"],
                 )
                 device.set_angle(self.wp_details[i]["angle_offset"])
-            
+
             print("Setting bHWP to 22.5 to balance detector counts")
             self.device_move_to_angle(self.dev_b_hwp, self.b_hwp_offset + 22.5)
-    
+
             print("Taking measurement for 3 seconds...")
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
@@ -568,9 +570,13 @@ class ElliptecRotatorDevice(QubitDevice):
         else:
             angle_ret = None
             while angle_ret is None:
-                angle_ret = device.set_angle(angle)  # This will block until the device reaches the desired angle
+                angle_ret = device.set_angle(
+                    angle
+                )  # This will block until the device reaches the desired angle
                 if angle_ret is None:
-                    print("Angle return is None when setting", device.info["Serial No."], "to ", angle)
+                    print(
+                        "Angle return is None when setting", device.info["Serial No."], "to ", angle
+                    )
                     print("Trying again...")
                     time.sleep(0.01)
             if self.debug:
