@@ -106,7 +106,6 @@ class ElliptecMotors:
             rot_mount["name"] = entries[4]
             wp_details.append(rot_mount)
 
-        print(wp_details)
         self.prep_hwp_sn = wp_details[0]["serial_number"]
         self.prep_qwp_sn = wp_details[1]["serial_number"]
         self.meas_hwp_sn = wp_details[2]["serial_number"]
@@ -200,13 +199,6 @@ class ElliptecRotatorDevice(QubitDevice):
         self.timing_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Connect and initlaize devices
-        print()
-        print("Status Updates:")
-        print("----------------------------------------------")
-
-        print("Reading configuration file...")
-        print()
-
         config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
 
         with open(config_file) as f:
@@ -226,12 +218,6 @@ class ElliptecRotatorDevice(QubitDevice):
             rot_mount["name"] = entries[4]
             rot_mount["background_angle"] = float(entries[5])
             self.wp_details.append(rot_mount)
-
-        print("Configuration File:")
-        print("----------------------------------------------")
-        for device in self.wp_details:
-            print(device)
-        print()
 
         self.a_hwp_sn = self.wp_details[0]["serial_number"]
         self.a_qwp_sn = self.wp_details[1]["serial_number"]
@@ -265,25 +251,18 @@ class ElliptecRotatorDevice(QubitDevice):
         print("Homing all devices...")
         self.time_rotation(self.device_home, self.active_times, 0, self.dev_a_hwp)
         self.time_rotation(self.device_home, self.active_times, 1, self.dev_a_qwp)
-        print()
 
         # Home all b devices
-        print("Homing all devices...")
         self.time_rotation(self.device_home, self.active_times, 2, self.dev_b_hwp)
         self.time_rotation(self.device_home, self.active_times, 3, self.dev_b_qwp)
-        print()
 
         print("Setting angle to zero")
         self.device_move_to_angle(self.dev_a_hwp, self.a_hwp_offset)
         self.device_move_to_angle(self.dev_a_qwp, self.a_qwp_offset)
         self.device_move_to_angle(self.dev_b_hwp, self.b_hwp_offset)
         self.device_move_to_angle(self.dev_b_qwp, self.b_qwp_offset)
-        print("set angles to 0")
 
-        print("Setting measurement HWP angle to 22.5 to balance detector counts")
         self.device_move_to_angle(self.dev_b_hwp, self.b_hwp_offset + 22.5)
-
-        print("Set angle of ", self.b_hwp_sn, "to ", self.b_hwp_offset + 22.5)
 
         self.buffer = self.detector_setup()
 
@@ -405,6 +384,7 @@ class ElliptecRotatorDevice(QubitDevice):
             return {"device_vel": deviceVel}
         else:
             status = device.send_instruction(b"sv", str(deviceVel))  # Set velocity
+        if self.debug:
             print("Device status: ", status)
             print(f"{device.info['Motor Type']} (S/N {device.info['Serial No.']}) is ready to use.")
             print()
@@ -498,15 +478,19 @@ class ElliptecRotatorDevice(QubitDevice):
 
         :returns: None
         """
-        if not self.test_mode:
+        if self.debug:
             print(
                 "Homing device S/N "
                 + device.info["Serial No."]
                 + ", address "
                 + device.info["Address"]
             )
+        if not self.test_mode:
             device.home()
+        
+        if self.debug:
             print("Device S/N " + device.info["Serial No."] + " is homed.")
+
         return True
 
     def take_background(self):
