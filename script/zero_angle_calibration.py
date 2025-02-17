@@ -18,6 +18,15 @@ import re
 
 NUM_MEASUREMENTS = 100
 
+def set_angle(device,angle):
+    angle_ret = None
+    while angle_ret is None:
+        angle_ret = device.set_angle(angle)
+        if angle_ret is None:
+            print("ERROR")
+            print("angle is none")
+    print("set angle to", angle)
+    print("actual angle is", angle_ret)
 
 def fit_sin(tt, yy):
     '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
@@ -53,35 +62,50 @@ def fit_sin(tt, yy):
     }
 
 
-def connect_power_meter(apds):
-    """Connect to the power meter.
+class Meter:
+    def __init__(self, swabian_mode, HV_meter=False):
+        self.swabian_mode = swabian_mode
+        self.HV_meter = HV_meter
+        if swabian_mode:
+            self.counter = swabian.Counter(shots=None, integration_time=1)
+            self.counter.detector_setup()
+        else:
+            rm = pyvisa.ResourceManager()
+            resources = rm.list_resources()
 
-    :returns: Power meter object.
-    :rtype: ThorlabsPM100
-    """
+            # H_resource = [x for x in resources if 'P0027252' in x][0]
 
-    if apds:
-        counter = swabian.Counter(shots=None, integration_time=1)
-        counter.detector_setup()
-        return counter
-    else:
-        rm = pyvisa.ResourceManager()
-        resources = rm.list_resources()
+            # Change serial number here if you use a different meter
+            H_resource = [x for x in resources if "P0027254" in x][0]
 
-        # H_resource = [x for x in resources if 'P0027252' in x][0]
-        H_resource = [x for x in resources if "P0027254" in x][0]
+            # print(resources)
+            inst_H = rm.open_resource(H_resource, timeout=1)
+            H_meter = ThorlabsPM100(inst=inst_H)
+            H_meter.configure.scalar.power()
 
-        # print(resources)
-        inst_H = rm.open_resource(H_resource, timeout=1)
-        H_meter = ThorlabsPM100(inst=inst_H)
-        H_meter.configure.scalar.power()
+            V_meter = None
+            # If using two different power meters
+            if HV_meter:
+                # Change serial number here if you use a different meter
+                V_resource = [x for x in resources if "P0027252" in x][0]
+                inst_V = rm.open_resource(V_resource, timeout=1)
+                V_meter = ThorlabsPM100(inst=inst_V)
+                V_meter.configure.scalar.power()
+            self.H_meter = H_meter
+            self.V_meter = V_meter
+        
+    def get_counts(self):
+        counts = None
+        if self.swabian_mode:
+            counts = counter.get_counts()
+        else:
+            if self.HV_meter:
+                counter = (self.H_meter.read, self.V_meter.read)
+            else:
+                counter = (self.H_meter.read, 0)
+        print(counts)
+        return counts
 
-        V_meter = None
-
-        # inst_V = rm.open_resource(V_resource, timeout=1)
-        # V_meter = ThorlabsPM100(inst=inst_V)
-        # V_meter.configure.scalar.power()
-        return (H_meter, V_meter)
 
 
 def param_sin(x, offset, amplitude, phase, freq):
@@ -89,7 +113,7 @@ def param_sin(x, offset, amplitude, phase, freq):
 
 
 def read_config():
-    config_file = "./src/pennylane_kinesis/2024_08_20_brittany_elliptec_config.txt"
+    config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
 
     with open(config_file) as f:
         config_lines = f.readlines()
@@ -106,10 +130,10 @@ def read_config():
         rot_mount["serial_number"] = entries[2]
         rot_mount["angle_offset"] = float(entries[3])
         rot_mount["name"] = entries[4]
+        rot_mount["background_angle"] = float(entries[5])
         wp_details.append(rot_mount)
     
     return wp_details
-
 
 if __name__ == "__main__":
 
@@ -124,8 +148,22 @@ if __name__ == "__main__":
         default=None,
         help="Use APD readings (this will only give power vs angle plot).",
     )
+
+    parser.add_argument(
+        "--num_meters",
+        default=1,
+        type=int,
+        help="Number of power meters connected.",
+    )
     parser.add_argument(
         "-m", "--manual", default=False, action="store_true", help="Manual mode (rotate manually)"
+    )
+
+    parser.add_argument(
+        "--counts",
+        default=False,
+        action="store_true",
+        help="Just output the counts of each APD."
     )
 
     parser.add_argument(
@@ -206,34 +244,74 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "-l",
+        "--mount",
+        default=1,
+        help = "Which mount to rotate"
+    )
+
+    parser.add_argument(
         "--zero",
         default=False,
         action="store_true"
     )
-    args = parser.parse_args()
-    H_meter, V_meter = None, None
 
+    parser.add_argument(
+        "--background",
+        default=False,
+        action="store_true"
+    )
+    args = parser.parse_args()
+    # H_meter, V_meter = connect_power_meter(True)
+    if args.apds:
+        meter = Meter(True)
+    else:
+        meter = Meter(False, args.num_meters == 2)
+
+    # Get counts of the APDs
+    if args.counts:
+        h_counts, v_counts = meter.get_counts()  
+        print(f"T counts: {h_counts}, R counts {v_counts}")
+        exit()
+
+    # Get velocity of the mounts
     if args.gv:
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
         device = elliptec.Rotator(controller, address=str(args.gv))
         print("Velocity of" + str(args.gv) + "is ", device.send_instruction(b"gv"))
         exit()
 
+    # Set velocity of mounts
     if args.sv and args.velocity:
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
         device = elliptec.Rotator(controller, address=str(args.sv))
         print(device.send_instruction(b"sv"+str(args.velocity).encode()))
         exit()
-    
+
+    # If only taking background counts (no rotation)
+    if args.background:
+        wp_details = read_config()
+        meter.set_integration_time(1)
+        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        for i in range(1,5):
+            device = elliptec.Rotator(controller, address=str(i))
+            device.home()
+            offset = wp_details[i-1]["background_angle"]
+            ANGLE = offset
+            set_ret = device.set_angle(ANGLE)
+            print("return is", set_ret)
+            print("set angle of ", i, "to", ANGLE)
+        meter.get_counts()
+        exit()
+
     if args.zero:
         wp_details = read_config()
-
+        meter.set_integration_time(1)
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
         for i in range(1,5):
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             offset = wp_details[i-1]["angle_offset"]
-            # print(offset)
             if i == 1:
                 ANGLE = offset
                 set_ret = device.set_angle(ANGLE)
@@ -245,12 +323,11 @@ if __name__ == "__main__":
                 print("return is", set_ret)
                 print("set angle of ", i, "to", ANGLE)
             else:
-            # if i == 4:
-                # device.set_angle(offset+45)
-                ANGLE = offset
+                ANGLE = offset +22.5
                 set_ret = device.set_angle(ANGLE)
                 print("return is", set_ret)
                 print("set angle of ", i, "to", ANGLE)
+        meter.get_counts()
         exit()
 
     if args.apds:
@@ -270,7 +347,6 @@ if __name__ == "__main__":
 
         print("Connecting to APDs")
         counter = connect_power_meter(args.apds)
-        counter.integration_time = 0.2
         h_counts = []
         v_counts = []
         angles = []
@@ -283,39 +359,15 @@ if __name__ == "__main__":
             device.home()
             devices.append(device)
             offset = wp_details[i-1]["angle_offset"]
-            # print(offset)
-            if i == 1:
-                ANGLE = offset
-                device.set_angle(ANGLE)
-                print("set angle of ", i, "to", ANGLE)
-            elif i == 3:
-                ANGLE = offset
-                device.set_angle(ANGLE)
-                print("set angle of ", i, "to", ANGLE)
-            else:
-            # if i == 4:
-                # device.set_angle(offset+45)
-                ANGLE = offset
-                print("set angle of ", i, "to", ANGLE)
-                device.set_angle(ANGLE)
+            print("Setting angle of ", i, "to", offset)
+            
+            set_angle(device,offset)
 
         device = devices[int(args.apds)-1]
         # TODO: Change this to 1 if you want finer resolution
         for i in range(0, 360,2):
             angles.append(i)
-            angle = None
-            while angle is None:
-                angle = device.set_angle(i)
-                if angle is None:
-                    print("ERROR")
-                    print("angle is none")
-                print("set angle to", i)
-                print("actual angle is", angle)
-            if np.abs(angle - i) > 0.5:
-                print("ERROR")
-                print("actual angle", angle)
-                print("set angle", i)
-                exit()
+            set_angle(device,i)
             (h, v) = counter.get_counts()
             h_counts.append(h)
             v_counts.append(v)
@@ -331,8 +383,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.savefig(str(path)+".png")
         exit()
-    # else:
-    #     H_meter, V_meter = connect_power_meter(args.apds)
+
     # Print out scanned devices
     if args.serial_no:
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
@@ -354,11 +405,12 @@ if __name__ == "__main__":
         print(device.info)
         exit()
 
+
     # Set angle of the waveplate at address 0 and get the average power reading
     if args.angle:
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
 
-        device = elliptec.Rotator(controller, address="0")
+        device = elliptec.Rotator(controller, address=str(args.mount))
 
         print(device.info["Serial No."])
 
@@ -368,11 +420,12 @@ if __name__ == "__main__":
         itr_powers_h = []
         itr_powers_v = []
         for i in range(NUM_MEASUREMENTS):
-            itr_powers_h.append(H_meter.read)
-            itr_powers_v.append(V_meter.read)
-        avg_power_h = np.mean(np.array(itr_powers_h))
-        avg_power_v = np.mean(np.array(itr_powers_v))
-        print(device.get_angle(), avg_power_h * 10**6, avg_power_v * 10**6)
+            # itr_powers_h.append(H_meter.r)
+            h_counts, v_counts = meter.get_counts()
+            # itr_powers_v.append(V_meter.read)
+        # avg_power_h = np.mean(np.array(itr_powers_h))
+        # avg_power_v = np.mean(np.array(itr_powers_v))
+        print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
         exit()
 
     # Plot the data from the file
@@ -434,7 +487,7 @@ if __name__ == "__main__":
             device.set_angle(0)
             time.sleep(0.1)
             for j in range(NUM_MEASUREMENTS):
-                power = H_meter.read
+                power = meter.read
                 itr_powers.append(power)
             avg_power = np.mean(np.array(itr_powers))
             angle = device.get_angle()
@@ -448,7 +501,7 @@ if __name__ == "__main__":
             device.set_angle(359.99)
             time.sleep(0.1)
             for j in range(NUM_MEASUREMENTS):
-                power = H_meter.read
+                power = meter.read
                 itr_powers.append(power)
             avg_power = np.mean(np.array(itr_powers))
             angle = device.get_angle()
@@ -472,6 +525,7 @@ if __name__ == "__main__":
             pickler = pickle.Pickler(f)
             pickler.dump((angles, powers, iter))
 
+    # Home the device twice
     elif args.home:
         controller = elliptec.Controller("COM4")
         device = elliptec.Rotator(controller, address="0")
@@ -482,16 +536,18 @@ if __name__ == "__main__":
         time.sleep(1)
         device.home()
 
+    # Fit existing data
     elif args.fit:
         if args.file == None:
             print("Need to specify a file to use for fitting!")
             exit()
+        # Plot fit for a polarizer (with manual rotation)
         if args.polarizer:
             with open(args.file, "rb") as f:
                 (angles, powers_h) = pickle.load(f)
 
                 powers_h = np.array(powers_h)
-
+                print(len(powers_h))
                 fig = plt.figure()
                 x_data = np.linspace(0, 360, num=1000)
                 fit_dict_h = fit_sin(angles, powers_h)
@@ -536,8 +592,11 @@ if __name__ == "__main__":
                 powers_v = np.array(powers_v)
 
                 fig = plt.figure()
-
-                x_data = np.linspace(0, 360, num=1000)
+                angles = np.array(angles)
+                angles= angles[45:130]
+                powers_h = powers_h[45:130]
+                powers_v = powers_v[45:130]
+                x_data = np.linspace(90, 260, num=1000)
 
                 fit_dict_h = fit_sin(angles, powers_h)
                 func_h = fit_dict_h["fitfunc"]
@@ -576,7 +635,7 @@ if __name__ == "__main__":
                 print("max is at", opt[0], "with value", opt[1])
 
                 exit()
-
+    # Calibrating a polarizer (with manual rotation)
     elif args.polarizer:
         from pathlib import Path, PurePath
 
@@ -589,7 +648,7 @@ if __name__ == "__main__":
             print("Press enter to take data..")
             input()
             # time.sleep(3)
-            powers.append(H_meter.read)
+            powers.append(meter.read)
             print("Took data for angle", 22.5 * i)
         path = Path(
             "./data/calibrations/zero_angle/"
@@ -607,24 +666,13 @@ if __name__ == "__main__":
         exit()
 
     elif args.manual:
-        power = []
-        for i in range(int(360 / args.step)):
-            print(i)
-            power.append(H_meter.read)
-            time.sleep(args.time)
+        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        device = elliptec.Rotator(controller, address=str(args.sv))
+        wp_details = read_config()
 
-        print(np.arange(0, 360, args.step))
-        print(power)
-        plt.plot(np.arange(0, 360, args.step), power)
-        plt.savefig(
-            "./data/calibrations/zero_angle/"
-            + args.name
-            + "/power_vs_angle_manual_"
-            + args.name
-            + "_"
-            + datetime_now_string()
-            + ".png"
-        )
+        device.home()
+        device.set_angle(wp_details[args.sv-1]["background_angle"])
+    
     else:
         controller = elliptec.Controller("COM4")
 
@@ -643,8 +691,9 @@ if __name__ == "__main__":
             itr_powers_h = []
             itr_powers_v = []
             for i in range(NUM_MEASUREMENTS):
-                itr_powers_h.append(H_meter.read)
-                itr_powers_v.append(V_meter.read)
+                h_counts, v_counts = meter.get_counts()
+                itr_powers_h.append(h_counts)
+                itr_powers_v.append(v_counts)
             avg_power_h = np.mean(np.array(itr_powers_h))
             avg_power_v = np.mean(np.array(itr_powers_v))
             print(angle, avg_power_h, avg_power_v)
