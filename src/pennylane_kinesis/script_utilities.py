@@ -15,7 +15,9 @@ import time
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
-
+fiber_ops_projected = np.array([[[(0.0018691098465687557+0j), (-0.0027522087074046534+0.0010141999562753743j)], [(-0.002208203873602957+0.0019305666959577885j), (-0.0008950003417570723+0.0016408938840532343j)]], [[(-0.026681795254364118+0j), (-0.016471112465215307+0.003335714418126235j)], [(-0.014178020792834782+0.009022661584289006j), (0.0192192145579343-0.018507851986120483j)]], [[(0.08872337087542657+0j), (-0.06360407100674283+0.009487824495710595j)], [(0.04896992088782897-0.04168265464129159j), (0.05833820096728807-0.06684681610585777j)]], [[(-0.5789862962078215+0j), (-0.7726431442384725+0.2340590967780792j)], [(0.6837394547292913-0.42925686219726406j), (-0.38004584177559386+0.43679547811917463j)]]])
+fiber_ops_proj_1_20 = np.array([[[(0.001869300889533977+0j), (-0.002753327831004509+0.001015789419268893j)], [(-0.002207749235504094+0.0019335163825407577j), (-0.0008930415825510767+0.001642182252073776j)]], [[(-0.026610404781142634+0j), (-0.01642337886396826+0.0032854912732571046j)], [(-0.014127976451108805+0.008995671598809377j), (0.01920675029653697-0.018417773635206178j)]], [[(0.08900546336839853+0j), (-0.06384570698650913+0.009359106633608522j)], [(0.04911225920714969-0.041855145146700905j), (0.058652284798456-0.06694685948990188j)]], [[(-0.5789709236002231+0j), (-0.7725981748262815+0.2340900420702011j)], [(0.6836845899658486-0.4292801753899103j), (-0.3799862100711545+0.43682698008736776j)]]])
+fiber_ops_proj_1_25 = np.array([[[(-1.8189161262355992e-05+0j), (1.1215280345683544e-05-1.4049221285203244e-05j)], [(6.134511718376058e-06-1.6508742104145237e-05j), (1.0701722052490562e-05-1.3596662144797063e-05j)]], [[(-0.0193775271996777+0j), (-0.006052928362413193+0.009189484725334422j)], [(-0.009092517099851483+0.01539699772352265j), (0.007231121421921657-0.005671038280377137j)]], [[(0.061828311130135705+0j), (-0.08045755210622296+0.02635880953784693j)], [(0.03903531780079182-0.013549659164153141j), (0.0815521753610482-0.07806185845636447j)]], [[(-0.5810499259287734+0j), (-0.7702076113785203+0.23303405963620938j)], [(0.6866599052701762-0.42971366991118737j), (-0.37849325690161+0.4348563743755882j)]]])
 
 def two_state_discrimination(
     filepath,
@@ -92,23 +94,9 @@ def two_state_discrimination(
         QWPRotStage(settings[1], wires=wires[0:1])
 
     def noise_fn(settings, wires):
-        kraus_ops = np.array([np.array([[-0.          -0.0002942703j, -0.0002479573+0.0003335218j],
-        [ 0.0001471868-0.0003881948j,  0.0002449062-0.0001600182j]]), np.array([[-0.4631602185+0.j          , -0.2155893064-0.2431043248j],
-        [ 0.1961021954+0.2219089974j,  0.0472430107-0.4582840886j]]), np.array([[ 0.094095367 +0.j          , -0.5641493785-0.0240887712j],
-        [-0.5830054333+0.1036906179j, -0.0366819535-0.0199708075j]]), np.array([[ 0.5757213317+0.j          ,  0.1297760343-0.0452150921j],
-        [ 0.0076585096+0.0822707401j, -0.0615962266-0.582147817j ]])],dtype=complex)
+        kraus_ops = fiber_ops_proj_1_25
         qml.QubitChannel(kraus_ops, wires=wires[0])
 
-    def arb_rot(settings, wires):
-        qml.Rot(settings[0], settings[1], settings[2], wires)
-
-    def arb_prep(settings,wires):
-        print("prep settings", settings)
-        qml.ArbitraryStatePreparation(settings.astype(float),wires)
-
-    def arb_meas(settings, wires):
-        print("meas settings", settings)
-        qml.ArbitraryUnitary(settings.astype(float), wires)
 
     if numerics:
         data_path += "numerics/"
@@ -164,21 +152,21 @@ def two_state_discrimination(
     # network ansatz class manages circuit construction and settings
     # state_disc_ansatz = qnetvo.NetworkAnsatz(
     #     [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-    #     [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
     #     [meas_node],
     #     dev_kwargs={
     #         "name": dev_name,
-    #         # "shot_rate": shot_rate,
+    #         "shot_rate": shot_rate,
     #         "shots": shots,
+    #         "debug": verbose,
     #         **additional_dev_kwargs,
     #     },
     # )
 
-    # Ansatz with arbitrary rotation
+    # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_prep, num_settings=2)],
-        # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
-        [qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_meas, num_settings=3)],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+        [meas_node],
         dev_kwargs={
             "name": dev_name,
             # "shot_rate": shot_rate,
@@ -202,10 +190,12 @@ def two_state_discrimination(
     state_disc_cost = qnetvo.linear_probs_cost_fn(
         state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
     )
+    behavior_fn = qnetvo.behavior_fn(state_disc_ansatz, qnode_kwargs=qnode_kwargs)
 
     opt_dict = optimize(
         lambda settings: state_disc_cost(*settings),
         np.array(state_disc_ansatz.rand_network_settings()),
+        behavior_fn=behavior_fn,
         step_size=step_size,
         num_steps=num_steps,
         verbose=verbose,

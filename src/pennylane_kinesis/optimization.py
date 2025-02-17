@@ -9,6 +9,7 @@ def optimize(
     grad_cost,
     init_settings,
     device=None,
+    behavior_fn=None,
     num_steps=10,
     step_size=0.1,
     filepath="./",
@@ -95,6 +96,7 @@ def optimize(
             "optimizer": optimizer,
             "background_rate": [],
             "shot_rate":[],
+            "behavior_mat": [],
             **meta_kwargs,
         }
     )
@@ -118,7 +120,10 @@ def optimize(
         for i in range(current_step, num_steps):
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
-            print("settings:", settings)
+            if behavior_fn is not None:
+                behavior_mat = behavior_fn(settings)
+                opt_dict["behavior_mat"] += [behavior_mat.tolist()]
+
             if eval_cost == None:
                 settings, cost_val = opt.step_and_cost(grad_cost, settings)
             else:
@@ -146,6 +151,9 @@ def optimize(
         opt_dict["cost_vals"] += (
             [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
         )
+        if behavior_fn is not None:
+            behavior_mat = behavior_fn(settings)
+            opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
     except BaseException as err:
         msg_template = (
