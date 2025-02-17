@@ -67,7 +67,7 @@ class Counter:
             self.auto_integration_time()
 
     def auto_shot_rate(self):
-        self.counter.startFor(int(1 * 1e12))  # Take data for 1 second
+        self.counter.startFor(int(3 * 1e12))  # Take data for 3 seconds
         self.counter.waitUntilFinished()
         shot_rate = self.counter.getData()  # Get average shot rate from the channel
         self.shot_rate = shot_rate[0] + shot_rate[1]
