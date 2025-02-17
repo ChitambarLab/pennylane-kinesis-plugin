@@ -7,7 +7,6 @@ import pennylane_kinesis as pk
 from pathlib import Path
 from datetime import datetime, timezone
 
-date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
 
 def plot_movements(timing_file):
     with open(timing_file, "rb") as f:
@@ -127,6 +126,7 @@ def plot_timing(timing_file):
 
         duty_cycles.append(duty_cycle)
         print("Duty cycle percentage:", np.sum(run_times, axis=1) / (np.sum(off_times, axis=1)))
+        print("Off times:", np.sum(off_times, axis=1))
 
     return total_time, duty_cycles
 
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     directories = []
 
     if args.file:
-        plot_movements(args.file)
+        plot_timing(args.file)
         exit()
 
     step_sizes = []
@@ -236,14 +236,10 @@ if __name__ == "__main__":
 
     for directory in directories:
         for file in os.listdir(directory):
-            if ("timing_data" in file) and pk.file_utilities.get_date_from_filename(
-                file
-            ) >= date_after:
+            if ("timing_data" in file):
                 if file.endswith(".pkl"):
                     pkl_files.append(directory + file)
-            if ("runtime" in file) and pk.file_utilities.get_date_from_timing_filename(
-                file
-            ) >= date_after:
+            if ("runtime" in file):
                 if file.endswith(".txt"):
                     total_time_files.append(directory + file)
     total_time_files = sorted(
