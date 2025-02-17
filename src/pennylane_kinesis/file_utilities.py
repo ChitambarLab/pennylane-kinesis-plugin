@@ -79,6 +79,7 @@ def read_config(config_file):
         rot_mount["serial_number"] = entries[2]
         rot_mount["angle_offset"] = float(entries[3])
         rot_mount["name"] = entries[4]
+        rot_mount["background_angle"] = float(entries[5])
         wp_details.append(rot_mount)
     
     return wp_details
