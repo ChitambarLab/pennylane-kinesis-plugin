@@ -7,6 +7,33 @@ import argparse
 import os
 import pennylane_kinesis as pk
 import time
+from pathlib import Path
+from pennylane_kinesis import swabian as swabian
+import elliptec
+import datetime
+import numpy as np
+import sys
+from pennylane_kinesis.tomography_utilities import take_tomography_data
+
+MAXIMUM_BOUND_3_BIT = 24
+QUANTUM_COST_BOUND_3_BIT = 12 + 12 / qnp.sqrt(3)
+CLASSICAL_COST_BOUND_3_BIT = 18
+
+QUANTUM_PROB_BOUND_3_BIT = QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
+CLASSICAL_PROB_BOUND_3_BIT = CLASSICAL_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
+
+MAXIMUM_BOUND_2_BIT = 8
+QUANTUM_COST_BOUND_2_BIT = 4 + 2 * qnp.sqrt(2)
+CLASSICAL_COST_BOUND_2_BIT = 6
+
+QUANTUM_PROB_BOUND_2_BIT = QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
+CLASSICAL_PROB_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
+
+BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
+BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
+
+config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+wp_details = pk.read_config(config_file)
 
 """
 Optimizes the random access coding advantage.
@@ -112,7 +139,28 @@ if __name__ == "__main__":
         help="If using the 3 qubit random access code.",
     )
 
+    parser.add_argument(
+        "--qpt",
+        default=False,
+        action="store_true",
+        help="Run process tomography before and after each optimization.",
+    )
+
     args = parser.parse_args()
+
+    if args.rac_3:
+        QUANTUM_PROB_BOUND = QUANTUM_PROB_BOUND_3_BIT
+        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
+        CLASSICAL_PROB_BOUND = CLASSICAL_PROB_BOUND_3_BIT
+        BACKGROUND_MULTIPLIER = BACKGROUND_3_BIT_MULTIPLIER
+        MAXIMUM_BOUND = MAXIMUM_BOUND_3_BIT
+        title = "RAC Optimization (3 bits)"
+    else:
+        QUANTUM_PROB_BOUND = QUANTUM_PROB_BOUND_2_BIT
+        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_2_BIT
+        CLASSICAL_PROB_BOUND = CLASSICAL_PROB_BOUND_2_BIT
+        BACKGROUND_MULTIPLIER = BACKGROUND_2_BIT_MULTIPLIER
+        MAXIMUM_BOUND = MAXIMUM_BOUND_2_BIT
 
     filepath = "./data/random_access_coding/"
     if args.numerics:
@@ -133,6 +181,16 @@ if __name__ == "__main__":
     for i in range(num_trials):
         shot_rate = qnp.array([400000, 400000])
         print_bar(f"Starting trial {i} out of {num_trials}")
+        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
+        print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
+
+        if args.qpt:
+            start_time = time.time()
+            take_tomography_data(filepath, None, 1, 10, False)
+            end_time = time.time()
+            time_taken = end_time - start_time
+            print(f"Took {time_taken} seconds to run process tomography.")
+
         start_time = time.time()
         if args.numerics:
 
@@ -269,6 +327,10 @@ if __name__ == "__main__":
         Plotting
         """
 
+        prob_vals = np.array(rac_opt_dict["cost_vals"]) * -1 / MAXIMUM_BOUND
+        num_steps = len(prob_vals)
+        background_rate = np.array(rac_opt_dict["background_rate"])
+        shot_rate = np.array(rac_opt_dict["shot_rate"])
         fig, (ax1, ax2) = plt.subplots(ncols=2)
 
         fig.suptitle(
@@ -278,50 +340,47 @@ if __name__ == "__main__":
         )
 
         ax1.plot(
-            range(len(rac_opt_dict["cost_vals"])),
-            -1 * qnp.array(rac_opt_dict["cost_vals"]),
-            label="Optimization Trajectory",
-        )
-        ax1.plot(
-            range(len(rac_opt_dict["cost_vals"])),
-            (
-                [18] * len(rac_opt_dict["cost_vals"])
-                if args.rac_3
-                else [6] * len(rac_opt_dict["cost_vals"])
-            ),
+            range(num_steps),
+            [CLASSICAL_PROB_BOUND] * num_steps,
             label="Classical Bound",
         )
 
         ax1.plot(
-            range(len(rac_opt_dict["cost_vals"])),
-            (
-                [12 + 12 / qnp.sqrt(3)] * len(rac_opt_dict["cost_vals"])
-                if args.rac_3
-                else [4 + 2 * qnp.sqrt(2)] * len(rac_opt_dict["cost_vals"])
-            ),
+            range(num_steps),
+            [QUANTUM_PROB_BOUND] * num_steps,
             label="Quantum Bound",
         )
 
-        ax1.legend()
+        ax1.plot(
+            range(num_steps),
+            prob_vals,
+            label="Optimization Trajectory",
+        )
 
         ax2.semilogy(
-            range(len(rac_opt_dict["cost_vals"])),
-            (
-                [12 + 12 / qnp.sqrt(3)] + qnp.array(rac_opt_dict["cost_vals"])
-                if args.rac_3
-                else [4 + 2 * qnp.sqrt(2)] + qnp.array(rac_opt_dict["cost_vals"])
-            ),
-            label="optimization trajectory",
+            range(num_steps),
+            [QUANTUM_PROB_BOUND] * num_steps - prob_vals,
+            # label=f"Optimization Trajectory trials)",
         )
         ax2.semilogy(
-            range(len(rac_opt_dict["cost_vals"])),
-            (
-                [18 - (12 + 12 / qnp.sqrt(3))] * len(rac_opt_dict["cost_vals"])
-                if args.rac_3
-                else [4 + 2 * qnp.sqrt(2) - 6] * len(rac_opt_dict["cost_vals"])
-            ),
-            label="classical bound",
+            range(num_steps),
+            [QUANTUM_PROB_BOUND - CLASSICAL_PROB_BOUND] * num_steps,
+            color="orange",
+            # label="Classical Limit",
         )
+
+        ax2.semilogy(
+            range(num_steps),
+            [(np.sum(background_rate) / np.sum(shot_rate)) * BACKGROUND_MULTIPLIER] * num_steps,
+            "k--",
+            label=f"Background Limit \n(Average {np.sum(background_rate):.2f} cps)",
+        )
+
+        ax1.set_ylabel("Success Probability")
+        ax1.set_xlabel("Optimization Iteration")
+
+        ax2.set_ylabel("Distance to Quantum Bound")
+        ax2.set_xlabel("Optimization Iteration")
 
         ax1.set_ylabel(r"Random Access Code Score")
         ax1.set_xlabel("Optimization Iteration")
@@ -329,7 +388,10 @@ if __name__ == "__main__":
         ax2.set_ylabel("Distance to Optimal Random Access Code Score")
         ax2.set_xlabel("Optimization Iteration")
 
-        plt.tight_layout()
+        fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15))
+        fig.tight_layout()
+
+        plt.grid()
 
         filename = "rac"
         if args.rac_3:
@@ -347,4 +409,7 @@ if __name__ == "__main__":
 
         plt.savefig(pk.file_utilities.winapi_path(filepath + datetime_str + filename + ".png"))
         plt.close()
+
+        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
+        print(f"Finished trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
         time.sleep(0.1)

@@ -8,6 +8,8 @@ import argparse
 import time
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
+import datetime
+from pennylane_kinesis.tomography_utilities import take_tomography_data
 
 """
 Runs multiple two-state discrimination optimizations with different step-sizes for each
@@ -15,6 +17,19 @@ to determine the dependence of the optimization on the step-size.
 
 By default the script will run on hardware using 4 wave plates.
 """
+
+
+def print_bar(msg):
+    bar_length = len(msg) + 15  # Set the bar length to match the message length
+    bar = "#" * bar_length  # Generate the bar dynamically
+    padding = (len(bar) - len(msg)) // 2
+
+    formatted_msg = f"{'#' * padding}{msg}{'#' * (len(bar) - len(msg) - padding)}"
+
+    print(bar)
+    print(formatted_msg)
+    print(bar)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -101,6 +116,9 @@ if __name__ == "__main__":
         action="store_true",
         help="For two waveplates, use only measurement waveplates instead of prepare.",
     )
+    parser.add_argument(
+        "--qpt", default=False, action="store_true", help="Run process tomography each trial."
+    )
     args = parser.parse_args()
 
     filepath = "./data/state_discrimination"
@@ -116,9 +134,27 @@ if __name__ == "__main__":
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     step_size_list = args.step_size_list * args.num_trials
-    for step_size in step_size_list:
+
+    print_bar(
+        f"Taking {'two_wp' if args.two_wp else 'four_wp'} data for two-state discrimination with {args.optimizer} and {args.diff}."
+    )
+    print("Step size list: ", step_size_list)
+    print("Number of trials: ", args.num_trials)
+    for i, step_size in enumerate(step_size_list):
+
+        print_bar(f"Starting trial {i} out of {len(step_size_list)}")
+        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
+        print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
+
+        if args.qpt:
+            print("Taking tomography data...")
+            start_time = time.time()
+            take_tomography_data(step_size_filepath, None, 1, 5, False)
+            end_time = time.time()
+            time_taken = end_time - start_time
+            print(f"Took {time_taken} seconds to run process tomography.")
 
         print("Running optimization for step_size ", step_size)
 
@@ -150,10 +186,17 @@ if __name__ == "__main__":
             "with ",
             str(step_size),
         )
+        end_time = time.time()
+        time_taken = end_time - start_time
 
         datetime_str = datetime_now_string()
         f = open(step_size_filepath + datetime_str + "runtime.txt", "a")
         f.write(str(end_time - start_time))
+
+        time_remaining = time_taken * (len(step_size_list) - i)
+        print_bar(
+            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours."
+        )
 
         """
         Plotting
