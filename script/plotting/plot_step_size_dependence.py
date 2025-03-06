@@ -60,6 +60,13 @@ if __name__ == "__main__":
         help="If you don't want to plot the data and only want the statistics at the end.",
     )
 
+    parser.add_argument(
+        "--title",
+        default="Two-state Discrimination\n",
+        help="Title for the plot.",
+    )
+    parser.add_argument("--subtitle", default="(adagrad, parameter-shift, two_wp, fiber)")
+
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -69,7 +76,10 @@ if __name__ == "__main__":
     date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(
         tzinfo=timezone.utc
     )
+    if not args.two_wp:
+        args.subtitle.replace("two_wp", "four_wp")
 
+    print(args.title)
     pk.plot_step_size_dependence(
         args.filepath,
         args.step_size_list,
@@ -81,5 +91,5 @@ if __name__ == "__main__":
         no_plot=args.no_plot,
         background=args.background,
         shot_rate=250000,
-        title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, fiber)",
+        title=args.title + args.subtitle,
     )
