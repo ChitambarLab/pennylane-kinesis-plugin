@@ -32,17 +32,19 @@ class Counter:
 
     def __init__(
         self,
-        shots=10000,
+        shots=None,
         shot_rate=None,
         integration_time=None,
         ttag_channel_transmit=5,
         ttag_channel_reflect=4,
+        verbose=False,
     ):
         self.ttag_channel_reflect = ttag_channel_reflect
         self.ttag_channel_transmit = ttag_channel_transmit
         self.integration_time = integration_time
         self.shots = shots
         self.shot_rate = shot_rate
+        self.verbose = verbose
 
     def detector_setup(self):
         self.ttag = TT.createTimeTagger()
@@ -106,11 +108,13 @@ class Counter:
             channels = channels[: self.shots]  # truncate to desired number of shots
         h_counts = len(channels[channels == self.ttag_channel_transmit])
         v_counts = len(channels[channels == self.ttag_channel_reflect])
-        print()
-        print("Measured Singles:")
-        print(f"H counts: {h_counts}\t V counts: {v_counts}")
 
-        counts = h_counts + v_counts
-        print("total counts : ", counts)
+        if self.verbose:
+            print()
+            print("Measured Singles:")
+            print(f"H counts: {h_counts}\t V counts: {v_counts}")
+
+            counts = h_counts + v_counts
+            print("total counts : ", counts)
 
         return np.array([h_counts, v_counts])
