@@ -409,7 +409,7 @@ def plot_step_size_dependence(
         for f in std_filenames:
             print(f"Using {f}")
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
-
+        num_trials = len(std_opt_dicts)
         std_aggregate_data = []
         for j, std_opt_dict in enumerate(std_opt_dicts):
             for i in range(len(std_opt_dict["cost_vals"])):
@@ -442,15 +442,6 @@ def plot_step_size_dependence(
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
-        # ax.loglog(
-        #     range(len(std_min_cost_vals)),
-        #     std_min_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="-"
-        # )
-
         best_cost_val = np.min(std_aggregate_data)
         ax.semilogy(
             range(len(std_mean_cost_vals)),
@@ -463,18 +454,11 @@ def plot_step_size_dependence(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
             alpha=3 / 4,
-            label="step_size = " + str(step_size),
+            label=f"Average cost ({num_trials} trials)",
             color=_COLORS[c_id],
             linestyle="--",
         )
-        # ax.plot(
-        #     range(len(std_mean_cost_vals)),
-        #     std_mean_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="--",
-        # )
+
         ax.fill_between(
             range(len(std_mean_cost_vals)),
             std_np_mean - std_np_std_err,
