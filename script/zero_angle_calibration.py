@@ -99,7 +99,7 @@ class Meter:
     def get_counts(self):
         counts = None
         if self.swabian_mode:
-            counts = counter.get_counts()
+            counts = self.counter.get_counts()
         else:
             if self.HV_meter:
                 counter = (self.H_meter.read, self.V_meter.read)
@@ -107,6 +107,10 @@ class Meter:
                 counter = (self.H_meter.read, 0)
         print(counts)
         return counts
+
+    def set_integration_time(self, time):
+        if self.swabian_mode:
+            self.counter.set_integration_time(time)
 
 
 def param_sin(x, offset, amplitude, phase, freq):
@@ -302,7 +306,7 @@ if __name__ == "__main__":
                 print("return is", set_ret)
                 print("set angle of ", i, "to", ANGLE)
             else:
-                ANGLE = offset + 22.5
+                ANGLE = offset
                 set_ret = device.set_angle(ANGLE)
                 print("return is", set_ret)
                 print("set angle of ", i, "to", ANGLE)
@@ -326,8 +330,6 @@ if __name__ == "__main__":
         )
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        print("Connecting to APDs")
-        counter = connect_power_meter(args.apds)
         h_counts = []
         v_counts = []
         angles = []
@@ -349,7 +351,7 @@ if __name__ == "__main__":
         for i in range(0, 360, 2):
             angles.append(i)
             set_angle(device, i)
-            (h, v) = counter.get_counts()
+            (h, v) = meter.get_counts()
             h_counts.append(h)
             v_counts.append(v)
         with open(str(path) + ".pkl", "wb") as f:
