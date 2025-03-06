@@ -712,7 +712,7 @@ class ElliptecRotatorDevice(QubitDevice):
                     channels = np.append(channels, ttag_buffer.getChannels())
                 if len(channels) >= self.shots:
                     break
-            channels = channels[: self.shots]  # truncate to desired number of shots
+            # channels = channels[: self.shots]  # truncate to desired number of shots
             h_counts = len(channels[channels == self.ttag_channel_transmit])
             v_counts = len(channels[channels == self.ttag_channel_reflect])
         counts = h_counts + v_counts
