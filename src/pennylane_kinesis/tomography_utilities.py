@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 import time
 
-config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+config_file = "./src/pennylane_kinesis/2024_05_07_timur_elliptec_config.txt"
 
 
 def set_angle_raw(angle, index, rotation_mounts):
@@ -21,9 +21,9 @@ def set_angle_raw(angle, index, rotation_mounts):
 
 def set_mount_angle(angle, index, rotation_mounts, wp_details):
     if index == 0 or index == 2:
-        set_angle = (angle % 90) + float(wp_details[index]["angle_offset"])
+        set_angle = ((angle % 90) + float(wp_details[index]["angle_offset"]))%360
     else:
-        set_angle = (angle % 180) + float(wp_details[index]["angle_offset"])
+        set_angle = ((angle % 180) + float(wp_details[index]["angle_offset"]))%360
     angle_ret = None
     while angle_ret is None:
         angle_ret = rotation_mounts[index].set_angle(
@@ -41,11 +41,15 @@ def take_tomography_data(
     integration_time,
     repetitions,
     state,
-    config_file="./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt",
+    config_file="./src/pennylane_kinesis/2025_05_07_timur_elliptec_config.txt",
     verbose=False,
 ):
     wp_details = read_config(config_file)
     dir = filepath + datetime_now_string() + "_process_tomography/"
+    if num_shots is not None:
+        dir += f"{num_shots}_shots/"
+    elif integration_time is not None:
+        dir += f"{integration_time}_integration_time/"
     Path(dir).mkdir(parents=True, exist_ok=True)
 
     # Setup mounts
@@ -142,8 +146,11 @@ def take_tomography_data(
                     qpt_dict[meas_state] += [meas_counts]
         else:
             for i in range(repetitions):
+                print(f"Collecting data for repetition {i}")
                 for prep_state in states_names:
                     for meas_state in states_names:
+                        start_time = time.time()
+                        print(f"Taking data for {prep_state}{meas_state}")
                         prep_angles = prep_states_dict[prep_state]
                         meas_angles = meas_states_dict[meas_state]
                         angles = prep_angles + meas_angles
@@ -155,6 +162,9 @@ def take_tomography_data(
                             set_mount_angle(angles[j], j, rotation_mounts, wp_details)
                         meas_counts = (counter.get_counts()).tolist()
                         qpt_dict[measurement] += [meas_counts]
+                        end_time = time.time()
+                        print(f"Took {end_time - start_time} to collect {meas_state}{prep_state}.")
+                        print(f"Estimated time remaining: {((repetitions-i)*36)*(end_time-start_time)}")
     except KeyboardInterrupt:
         print("Quitting run and saving data")
         write_json(qpt_dict, dir + "qpt_data_ABORTED")
