@@ -22,7 +22,7 @@ NUM_MEASUREMENTS = 100
 def set_angle(device, angle):
     angle_ret = None
     while angle_ret is None:
-        angle_ret = device.set_angle(angle)
+        angle_ret = device.set_angle(angle%360)
         if angle_ret is None:
             print("ERROR")
             print("angle is none")
@@ -32,12 +32,12 @@ def set_angle(device, angle):
 
 def fit_sin(tt, yy):
     '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
-    tt = numpy.array(tt)
-    yy = numpy.array(yy)
+    tt = numpy.array(tt,dtype=float)
+    yy = numpy.array(yy,dtype=float)
     ff = numpy.fft.fftfreq(len(tt), (tt[1] - tt[0]))  # assume uniform spacing
     Fyy = abs(numpy.fft.fft(yy))
     guess_freq = abs(
-        ff[numpy.argmax(Fyy[1:]) + 1]
+        ff[numpy.argmax(Fyy[1:]) + 1],
     )  # excluding the zero frequency "peak", which is related to offset
     guess_amp = numpy.std(yy) * 2.0**0.5
     guess_offset = numpy.mean(yy)
@@ -45,7 +45,7 @@ def fit_sin(tt, yy):
 
     def sinfunc(t, A, w, p, c):
         return A * numpy.sin(w * t + p) + c
-
+    
     popt, pcov = scipy.optimize.curve_fit(sinfunc, tt, yy, p0=guess)
     A, w, p, c = popt
     f = w / (2.0 * numpy.pi)
@@ -118,7 +118,7 @@ def param_sin(x, offset, amplitude, phase, freq):
 
 
 def read_config():
-    config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+    config_file = "./src/pennylane_kinesis/2025_05_07_timur_elliptec_config.txt"
 
     with open(config_file) as f:
         config_lines = f.readlines()
@@ -137,7 +137,7 @@ def read_config():
         rot_mount["name"] = entries[4]
         rot_mount["background_angle"] = float(entries[5])
         wp_details.append(rot_mount)
-
+    print(wp_details)
     return wp_details
 
 
@@ -153,6 +153,13 @@ if __name__ == "__main__":
         "--apds",
         default=None,
         help="Use APD readings (this will only give power vs angle plot).",
+    )
+
+    parser.add_argument(
+        "--average",
+        default=False,
+        action="store_true",
+        help="Average the data from multiple trials.",
     )
 
     parser.add_argument(
@@ -230,6 +237,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--velocity", default=None, type=int, help="Velocity to set for the motor (with sv)."
     )
+    parser.add_argument(
+        "--meter", default=False, action="store_true", help="Use power meter to take data."
+    )
 
     parser.add_argument(
         "-r",
@@ -239,17 +249,18 @@ if __name__ == "__main__":
         help="Rotate the mount by 360 degrees and check if the power remains the same.",
     )
 
-    parser.add_argument("-l", "--mount", default=1, help="Which mount to rotate")
+    parser.add_argument("-l", "--mount", default=None, help="Which mount to rotate")
 
     parser.add_argument("--zero", default=False, action="store_true")
 
     parser.add_argument("--background", default=False, action="store_true")
     args = parser.parse_args()
     # H_meter, V_meter = connect_power_meter(True)
-    if args.apds:
-        meter = Meter(True)
-    else:
-        meter = Meter(False, args.num_meters == 2)
+    if args.meter:
+        if args.apds:
+            meter = Meter(True)
+        else:
+            meter = Meter(False, args.num_meters == 2)
 
     # Get counts of the APDs
     if args.counts:
@@ -281,7 +292,7 @@ if __name__ == "__main__":
             device.home()
             offset = wp_details[i - 1]["background_angle"]
             ANGLE = offset
-            set_ret = device.set_angle(ANGLE)
+            set_ret = set_angle(device,ANGLE)
             print("return is", set_ret)
             print("set angle of ", i, "to", ANGLE)
         meter.get_counts()
@@ -295,25 +306,29 @@ if __name__ == "__main__":
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             offset = wp_details[i - 1]["angle_offset"]
-            if i == 1:
-                ANGLE = offset
-                set_ret = device.set_angle(ANGLE)
-                print("return is", set_ret)
-                print("set angle of ", i, "to", ANGLE)
-            elif i == 3:
-                ANGLE = offset + 22.5
-                set_ret = device.set_angle(ANGLE)
-                print("return is", set_ret)
-                print("set angle of ", i, "to", ANGLE)
-            else:
-                ANGLE = offset
-                set_ret = device.set_angle(ANGLE)
-                print("return is", set_ret)
-                print("set angle of ", i, "to", ANGLE)
+            ANGLE = offset
+            set_ret = set_angle(device,ANGLE)
+            print("return is", set_ret)
+            print("set angle of ", i, "to", ANGLE)
+            # if i == 1:
+            #     ANGLE = offset
+            #     set_ret = device.set_angle(ANGLE)
+            #     print("return is", set_ret)
+            #     print("set angle of ", i, "to", ANGLE)
+            # elif i == 3:
+            #     ANGLE = offset + 22.5
+            #     set_ret = device.set_angle(ANGLE)
+            #     print("return is", set_ret)
+            #     print("set angle of ", i, "to", ANGLE)
+            # else:
+            #     ANGLE = offset
+            #     set_ret = device.set_angle(ANGLE)
+            #     print("return is", set_ret)
+            #     print("set angle of ", i, "to", ANGLE)
         meter.get_counts()
         exit()
 
-    if args.apds:
+    if args.apds and not args.mount and not args.polarizer:
         print(args.apds)
         if not args.name:
             print("Need to set a name for the calibration output.")
@@ -338,6 +353,9 @@ if __name__ == "__main__":
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
         devices = []
         for i in range(1, 5):
+            # if i == 2:
+                # continue
+            print("Connecting to ",i)
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             devices.append(device)
@@ -345,21 +363,43 @@ if __name__ == "__main__":
             print("Setting angle of ", i, "to", offset)
 
             set_angle(device, offset)
+            time.sleep(0.5)
 
+        print(len(devices), "devices connected")
+        print()
         device = devices[int(args.apds) - 1]
+        num_trials = 1
         # TODO: Change this to 1 if you want finer resolution
-        for i in range(0, 360, 2):
-            angles.append(i)
-            set_angle(device, i)
-            (h, v) = meter.get_counts()
-            h_counts.append(h)
-            v_counts.append(v)
+        for j in range(num_trials):
+            start_time = time.time()
+            for k,i in enumerate(range(0, 360, 5)):
+                if j == 0:
+                    h_counts.append([])
+                    v_counts.append([])
+                    angles.append(i)
+                set_angle(device, i)
+                (h, v) = meter.get_counts()
+                h_counts[k].append(h)
+                v_counts[k].append(v)
+            end_time = time.time()
+            print(f"Trial {j} done. Took {end_time - start_time} seconds.")
+            print(h_counts)
+            print(v_counts)
         with open(str(path) + ".pkl", "wb") as f:
             pickler = pickle.Pickler(f)
             pickler.dump((angles, h_counts, v_counts))
 
-        plt.plot(angles, h_counts, color="red", label="H")
-        plt.plot(angles, v_counts, color="blue", label="V")
+        mean_h_counts = np.mean(np.array(h_counts), axis=1)
+        mean_v_counts = np.mean(np.array(v_counts), axis=1)
+        sum_mean_counts = mean_h_counts + mean_v_counts
+        std_dev_sum_counts = np.std(np.array(h_counts) + np.array(v_counts), axis=1)
+        std_dev_h_counts = np.std(np.array(h_counts), axis=1)
+        std_dev_v_counts = np.std(np.array(v_counts), axis=1)
+        plt.plot(angles, mean_h_counts, color="red", label="H")
+        plt.plot(angles, mean_v_counts, color="blue", label="V")
+        plt.plot(angles, np.array(mean_h_counts)+np.array(mean_v_counts), color="green", label="Total")
+        plt.fill_between(angles, sum_mean_counts - std_dev_sum_counts, sum_mean_counts + std_dev_sum_counts, color="darkgreen", alpha=0.3)
+        plt.axvline(x=wp_details[int(args.apds)-1]['angle_offset'], color="black", linestyle="--",label="Zero angle")
         plt.xlabel("Angle of rotation (degrees)")
         plt.ylabel("Photon Counts")
         plt.title("Photon counts vs angle of rotation " + args.name)
@@ -392,22 +432,28 @@ if __name__ == "__main__":
     if args.angle:
         controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
 
-        device = elliptec.Rotator(controller, address=str(args.mount))
+        device = elliptec.Rotator(controller, address=str(int(args.mount)))
 
         print(device.info["Serial No."])
+        
+        wp_details = read_config()
 
         device.home()
 
-        device.set_angle(float(args.angle))
+        print("Setting angle of ", args.mount, "to", float(args.angle)+wp_details[int(args.mount)-1]["angle_offset"])
+        angle = float(args.angle) + float(wp_details[int(args.mount)-1]["angle_offset"])
+        print(angle)
+        set_angle(device, angle)
         itr_powers_h = []
         itr_powers_v = []
-        for i in range(NUM_MEASUREMENTS):
-            # itr_powers_h.append(H_meter.r)
-            h_counts, v_counts = meter.get_counts()
+        if args.meter:
+            for i in range(NUM_MEASUREMENTS):
+                # itr_powers_h.append(H_meter.r)
+                h_counts, v_counts = meter.get_counts()
             # itr_powers_v.append(V_meter.read)
         # avg_power_h = np.mean(np.array(itr_powers_h))
         # avg_power_v = np.mean(np.array(itr_powers_v))
-        print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
+            print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
         exit()
 
     # Plot the data from the file
@@ -419,11 +465,35 @@ if __name__ == "__main__":
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
 
-            ax.plot(angles, np.array(h_counts) + np.array(v_counts))
+            wp_details = read_config()
+
+            zero_angle = wp_details[int(args.apds)-1]['angle_offset']
+
+            print(np.array(angles).shape)
+            print(np.array(h_counts).shape)
+            print(np.array(v_counts).shape)
+            # angles = angles[0:72]
+            if args.average:
+                mean_h_counts = np.mean(np.array(h_counts), axis=1)
+                mean_v_counts = np.mean(np.array(v_counts), axis=1)
+                sum_mean_counts = mean_h_counts + mean_v_counts
+                std_dev_sum_counts = np.std(np.array(h_counts) + np.array(v_counts), axis=1)
+                std_dev_h_counts = np.std(np.array(h_counts), axis=1)
+                std_dev_v_counts = np.std(np.array(v_counts), axis=1)
+                plt.plot(angles, mean_h_counts, color="red", label="H")
+                plt.plot(angles, mean_v_counts, color="blue", label="V")
+                plt.plot(angles, np.array(mean_h_counts)+np.array(mean_v_counts), color="green", label="Total")
+                ax.axvline(x=zero_angle, color="black", linestyle="--",label="Zero angle")
+                plt.fill_between(angles, sum_mean_counts - std_dev_sum_counts, sum_mean_counts + std_dev_sum_counts, color="darkgreen", alpha=0.3)
+            else:
+                ax.plot(angles, np.array(h_counts) + np.array(v_counts), color="green", label="Total")
+                ax.plot(angles, h_counts, color="red", label="H")
+                ax.plot(angles, v_counts, color="blue", label="V")
+                ax.axvline(x=zero_angle, color="black", linestyle="--",label="Zero angle")
             ax.xaxis.set_ticks(np.arange(0, 360, 10))
-            ax.axvline(x=204, color="r", linestyle="--")
-            ax.axvline(x=294, color="r", linestyle="--")
-            ax.axvline(x=204 - 180, color="b", linestyle="--")
+            # ax.axvline(x=204, color="r", linestyle="--")
+            # ax.axvline(x=294, color="r", linestyle="--")
+            # ax.axvline(x=204 - 180, color="b", linestyle="--")
             labels = ax.xaxis.get_majorticklabels()
             new_labels = []
             for label in labels:
@@ -434,7 +504,7 @@ if __name__ == "__main__":
             ax.xaxis.set_ticklabels(new_labels)
             ax.xaxis.set_tick_params(labelsize=10)
 
-            ax.set_yscale("log")
+            # ax.set_yscale("log")
             ax.set_xlabel("Angle of rotation (degrees)")
             ax.set_ylabel("Photon Counts")
             ax.set_title("Photon counts vs angle of rotation " + args.name)
@@ -526,9 +596,14 @@ if __name__ == "__main__":
         # Plot fit for a polarizer (with manual rotation)
         if args.polarizer:
             with open(args.file, "rb") as f:
-                (angles, powers_h) = pickle.load(f)
+                (angles, powers) = pickle.load(f)
+                print(powers)
+                powers = np.array(powers)
+                powers_h = powers[:,0]
+                powers_v = powers[:,1]
 
-                powers_h = np.array(powers_h)
+
+                # powers_h = np.array(powers_h)
                 print(len(powers_h))
                 fig = plt.figure()
                 x_data = np.linspace(0, 360, num=1000)
@@ -536,7 +611,7 @@ if __name__ == "__main__":
                 func_h = fit_dict_h["fitfunc"]
                 ax = fig.add_subplot(1, 1, 1)
 
-                ax.scatter
+                # ax.scatter
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
                 ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
 
@@ -557,7 +632,9 @@ if __name__ == "__main__":
 
                 ax.legend()
                 ax.grid()
-                plt.savefig(args.file.split(".")[0] + "fit.png")
+                # print(args.file.split('.'))
+                
+                plt.savefig(args.file + "fit.png")
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
 
@@ -570,15 +647,24 @@ if __name__ == "__main__":
             with open(args.file, "rb") as f:
                 (angles, powers_h, powers_v) = pickle.load(f)
 
-                powers_h = np.array(powers_h)
-                powers_v = np.array(powers_v)
+                powers_h = np.array(powers_h, dtype=float).flatten()
+                powers_v = np.array(powers_v, dtype=float).flatten()
+                # powers_h = (powers_h - np.min(powers_h)) / (np.max(powers_h) - np.min(powers_h))
+                # powers_v = (powers_v - np.min(powers_v)) / (np.max(powers_v) - np.min(powers_v))
 
+                print(angles)
+                print(powers_h)
+                print(powers_h + powers_v)
+
+                print(len(angles))
+                print(len)
                 fig = plt.figure()
-                angles = np.array(angles)
-                angles = angles[45:130]
-                powers_h = powers_h[45:130]
-                powers_v = powers_v[45:130]
-                x_data = np.linspace(90, 260, num=1000)
+                angles = np.array(angles,dtype=float)
+                # angles = angles[45:130]
+                # powers_h = powers_h[45:130]
+                # powers_v = powers_v[45:130]
+                x_data = np.linspace(0, 360, num=1000)
+
 
                 fit_dict_h = fit_sin(angles, powers_h)
                 func_h = fit_dict_h["fitfunc"]
@@ -630,7 +716,8 @@ if __name__ == "__main__":
             print("Press enter to take data..")
             input()
             # time.sleep(3)
-            powers.append(meter.read)
+            h_counts,v_counts = meter.get_counts()
+            powers.append(np.array([h_counts, v_counts]))
             print("Took data for angle", 22.5 * i)
         path = Path(
             "./data/calibrations/zero_angle/"
