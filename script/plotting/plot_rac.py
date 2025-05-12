@@ -10,6 +10,7 @@ from pennylane_kinesis.file_utilities import (
 )
 import numpy as np
 import matplotlib.pyplot as plt
+import pytz
 
 
 MAXIMUM_BOUND_3_BIT = 24
@@ -78,6 +79,8 @@ if __name__ == "__main__":
         help="Title for the plot.",
     )
 
+    parser.add_argument("--subtitle", default="\n(parameter-shift)")
+
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -102,16 +105,20 @@ if __name__ == "__main__":
 
     datetime_str = datetime_now_string()
 
-    fig, (ax1, ax2) = plt.subplots(ncols=2)
+    fig, (ax1, ax2) = plt.subplots(ncols=2,figsize=(10,5))
     # fig, ax2 = plt.subplots()
 
     fig.suptitle(
-        args.title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        args.title+args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )
 
     opt_files = get_files(Path(args.filepath + filepath_type), r"optimization_.*\.json")
+
+    date_path = Path(args.filepath).name
+    date_of_run = pytz.timezone("UTC").localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")).astimezone(pytz.timezone("US/Central")).strftime("%Y-%m-%d %H:%M:%S")
+
     for file in opt_files:
         print(f"Using {file}")
 
@@ -180,13 +187,13 @@ if __name__ == "__main__":
         color="C1",
     )
 
-    ax2.semilogy(
-        range(num_steps),
-        [QUANTUM_BOUND - best_cost_val] * num_steps,
-        alpha=3 / 4,
-        label="Best Cost",
-        color="blue",
-    )
+    # ax2.semilogy(
+    #     range(num_steps),
+    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
+    #     alpha=3 / 4,
+    #     label="Best Cost",
+    #     color="blue",
+    # )
 
     ax2.semilogy(
         range(num_steps),
@@ -219,6 +226,8 @@ if __name__ == "__main__":
 
     ax2.set_ylabel("Distance to Quantum Bound")
     ax2.set_xlabel("Optimization Iteration")
+
+    # plt.figtext(0.55, 0, date_of_run, fontsize=10, ha='center')
 
     fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15))
     fig.tight_layout()
