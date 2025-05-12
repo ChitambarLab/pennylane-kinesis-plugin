@@ -50,7 +50,7 @@ class Counter:
         self.ttag = TT.createTimeTagger()
         self.ttag_stream = TT.TimeTagStream(
             self.ttag,
-            1.5 * self.shots if self.shots is not None else 1e6,
+            1.5 * self.shots if self.shots is not None else 2e6,
             channels=[self.ttag_channel_reflect, self.ttag_channel_transmit],
         )
         self.counter = TT.Countrate(
