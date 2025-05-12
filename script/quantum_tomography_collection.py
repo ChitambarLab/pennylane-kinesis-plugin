@@ -26,7 +26,7 @@ if __name__ == "__main__":
         "-t",
         "--integration_time",
         default=None,
-        type=int,
+        type=float,
         help="Integration time for the counter in s.",
     )
 
@@ -42,6 +42,7 @@ if __name__ == "__main__":
         "-v",
         "--verbose",
         default=False,
+        action="store_true"
     )
     parser.add_argument(
         "--state", default=False, action="store_true", help="If running state tomography instead."
@@ -49,6 +50,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    if not args.num_shots and not args.integration_time:
+        print("Need to define num_shots or integration_time!")
+        exit()
+
     take_tomography_data(
-        args.filepath, args.num_shots, args.integration_time, args.repetitions, args.state
+        args.filepath, args.num_shots, args.integration_time, args.repetitions, args.state,verbose=args.verbose,
     )
