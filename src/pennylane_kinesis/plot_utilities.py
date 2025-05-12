@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 import os
+import pytz
 
 from .file_utilities import get_files, read_json, datetime_now_string, get_date_from_filename
 
@@ -374,12 +375,19 @@ def plot_step_size_dependence(
 ):
     datetime_str = datetime_now_string()
 
+    date_path = Path(filepath).name
+    date_of_run = pytz.timezone("UTC").localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")).astimezone(pytz.timezone("US/Central")).strftime("%Y-%m-%d %H:%M:%S")
+
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+    ax.set_title(title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
-    )
+        pad=10)
+    # fig.suptitle(
+    #     title + "\n"+ date_of_run,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+    #     fontweight="bold",
+    #     fontsize=14,
+    # )
     ax.set_xlabel("Gradient Descent Step")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
@@ -415,8 +423,8 @@ def plot_step_size_dependence(
             for i in range(len(std_opt_dict["cost_vals"])):
                 if len(std_aggregate_data) <= i:
                     std_aggregate_data += [[]]
-
-                std_aggregate_data[i] += [std_opt_dict["cost_vals"][i] + 2]
+                    
+                std_aggregate_data[i] += [std_opt_dict["cost_vals"][i]/2 + 1]
             if background:
                 if np.sum(std_opt_dict["background_rate"]) > 1000:
                     print("Background rate too high!")
@@ -505,9 +513,12 @@ def plot_step_size_dependence(
 
     plt.grid()
     plt.legend(ncols=2)
+    # plt.tight_layout(pad=2)
+    plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha='right')
+
     if not no_plot:
         Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
-        plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+        plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str,bbox_inches='tight')
 
 
 def plot_step_size_dependence_convergence(
