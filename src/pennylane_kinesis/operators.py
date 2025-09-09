@@ -191,11 +191,12 @@ class VariableWPRotStage(Operation):
     num_wires = 1
     grad_method = "A"
     parameter_frequencies = [(2, 4)]
-    hyperparameters = {"retardance": None}
+    hyperparameters = {"retardance": None, "wp_type": None}
 
-    def __init__(self, theta, wires, id=None, retardance=np.pi / 2):
+    def __init__(self, theta, wires, id=None, retardance=np.pi / 2, wp_type="qwp"):
         super().__init__(theta, wires=qml.wires.Wires(wires), id=id)
         self.hyperparameters["retardance"] = retardance
+        self.hyperparameters["wp_type"] = wp_type
 
     @property
     def num_params(self):

@@ -52,7 +52,7 @@ class ElliptecMotors:
         if len(scanned_devices) < 4:
             print("All 4 waveplates not detected! Exiting...")
             exit()
-        for device in scanned_devices:
+        for i,device in enumerate(scanned_devices):
             device_serial = device["info"]["Serial No."]
             device_address = int(device["info"]["Address"])
             serial_address_mapping = int(addresses[serial_nos.index(device_serial)])
@@ -74,7 +74,15 @@ class ElliptecMotors:
             rotator = elliptec.Rotator(
                 self.controller, address=device["info"]["Address"], debug=False
             )
-            self.wps[device_address - 1] = rotator
+            match device["info"]["Serial No."]:
+                case "11400288": #aHWP
+                    self.wps[0] = rotator
+                case "11400240": #aQWP
+                    self.wps[1] = rotator
+                case "11400239": #bQWP
+                    self.wps[2] = rotator
+                case "11400238": #bHWP
+                    self.wps[3] = rotator
 
         # for address in addresses:
         #     print(address)
@@ -82,12 +90,21 @@ class ElliptecMotors:
 
         self.prep_hwp = self.wps[0]
         self.prep_qwp = self.wps[1]
-        self.meas_hwp = self.wps[2]
-        self.meas_qwp = self.wps[3]
+        self.meas_hwp = self.wps[3]
+        self.meas_qwp = self.wps[2]
+
+        print("Preparation HWP:")
+        print(self.prep_hwp.info["Serial No."])
+        print("Preparation QWP:")
+        print(self.prep_qwp.info["Serial No."])
+        print("Measurement QWP:")
+        print(self.meas_qwp.info["Serial No."])
+        print("Measurement HWP:")
+        print(self.meas_hwp.info["Serial No."])
 
     def read_config(self):
         """Read the configuration file and set the motor serial numbers."""
-        config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+        config_file = "./src/pennylane_kinesis/2025_06_08_timur_elliptec_config.txt"
 
         with open(config_file) as f:
             config_lines = f.readlines()
@@ -108,9 +125,11 @@ class ElliptecMotors:
 
         self.prep_hwp_sn = wp_details[0]["serial_number"]
         self.prep_qwp_sn = wp_details[1]["serial_number"]
-        self.meas_hwp_sn = wp_details[2]["serial_number"]
-        self.meas_qwp_sn = wp_details[3]["serial_number"]
+        self.meas_hwp_sn = wp_details[3]["serial_number"]
+        self.meas_qwp_sn = wp_details[2]["serial_number"]
 
+        print("Read config")
+        print(wp_details)
         return wp_details
 
     def close(self):
@@ -150,7 +169,7 @@ class ElliptecRotatorDevice(QubitDevice):
     version = __version__
     author = "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
 
-    operations = {"HWPRotStage", "QWPRotStage"}
+    operations = {"HWPRotStage", "QWPRotStage", "VariableHWPRotStage","VariableQWPRotStageA","VariableQWPRotStageB"}
     observables = {"Projector", "Identity", "PauliZ"}
     init_state = np.array([1, 0])  # placeholder
 
@@ -199,7 +218,7 @@ class ElliptecRotatorDevice(QubitDevice):
         self.timing_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Connect and initlaize devices
-        config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+        config_file = "./src/pennylane_kinesis/2025_06_08_timur_elliptec_config.txt"
 
         with open(config_file) as f:
             config_lines = f.readlines()
@@ -219,20 +238,21 @@ class ElliptecRotatorDevice(QubitDevice):
             rot_mount["background_angle"] = float(entries[5])
             self.wp_details.append(rot_mount)
 
+        print(self.wp_details)
         self.a_hwp_sn = self.wp_details[0]["serial_number"]
         self.a_qwp_sn = self.wp_details[1]["serial_number"]
-        self.b_hwp_sn = self.wp_details[2]["serial_number"]
-        self.b_qwp_sn = self.wp_details[3]["serial_number"]
+        self.b_hwp_sn = self.wp_details[3]["serial_number"]
+        self.b_qwp_sn = self.wp_details[2]["serial_number"]
 
         self.a_hwp_offset = float(self.wp_details[0]["angle_offset"])
         self.a_qwp_offset = float(self.wp_details[1]["angle_offset"])
-        self.b_hwp_offset = float(self.wp_details[2]["angle_offset"])
-        self.b_qwp_offset = float(self.wp_details[3]["angle_offset"])
+        self.b_hwp_offset = float(self.wp_details[3]["angle_offset"])
+        self.b_qwp_offset = float(self.wp_details[2]["angle_offset"])
 
         self.a_hwp_background_angle = float(self.wp_details[0]["background_angle"])
         self.a_qwp_background_angle = float(self.wp_details[1]["background_angle"])
-        self.b_hwp_background_angle = float(self.wp_details[2]["background_angle"])
-        self.b_qwp_background_angle = float(self.wp_details[3]["background_angle"])
+        self.b_hwp_background_angle = float(self.wp_details[3]["background_angle"])
+        self.b_qwp_background_angle = float(self.wp_details[2]["background_angle"])
 
         # a waveplates are 1550
         self.dev_a_hwp = motors.prep_hwp
@@ -505,7 +525,7 @@ class ElliptecRotatorDevice(QubitDevice):
         if not self.test_mode:
             print("Taking background measurement, moving")
             for i, device in enumerate(
-                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
+                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
             ):
                 print(
                     "device S/N " + device.info["Serial No."] + " to background angle",
@@ -531,7 +551,7 @@ class ElliptecRotatorDevice(QubitDevice):
         if not self.test_mode:
             print("Taking background measurement, moving")
             for i, device in enumerate(
-                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
+                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
             ):
                 print(
                     "device S/N " + device.info["Serial No."] + " to zero angle",
@@ -657,24 +677,28 @@ class ElliptecRotatorDevice(QubitDevice):
         all_ops = operations + rotations if rotations else operations
 
         # # TODO: more generic management of device operations
-        dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
+        dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
+       # print(all_ops)
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
-            if op.name == "HWPRotStage":
+           # print(op)
+            #print(self.wp_details[i])
+           # print(dev_list[i])
+            if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == "qwp"):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
                     i,
                     dev_list[i],
-                    ((angle % 90) + float(self.wp_details[i]["angle_offset"])),
+                    ((angle % 90) + float(self.wp_details[i]["angle_offset"]))%360,
                 )
-            elif op.name == "QWPRotStage":
+            elif op.name == "QWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == "qwp"):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
                     i,
                     dev_list[i],
-                    ((angle % 180) + float(self.wp_details[i]["angle_offset"])),
+                    ((angle % 180) + float(self.wp_details[i]["angle_offset"]))%360,
                 )
             else:
                 print("Operation : ", op.name, ", is not supported")
