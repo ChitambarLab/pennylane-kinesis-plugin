@@ -1,6 +1,9 @@
 import sys
 import glob
 import serial
+import elliptec
+
+port = "/dev/ttyUSB0"
 
 
 def serial_ports():
@@ -34,26 +37,7 @@ def serial_ports():
 
 print(serial_ports())
 
-import time
+controller = elliptec.Controller(port, timeout=3, write_timeout=3)
 
-ser = serial
-try:
-    ser = serial.Serial("COM4", baudrate=9600, bytesize=8, parity="N", stopbits=1, timeout=0.1)
-except Exception:
-    print("Exception")
-
-print("Connected")
-try:
-    ser.write(b"0in")
-    print(ser.readline())
-    ser.write(b"1in")
-    print(ser.readline())
-    ser.write(b"2in")
-    print(ser.readline())
-    ser.write(b"3in")
-    print(ser.readline())
-    ser.write(b"4in")
-    print(ser.readline())
-finally:
-    ser.close()
-    exit()
+device = elliptec.Rotator(controller, address=str(1))
+device.home()
