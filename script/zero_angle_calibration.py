@@ -1,5 +1,6 @@
 import pyvisa
-from ThorlabsPM100 import ThorlabsPM100
+
+# from ThorlabsPM100 import ThorlabsPM100
 import elliptec
 from pennylane_kinesis.elliptec_rotator_device import ElliptecRotatorDevice
 import argparse
@@ -16,13 +17,15 @@ import pickle
 from pathlib import Path
 import re
 
-NUM_MEASUREMENTS = 100
+NUM_MEASUREMENTS = 1
+
+ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 
 
 def set_angle(device, angle):
     angle_ret = None
     while angle_ret is None:
-        angle_ret = device.set_angle(angle%360)
+        angle_ret = device.set_angle(angle % 360)
         if angle_ret is None:
             print("ERROR")
             print("angle is none")
@@ -32,8 +35,8 @@ def set_angle(device, angle):
 
 def fit_sin(tt, yy):
     '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
-    tt = numpy.array(tt,dtype=float)
-    yy = numpy.array(yy,dtype=float)
+    tt = numpy.array(tt, dtype=float)
+    yy = numpy.array(yy, dtype=float)
     ff = numpy.fft.fftfreq(len(tt), (tt[1] - tt[0]))  # assume uniform spacing
     Fyy = abs(numpy.fft.fft(yy))
     guess_freq = abs(
@@ -45,7 +48,7 @@ def fit_sin(tt, yy):
 
     def sinfunc(t, A, w, p, c):
         return A * numpy.sin(w * t + p) + c
-    
+
     popt, pcov = scipy.optimize.curve_fit(sinfunc, tt, yy, p0=guess)
     A, w, p, c = popt
     f = w / (2.0 * numpy.pi)
@@ -118,7 +121,7 @@ def param_sin(x, offset, amplitude, phase, freq):
 
 
 def read_config():
-    config_file = "./src/pennylane_kinesis/2025_05_07_timur_elliptec_config.txt"
+    config_file = "./src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt"
 
     with open(config_file) as f:
         config_lines = f.readlines()
@@ -142,7 +145,6 @@ def read_config():
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         prog="Manual alignment",
         description="Manually align the rotation stages to the desired angles.",
@@ -169,11 +171,18 @@ if __name__ == "__main__":
         help="Number of power meters connected.",
     )
     parser.add_argument(
-        "-m", "--manual", default=False, action="store_true", help="Manual mode (rotate manually)"
+        "-m",
+        "--manual",
+        default=False,
+        action="store_true",
+        help="Manual mode (rotate manually)",
     )
 
     parser.add_argument(
-        "--counts", default=False, action="store_true", help="Just output the counts of each APD."
+        "--counts",
+        default=False,
+        action="store_true",
+        help="Just output the counts of each APD.",
     )
 
     parser.add_argument(
@@ -185,15 +194,25 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-s", "--step", type=float, default=22.5, help="Step size for rotation (in manual mode)"
+        "-s",
+        "--step",
+        type=float,
+        default=22.5,
+        help="Step size for rotation (in manual mode)",
     )
 
     parser.add_argument(
-        "-f", "--fit", default=False, action="store_true", help="fit data (put data into array)"
+        "-f",
+        "--fit",
+        default=False,
+        action="store_true",
+        help="fit data (put data into array)",
     )
 
     parser.add_argument(
-        "--file", default=None, help="File to use for fitting data. (with --plot or --fit option)"
+        "--file",
+        default=None,
+        help="File to use for fitting data. (with --plot or --fit option)",
     )
 
     parser.add_argument(
@@ -203,10 +222,15 @@ if __name__ == "__main__":
         help="Print out all devices scanned by Elliptec controller.",
     )
 
-    parser.add_argument("--home", default=False, action="store_true", help="test homing")
+    parser.add_argument(
+        "--home", default=False, action="store_true", help="test homing"
+    )
 
     parser.add_argument(
-        "--plot", default=False, action="store_true", help="Plot the data from existing file."
+        "--plot",
+        default=False,
+        action="store_true",
+        help="Plot the data from existing file.",
     )
 
     parser.add_argument(
@@ -215,9 +239,13 @@ if __name__ == "__main__":
         help="Name of the waveplate being calibrated (changes filename)",
     )
 
-    parser.add_argument("--angle", help="Set waveplate to angle and get average reading.")
+    parser.add_argument(
+        "--angle", help="Set waveplate to angle and get average reading."
+    )
 
-    parser.add_argument("--address", help="Set the address of the newly connected mount.")
+    parser.add_argument(
+        "--address", help="Set the address of the newly connected mount."
+    )
 
     parser.add_argument(
         "--polarizer",
@@ -227,18 +255,30 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--gv", default=None, type=int, help="Get the velocity from the motor at address specified."
+        "--gv",
+        default=None,
+        type=int,
+        help="Get the velocity from the motor at address specified.",
     )
 
     parser.add_argument(
-        "--sv", default=None, type=int, help="Set the velocity of the motor at address specified."
+        "--sv",
+        default=None,
+        type=int,
+        help="Set the velocity of the motor at address specified.",
     )
 
     parser.add_argument(
-        "--velocity", default=None, type=int, help="Velocity to set for the motor (with sv)."
+        "--velocity",
+        default=None,
+        type=int,
+        help="Velocity to set for the motor (with sv).",
     )
     parser.add_argument(
-        "--meter", default=False, action="store_true", help="Use power meter to take data."
+        "--meter",
+        default=False,
+        action="store_true",
+        help="Use power meter to take data.",
     )
 
     parser.add_argument(
@@ -254,7 +294,13 @@ if __name__ == "__main__":
     parser.add_argument("--zero", default=False, action="store_true")
 
     parser.add_argument("--background", default=False, action="store_true")
+
+    parser.add_argument("--parallel", default=False, action="store_true")
     args = parser.parse_args()
+
+    if args.parallel:
+        port = ports[int(args.mount)]
+        address = "0"
     # H_meter, V_meter = connect_power_meter(True)
     if args.meter:
         if args.apds:
@@ -270,14 +316,14 @@ if __name__ == "__main__":
 
     # Get velocity of the mounts
     if args.gv:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         device = elliptec.Rotator(controller, address=str(args.gv))
         print("Velocity of" + str(args.gv) + "is ", device.send_instruction(b"gv"))
         exit()
 
     # Set velocity of mounts
     if args.sv and args.velocity:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         device = elliptec.Rotator(controller, address=str(args.sv))
         print(device.send_instruction(b"sv" + str(args.velocity).encode()))
         exit()
@@ -286,13 +332,13 @@ if __name__ == "__main__":
     if args.background:
         wp_details = read_config()
         meter.set_integration_time(1)
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         for i in range(1, 5):
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             offset = wp_details[i - 1]["background_angle"]
             ANGLE = offset
-            set_ret = set_angle(device,ANGLE)
+            set_ret = set_angle(device, ANGLE)
             print("return is", set_ret)
             print("set angle of ", i, "to", ANGLE)
         meter.get_counts()
@@ -301,13 +347,13 @@ if __name__ == "__main__":
     if args.zero:
         wp_details = read_config()
         meter.set_integration_time(1)
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         for i in range(1, 5):
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             offset = wp_details[i - 1]["angle_offset"]
             ANGLE = offset
-            set_ret = set_angle(device,ANGLE)
+            set_ret = set_angle(device, ANGLE)
             print("return is", set_ret)
             print("set angle of ", i, "to", ANGLE)
             # if i == 1:
@@ -350,12 +396,12 @@ if __name__ == "__main__":
         angles = []
         print("Setting all angles to zero.")
         print("Connecting to elliptec controller")
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         devices = []
         for i in range(1, 5):
             # if i == 2:
-                # continue
-            print("Connecting to ",i)
+            # continue
+            print("Connecting to ", i)
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
             devices.append(device)
@@ -372,7 +418,7 @@ if __name__ == "__main__":
         # TODO: Change this to 1 if you want finer resolution
         for j in range(num_trials):
             start_time = time.time()
-            for k,i in enumerate(range(0, 360, 5)):
+            for k, i in enumerate(range(0, 360, 5)):
                 if j == 0:
                     h_counts.append([])
                     v_counts.append([])
@@ -397,9 +443,25 @@ if __name__ == "__main__":
         std_dev_v_counts = np.std(np.array(v_counts), axis=1)
         plt.plot(angles, mean_h_counts, color="red", label="H")
         plt.plot(angles, mean_v_counts, color="blue", label="V")
-        plt.plot(angles, np.array(mean_h_counts)+np.array(mean_v_counts), color="green", label="Total")
-        plt.fill_between(angles, sum_mean_counts - std_dev_sum_counts, sum_mean_counts + std_dev_sum_counts, color="darkgreen", alpha=0.3)
-        plt.axvline(x=wp_details[int(args.apds)-1]['angle_offset'], color="black", linestyle="--",label="Zero angle")
+        plt.plot(
+            angles,
+            np.array(mean_h_counts) + np.array(mean_v_counts),
+            color="green",
+            label="Total",
+        )
+        plt.fill_between(
+            angles,
+            sum_mean_counts - std_dev_sum_counts,
+            sum_mean_counts + std_dev_sum_counts,
+            color="darkgreen",
+            alpha=0.3,
+        )
+        plt.axvline(
+            x=wp_details[int(args.apds) - 1]["angle_offset"],
+            color="black",
+            linestyle="--",
+            label="Zero angle",
+        )
         plt.xlabel("Angle of rotation (degrees)")
         plt.ylabel("Photon Counts")
         plt.title("Photon counts vs angle of rotation " + args.name)
@@ -409,7 +471,7 @@ if __name__ == "__main__":
 
     # Print out scanned devices
     if args.serial_no:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
 
         print(elliptec.scan.scan_for_devices(controller, 0, 5))
 
@@ -420,7 +482,7 @@ if __name__ == "__main__":
     then the newly connected mount can be accessed at address 0 and assigned a different address.
     """
     if args.address:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         print(elliptec.scan_for_devices(controller, start_address=0, stop_address=4))
         device = elliptec.Rotator(controller, address="0")
         device.change_address(str(args.address))
@@ -430,18 +492,25 @@ if __name__ == "__main__":
 
     # Set angle of the waveplate at address 0 and get the average power reading
     if args.angle:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
 
         device = elliptec.Rotator(controller, address=str(int(args.mount)))
 
         print(device.info["Serial No."])
-        
+
         wp_details = read_config()
 
         device.home()
 
-        print("Setting angle of ", args.mount, "to", float(args.angle)+wp_details[int(args.mount)-1]["angle_offset"])
-        angle = float(args.angle) + float(wp_details[int(args.mount)-1]["angle_offset"])
+        print(
+            "Setting angle of ",
+            args.mount,
+            "to",
+            float(args.angle) + wp_details[int(args.mount) - 1]["angle_offset"],
+        )
+        angle = float(args.angle) + float(
+            wp_details[int(args.mount) - 1]["angle_offset"]
+        )
         print(angle)
         set_angle(device, angle)
         itr_powers_h = []
@@ -451,14 +520,15 @@ if __name__ == "__main__":
                 # itr_powers_h.append(H_meter.r)
                 h_counts, v_counts = meter.get_counts()
             # itr_powers_v.append(V_meter.read)
-        # avg_power_h = np.mean(np.array(itr_powers_h))
-        # avg_power_v = np.mean(np.array(itr_powers_v))
-            print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
+            # avg_power_h = np.mean(np.array(itr_powers_h))
+            # avg_power_v = np.mean(np.array(itr_powers_v))
+            print(
+                f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}"
+            )
         exit()
 
     # Plot the data from the file
     if args.plot:
-
         with open(args.file, "rb") as f:
             (angles, h_counts, v_counts) = pickle.load(f)
 
@@ -467,7 +537,7 @@ if __name__ == "__main__":
 
             wp_details = read_config()
 
-            zero_angle = wp_details[int(args.apds)-1]['angle_offset']
+            zero_angle = wp_details[int(args.apds) - 1]["angle_offset"]
 
             print(np.array(angles).shape)
             print(np.array(h_counts).shape)
@@ -477,19 +547,41 @@ if __name__ == "__main__":
                 mean_h_counts = np.mean(np.array(h_counts), axis=1)
                 mean_v_counts = np.mean(np.array(v_counts), axis=1)
                 sum_mean_counts = mean_h_counts + mean_v_counts
-                std_dev_sum_counts = np.std(np.array(h_counts) + np.array(v_counts), axis=1)
+                std_dev_sum_counts = np.std(
+                    np.array(h_counts) + np.array(v_counts), axis=1
+                )
                 std_dev_h_counts = np.std(np.array(h_counts), axis=1)
                 std_dev_v_counts = np.std(np.array(v_counts), axis=1)
                 plt.plot(angles, mean_h_counts, color="red", label="H")
                 plt.plot(angles, mean_v_counts, color="blue", label="V")
-                plt.plot(angles, np.array(mean_h_counts)+np.array(mean_v_counts), color="green", label="Total")
-                ax.axvline(x=zero_angle, color="black", linestyle="--",label="Zero angle")
-                plt.fill_between(angles, sum_mean_counts - std_dev_sum_counts, sum_mean_counts + std_dev_sum_counts, color="darkgreen", alpha=0.3)
+                plt.plot(
+                    angles,
+                    np.array(mean_h_counts) + np.array(mean_v_counts),
+                    color="green",
+                    label="Total",
+                )
+                ax.axvline(
+                    x=zero_angle, color="black", linestyle="--", label="Zero angle"
+                )
+                plt.fill_between(
+                    angles,
+                    sum_mean_counts - std_dev_sum_counts,
+                    sum_mean_counts + std_dev_sum_counts,
+                    color="darkgreen",
+                    alpha=0.3,
+                )
             else:
-                ax.plot(angles, np.array(h_counts) + np.array(v_counts), color="green", label="Total")
+                ax.plot(
+                    angles,
+                    np.array(h_counts) + np.array(v_counts),
+                    color="green",
+                    label="Total",
+                )
                 ax.plot(angles, h_counts, color="red", label="H")
                 ax.plot(angles, v_counts, color="blue", label="V")
-                ax.axvline(x=zero_angle, color="black", linestyle="--",label="Zero angle")
+                ax.axvline(
+                    x=zero_angle, color="black", linestyle="--", label="Zero angle"
+                )
             ax.xaxis.set_ticks(np.arange(0, 360, 10))
             # ax.axvline(x=204, color="r", linestyle="--")
             # ax.axvline(x=294, color="r", linestyle="--")
@@ -522,7 +614,7 @@ if __name__ == "__main__":
 
     # Check repeatability of waveplate rotations
     elif args.repeat:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
 
         device = elliptec.Rotator(controller, address="0")
 
@@ -579,7 +671,7 @@ if __name__ == "__main__":
 
     # Home the device twice
     elif args.home:
-        controller = elliptec.Controller("COM4")
+        controller = elliptec.Controller(port)
         device = elliptec.Rotator(controller, address="0")
 
         device.home()
@@ -599,9 +691,8 @@ if __name__ == "__main__":
                 (angles, powers) = pickle.load(f)
                 print(powers)
                 powers = np.array(powers)
-                powers_h = powers[:,0]
-                powers_v = powers[:,1]
-
+                powers_h = powers[:, 0]
+                powers_v = powers[:, 1]
 
                 # powers_h = np.array(powers_h)
                 print(len(powers_h))
@@ -613,7 +704,9 @@ if __name__ == "__main__":
 
                 # ax.scatter
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
-                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
+                ax.plot(
+                    x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)"
+                )
 
                 ax.xaxis.set_ticks(np.arange(0, 360, 10))
                 labels = ax.xaxis.get_majorticklabels()
@@ -633,7 +726,7 @@ if __name__ == "__main__":
                 ax.legend()
                 ax.grid()
                 # print(args.file.split('.'))
-                
+
                 plt.savefig(args.file + "fit.png")
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
@@ -659,12 +752,11 @@ if __name__ == "__main__":
                 print(len(angles))
                 print(len)
                 fig = plt.figure()
-                angles = np.array(angles,dtype=float)
+                angles = np.array(angles, dtype=float)
                 # angles = angles[45:130]
                 # powers_h = powers_h[45:130]
                 # powers_v = powers_v[45:130]
                 x_data = np.linspace(0, 360, num=1000)
-
 
                 fit_dict_h = fit_sin(angles, powers_h)
                 func_h = fit_dict_h["fitfunc"]
@@ -675,8 +767,15 @@ if __name__ == "__main__":
 
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
                 ax.scatter(angles, powers_v, color="blue", label="Power data (V)")
-                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
-                ax.plot(x_data, func_v(x_data), color="lightblue", label="Sinusoidal fit (V)")
+                ax.plot(
+                    x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)"
+                )
+                ax.plot(
+                    x_data,
+                    func_v(x_data),
+                    color="lightblue",
+                    label="Sinusoidal fit (V)",
+                )
 
                 ax.xaxis.set_ticks(np.arange(0, 360, 10))
                 labels = ax.xaxis.get_majorticklabels()
@@ -716,7 +815,7 @@ if __name__ == "__main__":
             print("Press enter to take data..")
             input()
             # time.sleep(3)
-            h_counts,v_counts = meter.get_counts()
+            h_counts, v_counts = meter.get_counts()
             powers.append(np.array([h_counts, v_counts]))
             print("Took data for angle", 22.5 * i)
         path = Path(
@@ -735,7 +834,7 @@ if __name__ == "__main__":
         exit()
 
     elif args.manual:
-        controller = elliptec.Controller("COM4", timeout=3, write_timeout=3)
+        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         device = elliptec.Rotator(controller, address=str(args.sv))
         wp_details = read_config()
 
@@ -743,14 +842,17 @@ if __name__ == "__main__":
         device.set_angle(wp_details[args.sv - 1]["background_angle"])
 
     else:
-        controller = elliptec.Controller("COM4")
+        print("opening port")
+        print(port)
+        print("address", address)
+        controller = elliptec.Controller(port)
 
-        device = elliptec.Rotator(controller, address="1")
+        device = elliptec.Rotator(controller, address=address)
 
         device.home()
 
         device.set_angle(0)
-        device.set_jog_step(10)
+        device.set_jog_step(5)
         powers_h = []
         powers_v = []
         angles = []
@@ -773,17 +875,26 @@ if __name__ == "__main__":
                 break
             device.jog()
             time.sleep(0.1)
-
-        with open(
-            "./data/calibrations/zero_angle/"
-            + args.name
+        folder = Path("./data/calibrations/zero_angle/" + args.name)
+        folder.mkdir(parents=True, exist_ok=True)
+        path_plot = (
+            str(folder)
             + "/power_vs_angle_auto_"
             + args.name
             + "_"
             + datetime_now_string()
-            + ".pkl",
-            "wb",
-        ) as f:
+            + ".png"
+        )
+        path_pkl = (
+            str(folder)
+            + "/power_vs_angle_auto_"
+            + args.name
+            + "_"
+            + datetime_now_string()
+            + ".pkl"
+        )
+
+        with open(path_pkl, "wb") as f:
             pickler = pickle.Pickler(f)
             pickler.dump((angles, powers_h, powers_v))
 
@@ -793,12 +904,5 @@ if __name__ == "__main__":
         plt.ylabel("Laser Power (W)")
         plt.title("Power vs angle of rotation " + args.name)
         plt.legend()
-        plt.savefig(
-            "./data/calibrations/zero_angle/"
-            + args.name
-            + "/power_vs_angle_auto_"
-            + args.name
-            + "_"
-            + datetime_now_string()
-            + ".png"
-        )
+
+        plt.savefig(path_plot)
