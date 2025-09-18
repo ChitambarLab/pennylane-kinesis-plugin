@@ -22,8 +22,9 @@ from .elliptec_rotator_device import ElliptecMotors
 import time
 import pickle
 
-with open("./data/fiber_kraus_operations/kraus_ops_03_04_fixed.pkl", "rb") as f:
-    fiber_ops = pickle.load(f)
+# If fiber kraus ops are defined
+#with open("./data/fiber_kraus_operations/kraus_ops_03_04_fixed.pkl", "rb") as f:
+#    fiber_ops = pickle.load(f)
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
