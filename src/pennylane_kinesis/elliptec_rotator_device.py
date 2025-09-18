@@ -41,15 +41,10 @@ class ElliptecMotors:
             return
 
         if isinstance(com_port, list):
-            self.controller = [
-                elliptec.Controller(port, timeout=5, write_timeout=2, debug=False)
-                for port in com_port
-            ]
+            self.controller = [elliptec.Controller(port, timeout=5, write_timeout=2, debug=False) for port in com_port]
             self.parallel = True
         else:
-            self.controller = elliptec.Controller(
-                com_port, timeout=5, write_timeout=2, debug=False
-            )
+            self.controller = elliptec.Controller(com_port, timeout=5, write_timeout=2, debug=False)
 
         # devices = elliptec.scan_for_devices(self.controller)
         addresses = [int(device["address"]) for device in self.wp_details]
@@ -61,16 +56,12 @@ class ElliptecMotors:
             print("Scanning devices...")
             scanned_devices = []
             for control in self.controller:
-                scanned = elliptec.scan_for_devices(
-                    control, start_address=0, stop_address=0
-                )
+                scanned = elliptec.scan_for_devices(control, start_address=0, stop_address=0)
                 # Each motor has it's own controller, so it should ideally only return
                 # one device when scanned
                 scanned_devices.append(scanned[0])
         else:
-            scanned_devices = elliptec.scan_for_devices(
-                self.controller, start_address=1, stop_address=4
-            )
+            scanned_devices = elliptec.scan_for_devices(self.controller, start_address=1, stop_address=4)
         if len(scanned_devices) < 4:
             print("All 4 waveplates not detected! Exiting...")
             exit()
@@ -97,9 +88,7 @@ class ElliptecMotors:
             if self.parallel:
                 rotator = elliptec.Rotator(self.controller[i], address="0", debug=False)
             else:
-                rotator = elliptec.Rotator(
-                    self.controller, address=device["info"]["Address"], debug=False
-                )
+                rotator = elliptec.Rotator(self.controller, address=device["info"]["Address"], debug=False)
             self.wps[serial_nos.index(device_serial)] = rotator
 
         # for address in addresses:
@@ -193,7 +182,7 @@ class ElliptecRotatorDevice(QubitDevice):
     version = __version__
     author = "Brian Doolittle, Michael Vayninger, Timur Javid, and Colin Lualdi"
 
-    operations = {"HWPRotStage", "QWPRotStage", "VariableHWPRotStage","VariableQWPRotStageA","VariableQWPRotStageB"}
+    operations = {"HWPRotStage", "QWPRotStage", "VariableHWPRotStage", "VariableQWPRotStageA", "VariableQWPRotStageB"}
     observables = {"Projector", "Identity", "PauliZ"}
     init_state = np.array([1, 0])  # placeholder
 
@@ -217,9 +206,7 @@ class ElliptecRotatorDevice(QubitDevice):
     ):
         self.motors = motors
         self.debug = debug
-        super().__init__(
-            wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic
-        )
+        super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self.test_mode = test_mode
         # Doesn't make sense to run any timetagger if we're in test mode so we ignore the ttag specification
         if self.test_mode == True:
@@ -240,9 +227,7 @@ class ElliptecRotatorDevice(QubitDevice):
 
         datetime = datetime_now_string()
         self.datetime = datetime
-        self.timing_file = Path(
-            winapi_path(filepath + "timing_data_" + datetime + ".pkl")
-        )
+        self.timing_file = Path(winapi_path(filepath + "timing_data_" + datetime + ".pkl"))
         self.timing_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Connect and initlaize devices
@@ -307,9 +292,7 @@ class ElliptecRotatorDevice(QubitDevice):
 
         if self.motors.parallel:
             print(self.motors.wps)
-            self.time_parallel_rotation(
-                self.device_home, self.active_times, self.motors.wps
-            )
+            self.time_parallel_rotation(self.device_home, self.active_times, self.motors.wps)
             print("Setting angle to zero")
             self.time_parallel_rotation(
                 self.device_move_to_angle,
@@ -429,9 +412,7 @@ class ElliptecRotatorDevice(QubitDevice):
             self.num_buffer = 0
 
         if self.debug:
-            print(
-                f"Time taken for operation {func.__name__} on WP {wp_num}: {end - start:.2f} seconds"
-            )
+            print(f"Time taken for operation {func.__name__} on WP {wp_num}: {end - start:.2f} seconds")
             print(f"Moved WP {wp_num} from {start_pos} to {end_pos} degrees")
             print(f"Set angle to {set_angle} degrees" if set_angle else "")
 
@@ -450,9 +431,7 @@ class ElliptecRotatorDevice(QubitDevice):
                 print("----------------------------------------------")
                 i = 1
                 for device in devices:
-                    print(
-                        "Device " + str(i) + ": S/N " + device[0] + " Type " + device[1]
-                    )
+                    print("Device " + str(i) + ": S/N " + device[0] + " Type " + device[1])
                     i += 1
 
             return devices
@@ -482,9 +461,7 @@ class ElliptecRotatorDevice(QubitDevice):
             status = device.send_instruction(b"sv", str(deviceVel))  # Set velocity
         if self.debug:
             print("Device status: ", status)
-            print(
-                f"{device.info['Motor Type']} (S/N {device.info['Serial No.']}) is ready to use."
-            )
+            print(f"{device.info['Motor Type']} (S/N {device.info['Serial No.']}) is ready to use.")
             print()
 
             return device.info
@@ -560,13 +537,9 @@ class ElliptecRotatorDevice(QubitDevice):
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
             # counter.getData() returns per-second average
-            self.shot_rate = (
-                self.counter.getData()
-            )  # Get average shot rate from the channel
+            self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Shot rates:")
-            print(
-                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
-            )
+            print(f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s")
             # self.shots is user input, calculate integration time based on shot rate from the detector
             self.integration_time = self.shots / (np.sum(self.shot_rate))
             print(f"Set integration time to: {self.integration_time:.5f} seconds.")
@@ -581,12 +554,7 @@ class ElliptecRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.debug:
-            print(
-                "Homing device S/N "
-                + device.info["Serial No."]
-                + ", address "
-                + device.info["Address"]
-            )
+            print("Homing device S/N " + device.info["Serial No."] + ", address " + device.info["Address"])
         if not self.test_mode:
             device.home()
 
@@ -606,24 +574,18 @@ class ElliptecRotatorDevice(QubitDevice):
         """
         if not self.test_mode:
             print("Taking background measurement, moving")
-            for i, device in enumerate(
-                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
-            ):
+            for i, device in enumerate([self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]):
                 print(
                     "device S/N " + device.info["Serial No."] + " to background angle",
                     self.wp_details[i]["background_angle"],
                 )
-                self.device_move_to_angle(
-                    device, self.wp_details[i]["background_angle"]
-                )
+                self.device_move_to_angle(device, self.wp_details[i]["background_angle"])
 
             print("Taking background measurement for 3 seconds...")
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
             # counter.getData() returns per-second average
-            self.background_shot_rate = (
-                self.counter.getData()
-            )  # Get average shot rate from the channel
+            self.background_shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Background Shot rates:")
             print(
                 f"T rate: {self.background_shot_rate[0]:.2f} counts/s. R rate: {self.background_shot_rate[1]:.2f} counts/s"
@@ -634,9 +596,7 @@ class ElliptecRotatorDevice(QubitDevice):
     def get_shot_rate(self):
         if not self.test_mode:
             print("Taking background measurement, moving")
-            for i, device in enumerate(
-                [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
-            ):
+            for i, device in enumerate([self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]):
                 print(
                     "device S/N " + device.info["Serial No."] + " to zero angle",
                     self.wp_details[i]["angle_offset"],
@@ -650,13 +610,9 @@ class ElliptecRotatorDevice(QubitDevice):
             self.counter.startFor(int(3 * 1e12))  # Take data for 3 second
             self.counter.waitUntilFinished()
             # counter.getData() returns per-second average
-            self.shot_rate = (
-                self.counter.getData()
-            )  # Get average shot rate from the channel
+            self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Shot rates:")
-            print(
-                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
-            )
+            print(f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s")
 
         return self.shot_rate.tolist()
 
@@ -676,9 +632,7 @@ class ElliptecRotatorDevice(QubitDevice):
         else:
             angle_ret = None
             while angle_ret is None:
-                angle_ret = device.set_angle(
-                    angle
-                )  # This will block until the device reaches the desired angle
+                angle_ret = device.set_angle(angle)  # This will block until the device reaches the desired angle
                 if angle_ret is None:
                     print(
                         "Angle return is None when setting",
@@ -689,12 +643,7 @@ class ElliptecRotatorDevice(QubitDevice):
                     print("Trying again...")
                     time.sleep(0.01)
             if self.debug:
-                print(
-                    "Moved device S/N "
-                    + device.info["Serial No."]
-                    + " to position "
-                    + str(angle)
-                )
+                print("Moved device S/N " + device.info["Serial No."] + " to position " + str(angle))
 
     def device_move_by_angle(self, device: elliptec.Rotator, angle):
         """Rotates a device by the specified angle.
@@ -715,16 +664,9 @@ class ElliptecRotatorDevice(QubitDevice):
             curr_angle = device.get_angle()
             if (curr_angle + angle) > 360:
                 angle = angle - 360
-            device.set_angle(
-                device.get_position() + angle
-            )  # Moves by position in degrees
+            device.set_angle(device.get_position() + angle)  # Moves by position in degrees
             if self.debug:
-                print(
-                    "Moved device S/N "
-                    + device.info["Serial No."]
-                    + " to position "
-                    + device.get_angle()
-                )
+                print("Moved device S/N " + device.info["Serial No."] + " to position " + device.get_angle())
             device.close_connection()
 
     def disconnect(self):
@@ -773,9 +715,7 @@ class ElliptecRotatorDevice(QubitDevice):
             else:
                 print("Operation : ", op.name, ", is not supported")
 
-        self.time_parallel_rotation(
-            self.device_move_to_angle, self.active_times, dev_list, angles
-        )
+        self.time_parallel_rotation(self.device_move_to_angle, self.active_times, dev_list, angles)
 
     def apply(self, operations, rotations=[]):
         """Instucts the Kinesis devices to perform the specified operations.
@@ -793,27 +733,29 @@ class ElliptecRotatorDevice(QubitDevice):
 
         # # TODO: more generic management of device operations
         dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
-       # print(all_ops)
+        # print(all_ops)
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
-           # print(op)
-            #print(self.wp_details[i])
-           # print(dev_list[i])
+            # print(op)
+            # print(self.wp_details[i])
+            # print(dev_list[i])
             if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == "qwp"):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
                     i,
                     dev_list[i],
-                    ((angle % 90) + float(self.wp_details[i]["angle_offset"]))%360,
+                    ((angle % 90) + float(self.wp_details[i]["angle_offset"])) % 360,
                 )
-            elif op.name == "QWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == "qwp"):
+            elif op.name == "QWPRotStage" or (
+                op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == "qwp"
+            ):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
                     i,
                     dev_list[i],
-                    ((angle % 180) + float(self.wp_details[i]["angle_offset"]))%360,
+                    ((angle % 180) + float(self.wp_details[i]["angle_offset"])) % 360,
                 )
             else:
                 print("Operation : ", op.name, ", is not supported")
@@ -832,9 +774,7 @@ class ElliptecRotatorDevice(QubitDevice):
             iteration = 0
             while True:
                 if iteration == 0 and self.ttag_type == TimeTaggerType.SWABIAN:
-                    _ = (
-                        self.ttag_stream.getData()
-                    )  # Clear the buffer (it will return stored data otherwise)
+                    _ = self.ttag_stream.getData()  # Clear the buffer (it will return stored data otherwise)
                 time.sleep(self.integration_time)
                 iteration += 1
                 # Get data from UQD time tagger

@@ -14,9 +14,7 @@ def set_angle_raw(angle, index, rotation_mounts):
     while angle_ret is None:
         angle_ret = rotation_mounts[index].set_angle(angle)
         if angle_ret is None:
-            print(
-                "Angle return is None when setting waveplate", index + 1, "to ", angle
-            )
+            print("Angle return is None when setting waveplate", index + 1, "to ", angle)
             print("Trying again...")
             time.sleep(0.01)
 
@@ -104,9 +102,7 @@ def take_tomography_data(
     counter.auto_shot_rate()
 
     if integration_time:
-        print(
-            f"Running process tomography with {integration_time} as the integration time."
-        )
+        print(f"Running process tomography with {integration_time} as the integration time.")
         counter.integration_time = integration_time
         counter.auto_shot_rate()
     else:
@@ -172,12 +168,8 @@ def take_tomography_data(
                         meas_counts = (counter.get_counts()).tolist()
                         qpt_dict[measurement] += [meas_counts]
                         end_time = time.time()
-                        print(
-                            f"Took {end_time - start_time} to collect {meas_state}{prep_state}."
-                        )
-                        print(
-                            f"Estimated time remaining: {((repetitions - i) * 36) * (end_time - start_time)}"
-                        )
+                        print(f"Took {end_time - start_time} to collect {meas_state}{prep_state}.")
+                        print(f"Estimated time remaining: {((repetitions - i) * 36) * (end_time - start_time)}")
     except KeyboardInterrupt:
         print("Quitting run and saving data")
         write_json(qpt_dict, dir + "qpt_data_ABORTED")

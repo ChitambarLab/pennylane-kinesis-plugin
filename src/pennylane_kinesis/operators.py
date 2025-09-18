@@ -4,14 +4,17 @@ import numpy as np
 from pennylane import numpy as qnp
 from enum import Enum
 
+
 class WaveplateTypes(Enum):
     HWP = 0
     QWP = 1
+
 
 QWP_RETARDANCE_A = 1.617103
 QWP_RETARDANCE_B = 1.6551547
 HWP_RETARDANCE_A = np.pi
 HWP_RETARDANCE_B = 3.00416
+
 
 class HWPRotStage(Operation):
     """A quarter wave plate (HWP) mounted on a rotational stage.
@@ -164,6 +167,7 @@ class QWPRotStage(Operation):
 
         return qml.math.stack([qml.math.stack(row, axis=-1) for row in mat], axis=-2)
 
+
 class VariableWPRotStage(Operation):
     """A variable retardance waveplate mounted on a rotational stage.
 
@@ -216,7 +220,7 @@ class VariableWPRotStage(Operation):
         return (0,)
 
     @staticmethod
-    def compute_decomposition(theta, wires,retardance):
+    def compute_decomposition(theta, wires, retardance):
         return [
             qml.RY(-2 * theta, wires=wires[0]),
             qml.PhaseShift(retardance, wires=wires[0]),

@@ -14,7 +14,7 @@ from .operators import (
     WaveplateTypes,
     QWP_RETARDANCE_A,
     QWP_RETARDANCE_B,
-    HWP_RETARDANCE_B
+    HWP_RETARDANCE_B,
 )
 from .optimization import optimize
 import pennylane_kinesis as pk
@@ -23,17 +23,18 @@ import time
 import pickle
 
 # If fiber kraus ops are defined
-#with open("./data/fiber_kraus_operations/kraus_ops_03_04_fixed.pkl", "rb") as f:
+# with open("./data/fiber_kraus_operations/kraus_ops_03_04_fixed.pkl", "rb") as f:
 #    fiber_ops = pickle.load(f)
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
 
+
 def two_state_discrimination(
     filepath,
     shots=10000,
     shot_rate=3000000,
-    background_counts=[300,100],
+    background_counts=[300, 100],
     two_wp=False,
     numerics=False,
     step_size=0.08,
@@ -165,17 +166,13 @@ def two_state_discrimination(
             num_in=1,
             num_out=2,
             wires=[0],
-            ansatz_fn=lambda *args: meas_fn_retardance(
-                fixed_meas_settings, args[1]
-            ),
+            ansatz_fn=lambda *args: meas_fn_retardance(fixed_meas_settings, args[1]),
             num_settings=0,
         )
 
     else:
         data_path += "four_wp/"
-        meas_node = qnetvo.MeasureNode(
-            num_in=1, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2
-        )
+        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)
 
     make_dir(data_path)
 
@@ -193,8 +190,8 @@ def two_state_discrimination(
             "shot_rate": shot_rate,
             "shots": shots,
             "debug": verbose,
-            **additional_dev_kwargs
-        }
+            **additional_dev_kwargs,
+        },
     )
 
     device = qml.device(**state_disc_ansatz.dev_kwargs)
@@ -212,7 +209,7 @@ def two_state_discrimination(
         state_disc_ansatz,
         np.eye(2),
         qnode_kwargs=qnode_kwargs,
-        #postmap=np.eye(2),
+        # postmap=np.eye(2),
     )
     behavior_fn = qnetvo.behavior_fn(state_disc_ansatz, qnode_kwargs=qnode_kwargs)
 
@@ -345,16 +342,8 @@ def qubit_dimensionality_witnessing(
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(
-                num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
-        [
-            qnetvo.MeasureNode(
-                num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            )
-        ],
+        [qnetvo.PrepareNode(num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.MeasureNode(num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,
@@ -390,6 +379,5 @@ def qubit_dimensionality_witnessing(
         filepath=data_path,
         optimizer=optimizer,
         filename="optimization_" + datetime_str,
-        domain_periods=[hwp_period, qwp_period] * prep_num_in
-        + [hwp_period, qwp_period] * meas_num_in,
+        domain_periods=[hwp_period, qwp_period] * prep_num_in + [hwp_period, qwp_period] * meas_num_in,
     )

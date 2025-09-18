@@ -327,9 +327,7 @@ class KinesisCageRotatorDevice(QubitDevice):
                 1.5 * self.shots,
                 channels=[self.ttag_channel_reflect, self.ttag_channel_transmit],
             )
-            self.counter = TT.Countrate(
-                self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit]
-            )
+            self.counter = TT.Countrate(self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit])
             print(
                 "Started Swabian timetagger for channels: ",
                 self.ttag_channel_reflect,
@@ -351,9 +349,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             self.counter.waitUntilFinished()
             self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Shot rates:")
-            print(
-                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
-            )
+            print(f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s")
             # self.shots is user input, calculate integration time based on shot rate from the detector
             self.integration_time = self.shots / (np.sum(self.shot_rate))
             print(f"Set integration time to: {self.integration_time:.5f} seconds.")
@@ -401,13 +397,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device + " to position " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device + " to position " + str(angle) + "\u00b0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_to(angle)  # Moves to position in degrees
             device.wait_for_stop()
-            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00b0")
 
     def device_move_by_angle(self, device: Thorlabs.KinesisMotor, angle):
         """Rotates a device by the specified angle.
@@ -421,13 +417,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device + " by " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device + " by " + str(angle) + "\u00b0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_by(angle)  # Moves by position in degrees
             device.wait_for_stop()
-            print("Moved device S/N " + device_sn + " by " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device_sn + " by " + str(angle) + "\u00b0")
             print("Current position:", device.get_position())
 
     def disconnect(self):
@@ -482,13 +478,9 @@ class KinesisCageRotatorDevice(QubitDevice):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             if op.name == "HWPRotStage":
-                self.time_rotation(
-                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 90
-                )
+                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 90)
             elif op.name == "QWPRotStage":
-                self.time_rotation(
-                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 180
-                )
+                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 180)
             else:
                 print("Operation : ", op.name, ", is not supported")
 
@@ -506,9 +498,7 @@ class KinesisCageRotatorDevice(QubitDevice):
             iteration = 0
             while True:
                 if iteration == 0 and self.ttag_type == TimeTaggerType.SWABIAN:
-                    _ = (
-                        self.ttag_stream.getData()
-                    )  # Clear the buffer (it will return stored data otherwise)
+                    _ = self.ttag_stream.getData()  # Clear the buffer (it will return stored data otherwise)
                 time.sleep(self.integration_time)
                 iteration += 1
                 # Get data from UQD time tagger

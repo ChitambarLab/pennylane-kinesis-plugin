@@ -53,9 +53,7 @@ class Counter:
             1.5 * self.shots if self.shots is not None else 2e6,
             channels=[self.ttag_channel_reflect, self.ttag_channel_transmit],
         )
-        self.counter = TT.Countrate(
-            self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit]
-        )
+        self.counter = TT.Countrate(self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit])
         print(
             "Started Swabian timetagger for channels: ",
             self.ttag_channel_reflect,
@@ -91,9 +89,7 @@ class Counter:
         iteration = 0
         while True:
             if iteration == 0:
-                _ = (
-                    self.ttag_stream.getData()
-                )  # Clear the buffer (it will return stored data otherwise)
+                _ = self.ttag_stream.getData()  # Clear the buffer (it will return stored data otherwise)
             time.sleep(self.integration_time)
             iteration += 1
 
