@@ -46,9 +46,7 @@ if __name__ == "__main__":
     dir = "./data/counts/"
     args = parser.parse_args()
 
-    counter = swabian.Counter(
-        shots=args.shots, shot_rate=3000000, integration_time=args.integration
-    )
+    counter = swabian.Counter(shots=args.shots, shot_rate=3000000, integration_time=args.integration)
     counter.detector_setup()
     if args.auto:
         counter.auto_shot_rate()

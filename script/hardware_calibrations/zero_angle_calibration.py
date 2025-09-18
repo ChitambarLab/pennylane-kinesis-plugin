@@ -222,9 +222,7 @@ if __name__ == "__main__":
         help="Print out all devices scanned by Elliptec controller.",
     )
 
-    parser.add_argument(
-        "--home", default=False, action="store_true", help="test homing"
-    )
+    parser.add_argument("--home", default=False, action="store_true", help="test homing")
 
     parser.add_argument(
         "--plot",
@@ -239,13 +237,9 @@ if __name__ == "__main__":
         help="Name of the waveplate being calibrated (changes filename)",
     )
 
-    parser.add_argument(
-        "--angle", help="Set waveplate to angle and get average reading."
-    )
+    parser.add_argument("--angle", help="Set waveplate to angle and get average reading.")
 
-    parser.add_argument(
-        "--address", help="Set the address of the newly connected mount."
-    )
+    parser.add_argument("--address", help="Set the address of the newly connected mount.")
 
     parser.add_argument(
         "--polarizer",
@@ -382,12 +376,7 @@ if __name__ == "__main__":
         wp_details = read_config()
         datetime = datetime_now_string()
         path = Path(
-            "./data/calibrations/zero_angle/"
-            + args.name
-            + "/power_vs_angle_auto_"
-            + args.name
-            + "_"
-            + datetime
+            "./data/calibrations/zero_angle/" + args.name + "/power_vs_angle_auto_" + args.name + "_" + datetime
         )
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -508,9 +497,7 @@ if __name__ == "__main__":
             "to",
             float(args.angle) + wp_details[int(args.mount) - 1]["angle_offset"],
         )
-        angle = float(args.angle) + float(
-            wp_details[int(args.mount) - 1]["angle_offset"]
-        )
+        angle = float(args.angle) + float(wp_details[int(args.mount) - 1]["angle_offset"])
         print(angle)
         set_angle(device, angle)
         itr_powers_h = []
@@ -522,9 +509,7 @@ if __name__ == "__main__":
             # itr_powers_v.append(V_meter.read)
             # avg_power_h = np.mean(np.array(itr_powers_h))
             # avg_power_v = np.mean(np.array(itr_powers_v))
-            print(
-                f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}"
-            )
+            print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
         exit()
 
     # Plot the data from the file
@@ -547,9 +532,7 @@ if __name__ == "__main__":
                 mean_h_counts = np.mean(np.array(h_counts), axis=1)
                 mean_v_counts = np.mean(np.array(v_counts), axis=1)
                 sum_mean_counts = mean_h_counts + mean_v_counts
-                std_dev_sum_counts = np.std(
-                    np.array(h_counts) + np.array(v_counts), axis=1
-                )
+                std_dev_sum_counts = np.std(np.array(h_counts) + np.array(v_counts), axis=1)
                 std_dev_h_counts = np.std(np.array(h_counts), axis=1)
                 std_dev_v_counts = np.std(np.array(v_counts), axis=1)
                 plt.plot(angles, mean_h_counts, color="red", label="H")
@@ -560,9 +543,7 @@ if __name__ == "__main__":
                     color="green",
                     label="Total",
                 )
-                ax.axvline(
-                    x=zero_angle, color="black", linestyle="--", label="Zero angle"
-                )
+                ax.axvline(x=zero_angle, color="black", linestyle="--", label="Zero angle")
                 plt.fill_between(
                     angles,
                     sum_mean_counts - std_dev_sum_counts,
@@ -579,9 +560,7 @@ if __name__ == "__main__":
                 )
                 ax.plot(angles, h_counts, color="red", label="H")
                 ax.plot(angles, v_counts, color="blue", label="V")
-                ax.axvline(
-                    x=zero_angle, color="black", linestyle="--", label="Zero angle"
-                )
+                ax.axvline(x=zero_angle, color="black", linestyle="--", label="Zero angle")
             ax.xaxis.set_ticks(np.arange(0, 360, 10))
             # ax.axvline(x=204, color="r", linestyle="--")
             # ax.axvline(x=294, color="r", linestyle="--")
@@ -704,9 +683,7 @@ if __name__ == "__main__":
 
                 # ax.scatter
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
-                ax.plot(
-                    x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)"
-                )
+                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
 
                 ax.xaxis.set_ticks(np.arange(0, 360, 10))
                 labels = ax.xaxis.get_majorticklabels()
@@ -767,9 +744,7 @@ if __name__ == "__main__":
 
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
                 ax.scatter(angles, powers_v, color="blue", label="Power data (V)")
-                ax.plot(
-                    x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)"
-                )
+                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
                 ax.plot(
                     x_data,
                     func_v(x_data),
@@ -877,22 +852,8 @@ if __name__ == "__main__":
             time.sleep(0.1)
         folder = Path("./data/calibrations/zero_angle/" + args.name)
         folder.mkdir(parents=True, exist_ok=True)
-        path_plot = (
-            str(folder)
-            + "/power_vs_angle_auto_"
-            + args.name
-            + "_"
-            + datetime_now_string()
-            + ".png"
-        )
-        path_pkl = (
-            str(folder)
-            + "/power_vs_angle_auto_"
-            + args.name
-            + "_"
-            + datetime_now_string()
-            + ".pkl"
-        )
+        path_plot = str(folder) + "/power_vs_angle_auto_" + args.name + "_" + datetime_now_string() + ".png"
+        path_pkl = str(folder) + "/power_vs_angle_auto_" + args.name + "_" + datetime_now_string() + ".pkl"
 
         with open(path_pkl, "wb") as f:
             pickler = pickle.Pickler(f)

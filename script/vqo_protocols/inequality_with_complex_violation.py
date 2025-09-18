@@ -30,9 +30,7 @@ def arb_unitary(settings, wires):
 def optimize_ansatz_fn(network_ansatz, inequality, domain_periods, **opt_kwargs):
     def opt_fn(placeholder_param):
         init_settings = qnp.array(network_ansatz.rand_network_settings())
-        cost = qnetvo.linear_probs_cost_fn(
-            network_ansatz, inequality, qnode_kwargs={"diff_method": "parameter-shift"}
-        )
+        cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality, qnode_kwargs={"diff_method": "parameter-shift"})
         opt_dict = pk.optimize(
             lambda settings: cost(*settings),
             init_settings,
@@ -52,21 +50,13 @@ if __name__ == "__main__":
 
     real_ansatz = qnetvo.NetworkAnsatz(
         [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
-        [
-            qnetvo.MeasureNode(
-                num_in=3, num_out=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
-            )
-        ],
+        [qnetvo.MeasureNode(num_in=3, num_out=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
         dev_kwargs=dev_kwargs,
     )
 
     cplx_state_ansatz = qnetvo.NetworkAnsatz(
         [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [
-            qnetvo.MeasureNode(
-                num_in=3, num_out=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1
-            )
-        ],
+        [qnetvo.MeasureNode(num_in=3, num_out=2, wires=[0], ansatz_fn=pk.HWPRotStage, num_settings=1)],
         dev_kwargs=dev_kwargs,
     )
 

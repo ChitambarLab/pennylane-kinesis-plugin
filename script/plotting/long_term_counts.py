@@ -7,7 +7,6 @@ import os
 data_file = "./data/counts/counts_2024-04-24T17-22-24Z.txt"
 
 if __name__ == "__main__":
-
     data = []
     with open(data_file) as file:
         for line in file:

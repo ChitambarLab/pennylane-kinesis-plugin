@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--background_counts",
-        default=[300,100],
+        default=[300, 100],
         type=list,
         help="Background count rate for the experiment (for numerics)",
     )
@@ -153,18 +153,13 @@ if __name__ == "__main__":
                 print_bar(
                     f"Starting trial {i} out of {len(meas_settings_list) * len(efficiencies) * len(efficiencies)}"
                 )
-                cst_time = datetime.datetime.now(
-                    datetime.timezone(datetime.timedelta(hours=-6))
-                )
+                cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
                 print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
 
                 meas_setting_filepath = (
                     filepath
                     + "meas_setting"
-                    + str(meas_setting)
-                    .replace("[", "")
-                    .replace("]", "")
-                    .replace(",", "_")
+                    + str(meas_setting).replace("[", "").replace("]", "").replace(",", "_")
                     + str(efficiency)
                     + "_"
                     + str(efficiency_2)
@@ -222,9 +217,7 @@ if __name__ == "__main__":
                 f = open(meas_setting_filepath + datetime_str + "runtime.txt", "a")
                 f.write(str(end_time - start_time))
 
-                time_remaining = time_taken * (
-                    len(meas_settings_list) * len(efficiencies) * len(efficiencies) - i
-                )
+                time_remaining = time_taken * (len(meas_settings_list) * len(efficiencies) * len(efficiencies) - i)
                 print_bar(
                     f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
                 )
@@ -279,17 +272,13 @@ if __name__ == "__main__":
                 filename += "-" + args.diff
                 filename += "-" + args.optimizer
                 filename += "-" + str(args.num_steps)
-                filename += "-" + str(meas_setting).replace("[", "").replace(
-                    "]", ""
-                ).replace(",", "_")
+                filename += "-" + str(meas_setting).replace("[", "").replace("]", "").replace(",", "_")
                 if args.numerics:
                     filename += "-numerics"
                 if args.two_wp:
                     filename += "-twowp"
 
-                output_file = pk.winapi_path(
-                    meas_setting_filepath + datetime_str + filename + ".png"
-                )
+                output_file = pk.winapi_path(meas_setting_filepath + datetime_str + filename + ".png")
                 plt.savefig(output_file)
                 plt.close()
                 time.sleep(0.5)

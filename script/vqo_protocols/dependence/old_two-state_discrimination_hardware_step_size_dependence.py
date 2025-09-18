@@ -80,13 +80,9 @@ if __name__ == "__main__":
         dev_kwargs=eval_kwargs,
     )
 
-    cost = qnetvo.linear_probs_cost_fn(
-        ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"}
-    )
+    cost = qnetvo.linear_probs_cost_fn(ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"})
 
-    eval_cost = qnetvo.linear_probs_cost_fn(
-        eval_ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"}
-    )
+    eval_cost = qnetvo.linear_probs_cost_fn(eval_ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"})
 
     for step_size in step_size_list:
         datetime_str = pk.datetime_now_string()

@@ -240,8 +240,7 @@ if __name__ == "__main__":
     # )
     ax2.semilogy(
         range(num_steps),
-        [(np.mean(background_rates) / np.mean(shot_rates)) * BACKGROUND_MULTIPLIER]
-        * num_steps,
+        [(np.mean(background_rates) / np.mean(shot_rates)) * BACKGROUND_MULTIPLIER] * num_steps,
         "k--",
         label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
     )

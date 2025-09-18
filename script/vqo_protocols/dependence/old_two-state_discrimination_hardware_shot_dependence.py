@@ -78,9 +78,7 @@ for shots in shots_list:
         dev_kwargs=dev_kwargs,
     )
 
-    cost = qnetvo.linear_probs_cost_fn(
-        ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"}
-    )
+    cost = qnetvo.linear_probs_cost_fn(ansatz, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"})
 
     ansatz_eval = qnetvo.NetworkAnsatz(
         [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
@@ -89,9 +87,7 @@ for shots in shots_list:
         dev_kwargs=eval_kwargs,
     )
 
-    eval_cost = qnetvo.linear_probs_cost_fn(
-        ansatz_eval, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"}
-    )
+    eval_cost = qnetvo.linear_probs_cost_fn(ansatz_eval, qnp.eye(2), qnode_kwargs={"diff_method": "parameter-shift"})
 
     shots_filepath = filepath + "shots_" + str(shots) + "/"
 

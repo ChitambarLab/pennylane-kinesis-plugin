@@ -27,6 +27,7 @@ CLASSICAL_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
+
 def plot_data(opt_dict, rac_3, filepath, plot_filename):
     if rac_3:
         QUANTUM_BOUND = QUANTUM_BOUND_3_BIT
@@ -171,6 +172,7 @@ def print_bar(msg):
     print(formatted_msg)
     print(bar)
 
+
 def arb_unitary(settings, wires):
     pk.HWPRotStage(settings[0], wires=[wires[0]])
     pk.QWPRotStage(settings[1], wires=[wires[0]])
@@ -215,21 +217,13 @@ if __name__ == "__main__":
 
     parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 
-    parser.add_argument(
-        "-p", "--plot", default=None, help="Only plot given filename, do not run"
-    )
+    parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
 
-    parser.add_argument(
-        "--num_steps", default=20, help="Num steps to use per optimization."
-    )
+    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
-    parser.add_argument(
-        "--background", default=400, type=int, help="Number of background counts."
-    )
+    parser.add_argument("--background", default=400, type=int, help="Number of background counts.")
 
-    parser.add_argument(
-        "--profile", default=False, action="store_true", help="Profile the code."
-    )
+    parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
 
     parser.add_argument(
         "-d",
@@ -322,11 +316,7 @@ if __name__ == "__main__":
         # network ansatz class manages circuit construction and settings
         if args.rac_3:
             rac_ansatz = qnetvo.NetworkAnsatz(
-                [
-                    qnetvo.PrepareNode(
-                        num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                    )
-                ],
+                [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                 [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
                 [
                     qnetvo.MeasureNode(
@@ -346,17 +336,9 @@ if __name__ == "__main__":
             )
         else:
             rac_ansatz = qnetvo.NetworkAnsatz(
-                [
-                    qnetvo.PrepareNode(
-                        num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                    )
-                ],
+                [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                 [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
-                [
-                    qnetvo.MeasureNode(
-                        num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1
-                    )
-                ],
+                [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1)],
                 dev_kwargs={
                     "name": dev_name,
                     "shot_rate": shot_rate,
@@ -378,8 +360,8 @@ if __name__ == "__main__":
                 rac_ansatz,
                 qnp.array(
                     [
-                        [1,1,1,1,1,0,1,0,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0],
-                        [0,0,0,0,0,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,1,1],
+                        [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
                     ]
                 ),
                 qnode_kwargs=_qnode_kwargs,

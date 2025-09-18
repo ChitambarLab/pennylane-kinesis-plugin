@@ -93,9 +93,7 @@ if __name__ == "__main__":
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
     parser.add_argument(
         "--background_counts",
@@ -116,9 +114,7 @@ if __name__ == "__main__":
         action="store_true",
         help="For two waveplates, use only measurement waveplates instead of prepare.",
     )
-    parser.add_argument(
-        "--qpt", default=False, action="store_true", help="Run process tomography each trial."
-    )
+    parser.add_argument("--qpt", default=False, action="store_true", help="Run process tomography each trial.")
     args = parser.parse_args()
 
     filepath = "./data/state_discrimination"
@@ -141,7 +137,6 @@ if __name__ == "__main__":
     print("Step size list: ", step_size_list)
     print("Number of trials: ", args.num_trials)
     for i, step_size in enumerate(step_size_list):
-
         print_bar(f"Starting trial {i} out of {len(step_size_list)}")
         cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
         print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
@@ -195,7 +190,7 @@ if __name__ == "__main__":
 
         time_remaining = time_taken * (len(step_size_list) - i)
         print_bar(
-            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours."
+            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
 
         """

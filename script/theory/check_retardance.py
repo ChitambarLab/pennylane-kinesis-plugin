@@ -16,12 +16,12 @@ def bloch_to_coords(rho: np.array):
     return np.array([x, y, z])
 
 
-def qwp_mat(theta, retardance=np.pi/2):
+def qwp_mat(theta, retardance=np.pi / 2):
     # off_retardance = retardance * np.pi / 2
 
     c = np.cos(theta)
     s = np.sin(theta)
-    e = np.exp(-1.0j * retardance/2)
+    e = np.exp(-1.0j * retardance / 2)
 
     # If anything is not tensorflow, it has to be casted and then
 
@@ -35,7 +35,7 @@ def qwp_mat(theta, retardance=np.pi/2):
 def hwp_mat(theta, retardance=np.pi):
     c = np.cos(theta)
     s = np.sin(theta)
-    e = np.exp(-1.0j * retardance/2)
+    e = np.exp(-1.0j * retardance / 2)
 
     # If anything is not tensorflow, it has to be casted and then
 
@@ -78,12 +78,8 @@ def make_bloch_animation(retardance=1.0051):
     for i, angle in enumerate(angles):
         qwp = qwp_mat(angle, retardance=retardance)
         qwp_1 = qwp_mat(angle)
-        vectors.append(
-            bloch_to_coords(qwp @ qwp @ input_rho @ qwp.conj().T @ qwp.conj().T)
-        )
-        vectors_1.append(
-            bloch_to_coords(qwp_1 @ qwp_1 @ input_rho @ qwp_1.conj().T @ qwp_1.conj().T)
-        )
+        vectors.append(bloch_to_coords(qwp @ qwp @ input_rho @ qwp.conj().T @ qwp.conj().T))
+        vectors_1.append(bloch_to_coords(qwp_1 @ qwp_1 @ input_rho @ qwp_1.conj().T @ qwp_1.conj().T))
 
     folder_path = f"./bloch_animation/bloch_animation_{retardance:.4f}"
 
@@ -155,26 +151,22 @@ def check_density_matrix(retardance=1.0052):
 
     expected_0 = hwp_1 @ qwp_half_1 @ hwp_1 @ qwp_half_1 @ input_state
     expected_0 = np.outer(expected_0, expected_0.conj().T)
-    print(
-        f"Expected 1 counts: {(1 - np.real(np.trace(input_rho @ expected_0))) * 10000}"
-    )
+    print(f"Expected 1 counts: {(1 - np.real(np.trace(input_rho @ expected_0))) * 10000}")
 
     expected_0 = hwp @ qwp_half @ hwp @ qwp_half @ input_state
     expected_0 = np.outer(expected_0, expected_0.conj().T)
-    print(
-        f"Expected 1 counts imperfect: {(1 - np.real(np.trace(input_rho @ expected_0))) * 10000}"
-    )
+    print(f"Expected 1 counts imperfect: {(1 - np.real(np.trace(input_rho @ expected_0))) * 10000}")
 
 
-def simulate_angle_sweep(retardance=1,phase=0):
+def simulate_angle_sweep(retardance=1, phase=0):
     # angles = np.linspace(211*np.pi/180, np.pi+211*np.pi/180, 180)
-    angles = np.linspace(0,np.pi,180)
+    angles = np.linspace(0, np.pi, 180)
     input_state = np.array([1, 0])
     # input_state = 1/np.sqrt(2)*np.array([1,1])
     input_rho = np.outer(input_state, input_state.conj().T)
     counts = []
     for i, angle in enumerate(angles):
-        qwp = qwp_mat(angle+phase, retardance)
+        qwp = qwp_mat(angle + phase, retardance)
         output_state = qwp @ input_state
 
         output_state = np.outer(output_state, output_state.conj().T)
@@ -182,16 +174,17 @@ def simulate_angle_sweep(retardance=1,phase=0):
         one_counts = 1 - zero_counts
         counts.append([zero_counts, one_counts])
     counts = np.array(counts)
-    
+
     return angles, counts
 
-def simulate_angle_sweep_hwp(retardance=1,phase=0):
+
+def simulate_angle_sweep_hwp(retardance=1, phase=0):
     angles = np.linspace(0, (2 * np.pi), 360)
     input_state = np.array([1, 0])
     input_rho = np.outer(input_state, input_state.conj().T)
     counts = []
     for i, angle in enumerate(angles):
-        qwp = qwp_mat(angle+phase, retardance)
+        qwp = qwp_mat(angle + phase, retardance)
         output_state = qwp @ input_state
 
         output_state = np.outer(output_state, output_state.conj().T)
@@ -199,14 +192,15 @@ def simulate_angle_sweep_hwp(retardance=1,phase=0):
         one_counts = 1 - zero_counts
         counts.append([zero_counts, one_counts])
     counts = np.array(counts)
-    
+
     return angles, counts
+
 
 def plot_angle_sweep(retardance=1):
     folder_name = "./sim_angle_sweeps"
     Path.mkdir(Path(folder_name), exist_ok=True, parents=True)
     angles = np.linspace(0, 2 * np.pi, 360)
-    input_state = 1/np.sqrt(2)*np.array([1, 1])
+    input_state = 1 / np.sqrt(2) * np.array([1, 1])
     input_rho = np.outer(input_state, input_state.conj().T)
     retardances = np.linspace(0.98, 1.1, 50)
     for j, retardance in enumerate(retardances):
@@ -220,9 +214,9 @@ def plot_angle_sweep(retardance=1):
             one_counts = 1 - zero_counts
             counts.append([zero_counts, one_counts])
         # counts = np.array(counts)
-    
+
         counts = np.array(counts)
-            # return angles, counts
+        # return angles, counts
 
         fig, ax = plt.subplots()
 
@@ -245,7 +239,6 @@ def plot_angle_sweep(retardance=1):
         except Exception as e:
             print(f"Error reading {filename}: {e}")
     imageio.mimsave(f"{folder_name}/animation.gif", images, loop=0, duration=5)
-
 
 
 if __name__ == "__main__":

@@ -102,9 +102,7 @@ if __name__ == "__main__":
         action="store_true",
         help="If using the simulator backend.",
     )
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
     parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 

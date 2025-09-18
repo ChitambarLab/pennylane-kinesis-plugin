@@ -65,14 +65,10 @@ def fit_h(
     repeated_input_rho = np.repeat(input_rho[:, :, np.newaxis], 360, axis=2)
     repeated_meas_rho = np.repeat(meas_rho[:, :, np.newaxis], 360, axis=2)
 
-    out_counts_2 = np.einsum(
-        "ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2))
-    )
+    out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2)))
     out_counts_2 = np.einsum("ijk,jlk->ilk", mats, out_counts_2)
     out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_meas_rho, out_counts_2)
-    out_counts_2 = (
-        np.trace(out_counts_2, axis1=0, axis2=1).real * amp + np.ones(360) * offset
-    )
+    out_counts_2 = np.trace(out_counts_2, axis1=0, axis2=1).real * amp + np.ones(360) * offset
     return out_counts_2
 
 
@@ -90,9 +86,7 @@ def fit(x, retardance, amp, offset, meas_density, input_density):
         repeated_input_rho = np.repeat(input_rho[:, :, np.newaxis], 360, axis=2)
         repeated_meas_rho = np.repeat(meas_rho[:, :, np.newaxis], 360, axis=2)
 
-    out_counts_2 = np.einsum(
-        "ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2))
-    )
+    out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2)))
     out_counts_2 = np.einsum("ijk,jlk->ilk", mats, out_counts_2)
     out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_meas_rho, out_counts_2)
     out_counts_2 = (
@@ -106,15 +100,9 @@ def cost_fun(x, orig_h_counts, orig_v_counts):
     ret, amp_h, amp_v, off_h, off_v, zero_angle = x
     zero_angle = int(zero_angle)
     angles = np.linspace(0, np.pi * 2, 360)
-    h_counts = (
-        np.array(orig_h_counts[zero_angle:]).tolist()
-        + np.array(orig_h_counts[:zero_angle]).tolist()
-    )
+    h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
     # h_counts = h_counts[0:45]
-    v_counts = (
-        np.array(orig_v_counts[zero_angle:]).tolist()
-        + np.array(orig_v_counts[:zero_angle]).tolist()
-    )
+    v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
     # v_counts = v_counts[0:45]
 
     amp_h = 1
@@ -131,9 +119,7 @@ def cost_fun(x, orig_h_counts, orig_v_counts):
     # sim_counts_h = sim_counts_h/amp_h - off_h
     # sim_counts_v = sim_counts_v/amp_v - off_v
 
-    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum(
-        (v_counts - sim_counts_v) ** 2
-    )
+    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
 def cost_fun_2(x, orig_h_counts, orig_v_counts):
@@ -158,15 +144,9 @@ def cost_fun_2(x, orig_h_counts, orig_v_counts):
     meas_v_density = arb_mixed_state(a1_mv, a2_mv, a3_mv, a4_mv)
     zero_angle = int(zero_angle)
     angles = np.linspace(0, np.pi * 2, 360)
-    h_counts = (
-        np.array(orig_h_counts[zero_angle:]).tolist()
-        + np.array(orig_h_counts[:zero_angle]).tolist()
-    )
+    h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
     # h_counts = h_counts[0:45]
-    v_counts = (
-        np.array(orig_v_counts[zero_angle:]).tolist()
-        + np.array(orig_v_counts[:zero_angle]).tolist()
-    )
+    v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
     # v_counts = v_counts[0:45]
 
     # amp_h = 1
@@ -176,20 +156,14 @@ def cost_fun_2(x, orig_h_counts, orig_v_counts):
     # amp_v = amp_h
     # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
-    sim_counts_h = fit(
-        angles, ret, amp_h, off_h, meas_h_density, np.array([[1, 0], [0, 0]])
-    )
+    sim_counts_h = fit(angles, ret, amp_h, off_h, meas_h_density, np.array([[1, 0], [0, 0]]))
     # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
-    sim_counts_v = fit(
-        angles, ret, amp_v, off_v, meas_v_density, np.array([[0, 0], [0, 1]])
-    )
+    sim_counts_v = fit(angles, ret, amp_v, off_v, meas_v_density, np.array([[0, 0], [0, 1]]))
 
     # sim_counts_h = sim_counts_h/amp_h - off_h
     # sim_counts_v = sim_counts_v/amp_v - off_v
 
-    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum(
-        (v_counts - sim_counts_v) ** 2
-    )
+    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
 def cost_fun_3(x, orig_h_counts, orig_v_counts):
@@ -211,15 +185,9 @@ def cost_fun_3(x, orig_h_counts, orig_v_counts):
     input_density = np.array([[1, 0], [0, 0]])
     zero_angle = int(zero_angle)
 
-    h_counts = (
-        np.array(orig_h_counts[zero_angle:]).tolist()
-        + np.array(orig_h_counts[:zero_angle]).tolist()
-    )
+    h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
     # h_counts = h_counts[0:45]
-    v_counts = (
-        np.array(orig_v_counts[zero_angle:]).tolist()
-        + np.array(orig_v_counts[:zero_angle]).tolist()
-    )
+    v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
     # v_counts = v_counts[0:45]
 
     if bhwp:
@@ -237,20 +205,14 @@ def cost_fun_3(x, orig_h_counts, orig_v_counts):
     # amp_v = amp_h
     # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
-    sim_counts_h = fit(
-        angles, ret, amp_h, off_h, np.array([[1, 0], [0, 0]]), input_density
-    )
+    sim_counts_h = fit(angles, ret, amp_h, off_h, np.array([[1, 0], [0, 0]]), input_density)
     # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
-    sim_counts_v = fit(
-        angles, ret, amp_v, off_v, np.array([[0, 0], [0, 1]]), input_density
-    )
+    sim_counts_v = fit(angles, ret, amp_v, off_v, np.array([[0, 0], [0, 1]]), input_density)
 
     # sim_counts_h = sim_counts_h/amp_h - off_h
     # sim_counts_v = sim_counts_v/amp_v - off_v
 
-    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum(
-        (v_counts - sim_counts_v) ** 2
-    )
+    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
 if __name__ == "__main__":
@@ -427,15 +389,9 @@ if __name__ == "__main__":
         off_v = 0
         yy_h = fit(xx, ret, amp_h, off_h, np.array([[1, 0], [0, 0]]), input_density)
         yy_v = fit(xx, ret, amp_v, off_v, np.array([[0, 0], [0, 1]]), input_density)
-        h_counts = (
-            np.array(orig_h_counts[zero_angle:]).tolist()
-            + np.array(orig_h_counts[:zero_angle]).tolist()
-        )
+        h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
         # h_counts = h_counts[0:45]
-        v_counts = (
-            np.array(orig_v_counts[zero_angle:]).tolist()
-            + np.array(orig_v_counts[:zero_angle]).tolist()
-        )
+        v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
         if bhwp:
             h_counts = h_counts[0:135]
             v_counts = v_counts[0:135]

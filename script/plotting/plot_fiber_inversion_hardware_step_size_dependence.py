@@ -19,8 +19,6 @@ step_size_list = [
 ]
 plot_filename = "step_size_dependence_numerics"
 
-pk.plot_step_size_dependence_convergence(
-    filepath, step_size_list, plot_filename, background=4, shot_rate=50000
-)
+pk.plot_step_size_dependence_convergence(filepath, step_size_list, plot_filename, background=4, shot_rate=50000)
 
 pk.plot_step_size_dependence(filepath, step_size_list, plot_filename, background=4, shot_rate=50000)

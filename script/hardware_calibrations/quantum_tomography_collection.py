@@ -38,15 +38,8 @@ if __name__ == "__main__":
         help="Number of times to repeat the measurement (to be averaged).",
     )
 
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        default=False,
-        action="store_true"
-    )
-    parser.add_argument(
-        "--state", default=False, action="store_true", help="If running state tomography instead."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true")
+    parser.add_argument("--state", default=False, action="store_true", help="If running state tomography instead.")
 
     args = parser.parse_args()
 
@@ -55,5 +48,10 @@ if __name__ == "__main__":
         exit()
 
     take_tomography_data(
-        args.filepath, args.num_shots, args.integration_time, args.repetitions, args.state,verbose=args.verbose,
+        args.filepath,
+        args.num_shots,
+        args.integration_time,
+        args.repetitions,
+        args.state,
+        verbose=args.verbose,
     )

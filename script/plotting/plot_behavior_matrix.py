@@ -34,9 +34,7 @@ if __name__ == "__main__":
         action="store_true",
         help="If only using two waveplates (fixed measurement waveplates).",
     )
-    parser.add_argument(
-        "-b", "--background", default=False, action="store_true", help="Plot background count line."
-    )
+    parser.add_argument("-b", "--background", default=False, action="store_true", help="Plot background count line.")
 
     parser.add_argument(
         "--numerics",

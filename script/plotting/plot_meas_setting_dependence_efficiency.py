@@ -145,9 +145,7 @@ if __name__ == "__main__":
                     folder_names.append(
                         f"meas_setting{meas_settings_QWP[i]}_ {meas_settings_HWP[j]}{efficiency1}_{efficiency2}"
                     )
-                    all_meas_names.append(
-                        f"{meas_names_QWP[i]} x {meas_names_HWP[j]}{efficiency1}_{efficiency2}"
-                    )
+                    all_meas_names.append(f"{meas_names_QWP[i]} x {meas_names_HWP[j]}{efficiency1}_{efficiency2}")
 
                     # for k in range(len(meas_settings_QWP)):
                     # folder_names.append(
@@ -167,8 +165,7 @@ if __name__ == "__main__":
             # fig, ax2 = plt.subplots()
 
             fig.suptitle(
-                args.title
-                + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+                args.title + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
                 fontweight="bold",
                 fontsize=14,
             )
@@ -179,11 +176,7 @@ if __name__ == "__main__":
                 # if all_meas_settings[k][0] == 0
                 #     continue
                 opt_files = get_files(
-                    Path(
-                        pk.winapi_path(
-                            args.filepath + meas_setting + filepath_type + two_wp
-                        )
-                    ),
+                    Path(pk.winapi_path(args.filepath + meas_setting + filepath_type + two_wp)),
                     r"optimization_.*\.json",
                 )
 
@@ -227,9 +220,7 @@ if __name__ == "__main__":
                 std_min_cost_vals = []
                 for i in range(len(aggregate_data)):
                     std_mean_cost_vals += [np.mean(aggregate_data[i])]
-                    std_std_err_cost_vals += [
-                        np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))
-                    ]
+                    std_std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
                     std_min_cost_vals += [np.min(aggregate_data[i])]
 
                 std_np_mean = np.array(std_mean_cost_vals)
@@ -270,9 +261,7 @@ if __name__ == "__main__":
                 print(f"Shot rate std err: {shot_rate_std_err}")
                 background_rate = np.array(background_rates)
                 background_std_dev = np.std(background_rate)
-                background_std_err = np.std(background_rate) / np.sqrt(
-                    len(background_rate)
-                )
+                background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
                 # print(f"bakcgorund rate: {background_rate}")
                 print(f"max background rate: {np.max(background_rate)}")
                 print(f"min background rate: {np.min(background_rate)}")
@@ -286,20 +275,12 @@ if __name__ == "__main__":
                     range(len(std_np_mean)),
                     [background_mean / np.mean(shot_rates)] * len(std_np_mean),
                     "k--",
-                    label="Background ("
-                    + str(np.mean(background_rate).round(1))
-                    + " cps)",
+                    label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
                 )
                 ax.fill_between(
                     range(len(std_np_mean)),
-                    (
-                        [(background_mean - background_std_err) / np.mean(shot_rates)]
-                        * len(std_np_mean)
-                    ),
-                    (
-                        [(background_mean + background_std_err) / np.mean(shot_rates)]
-                        * len(std_np_mean)
-                    ),
+                    ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
+                    ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
                     alpha=1 / 4,
                     color="black",
                     linestyle="--",

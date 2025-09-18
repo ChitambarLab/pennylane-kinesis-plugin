@@ -22,9 +22,7 @@ opt_dicts = []
 
 i = 0
 for shots in shots_list:
-    dev = qml.device(
-        "kinesis.simulator", wires=[0], shots=shots, background_counts=background_list[i]
-    )
+    dev = qml.device("kinesis.simulator", wires=[0], shots=shots, background_counts=background_list[i])
 
     @qml.qnode(dev, diff_method="parameter-shift")
     def cost(settings):

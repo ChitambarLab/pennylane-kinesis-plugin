@@ -129,9 +129,7 @@ if two_wp:
 
 else:
     data_path += "four_wp/"
-    meas_node = qnetvo.MeasureNode(
-        num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-    )
+    meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
 
 make_dir(data_path)
 
@@ -162,9 +160,7 @@ if diff_method == "finite-diff":
     qnode_kwargs["h"] = 1e-3
     qnode_kwargs["strategy"] = "center"
     qnode_kwargs["approx_order"] = 2
-state_disc_cost = qnetvo.linear_probs_cost_fn(
-    state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
-)
+state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
 
 # loss = lambda settings: state_disc_cost(*settings)
 
@@ -266,9 +262,7 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
 
     data = [
         go.Surface(z=ll, x=xx, y=yy, opacity=0.95),
-        go.Scatter3d(
-            x=params_x, y=params_y, z=params_z, mode="markers+lines", marker={"size": 1}
-        ),
+        go.Scatter3d(x=params_x, y=params_y, z=params_z, mode="markers+lines", marker={"size": 1}),
     ]
 
     print("plotting")

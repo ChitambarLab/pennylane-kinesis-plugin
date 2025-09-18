@@ -34,15 +34,9 @@ def cost_fun(x, orig_h_counts, orig_v_counts):
     ret, amp_h, amp_v, off_h, off_v, zero_angle = x
     zero_angle = int(zero_angle)
     angles = np.linspace(0, np.pi * 2, 360)
-    h_counts = (
-        np.array(orig_h_counts[zero_angle:]).tolist()
-        + np.array(orig_h_counts[:zero_angle]).tolist()
-    )
+    h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
     # h_counts = h_counts[0:90]
-    v_counts = (
-        np.array(orig_v_counts[zero_angle:]).tolist()
-        + np.array(orig_v_counts[:zero_angle]).tolist()
-    )
+    v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
     # v_counts = v_counts[0:90]
 
     phase = 0
@@ -59,20 +53,14 @@ def cost_fun(x, orig_h_counts, orig_v_counts):
     # amp_v = amp_h
     # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
-    sim_counts_h = fit_h(
-        angles, ret, amp_h, off_h, a1_i, a2_i, a3_i, a4_i, 1, 0, 0, 0, phase
-    )
+    sim_counts_h = fit_h(angles, ret, amp_h, off_h, a1_i, a2_i, a3_i, a4_i, 1, 0, 0, 0, phase)
     # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
-    sim_counts_v = fit_h(
-        angles, ret, amp_v, off_v, a1_i, a2_i, a3_i, a4_i, 0, 1, 0, 0, phase
-    )
+    sim_counts_v = fit_h(angles, ret, amp_v, off_v, a1_i, a2_i, a3_i, a4_i, 0, 1, 0, 0, phase)
 
     # sim_counts_h = sim_counts_h/amp_h - off_h
     # sim_counts_v = sim_counts_v/amp_v - off_v
 
-    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum(
-        (v_counts - sim_counts_v) ** 2
-    )
+    return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
 def fit_all(x, h_counts, v_counts):
@@ -81,9 +69,7 @@ def fit_all(x, h_counts, v_counts):
     sim_h_counts = sim_counts[:, 0] * A_h + k_h
     sim_v_counts = sim_counts[:, 1] * A_v + k_v
 
-    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum(
-        (v_counts - sim_v_counts) ** 2
-    )
+    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum((v_counts - sim_v_counts) ** 2)
 
 
 def fit_retardance(x, h_counts, v_counts, amplitude_h, amplitude_v, offset_h, offset_v):
@@ -92,9 +78,7 @@ def fit_retardance(x, h_counts, v_counts, amplitude_h, amplitude_v, offset_h, of
     sim_h_counts = sim_counts[:, 0] * amplitude_h + offset_h
     sim_v_counts = sim_counts[:, 1] * amplitude_v + offset_v
 
-    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum(
-        (v_counts - sim_v_counts) ** 2
-    )
+    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum((v_counts - sim_v_counts) ** 2)
 
 
 def fit_retardance_hwp(x, h_counts, v_counts):
@@ -103,9 +87,7 @@ def fit_retardance_hwp(x, h_counts, v_counts):
     sim_h_counts = sim_counts[:, 0]
     sim_v_counts = sim_counts[:, 1]
 
-    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum(
-        (v_counts - sim_v_counts) ** 2
-    )
+    return np.sum((h_counts - sim_h_counts) ** 2) + np.sum((v_counts - sim_v_counts) ** 2)
 
 
 def qwp_mat(theta, retardance=np.pi / 2):
@@ -180,14 +162,10 @@ def fit_h(
     repeated_input_rho = np.repeat(input_rho[:, :, np.newaxis], 360, axis=2)
     repeated_meas_rho = np.repeat(meas_rho[:, :, np.newaxis], 360, axis=2)
 
-    out_counts_2 = np.einsum(
-        "ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2))
-    )
+    out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2)))
     out_counts_2 = np.einsum("ijk,jlk->ilk", mats, out_counts_2)
     out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_meas_rho, out_counts_2)
-    out_counts_2 = (
-        np.trace(out_counts_2, axis1=0, axis2=1).real * amp + np.ones(360) * offset
-    )
+    out_counts_2 = np.trace(out_counts_2, axis1=0, axis2=1).real * amp + np.ones(360) * offset
     return out_counts_2
     # out_counts_2 = np.trace(meas_rho[:,:,np.newaxis]@mats@input_rho[:,:,np.newaxis]@np.transpose(mats.conj(),(1,0,2)),axis1=0,axis2=1)*amp + offset
     # out_counts_2
@@ -485,9 +463,7 @@ if __name__ == "__main__":
 
     xx = np.linspace(0, np.pi * 2, 360)
     # yy_h = fit_h(xx, ret_h, amp_h,off_h,input_0_amp_h_real,input_0_amp_h_imag, input_1_amp_h_real,input_1_amp_h_imag, meas_0_amp_h_real,meas_0_amp_h_imag, meas_1_amp_h_real,meas_1_amp_h_imag,phase_h)
-    yy_h = fit_h(
-        xx, ret, amp_h, off_h, a1_i, a2_i, a3_i, a4_i, a1_mh, a2_mh, a3_mh, a4_mh, phase
-    )
+    yy_h = fit_h(xx, ret, amp_h, off_h, a1_i, a2_i, a3_i, a4_i, a1_mh, a2_mh, a3_mh, a4_mh, phase)
 
     # yy_h = fit_sin(xx, A_h, phase_h, freq_h,offset_h)
 
@@ -497,9 +473,7 @@ if __name__ == "__main__":
 
     # yy_v = fit_sin(xx, A_v, phase_v, freq_v,offset_v)
     # yy_v = fit_h(xx, ret_v, amp_v,off_v,input_0_amp_v_real,input_0_amp_v_imag, input_1_amp_v_real,input_1_amp_v_imag, meas_0_amp_v_real,meas_0_amp_v_imag, meas_1_amp_v_real,meas_1_amp_v_imag,phase_v)
-    yy_v = fit_h(
-        xx, ret, amp_v, off_v, a1_i, a2_i, a3_i, a4_i, a1_mv, a2_mv, a3_mv, a4_mv, phase
-    )
+    yy_v = fit_h(xx, ret, amp_v, off_v, a1_i, a2_i, a3_i, a4_i, a1_mv, a2_mv, a3_mv, a4_mv, phase)
 
     print(yy_h)
     print(orig_h_counts)
@@ -555,15 +529,9 @@ if __name__ == "__main__":
             a4_mv,
             phase,
         )
-        h_counts = (
-            np.array(orig_h_counts[zero_angle:]).tolist()
-            + np.array(orig_h_counts[:zero_angle]).tolist()
-        )
+        h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
         # h_counts = h_counts[0:360]
-        v_counts = (
-            np.array(orig_v_counts[zero_angle:]).tolist()
-            + np.array(orig_v_counts[:zero_angle]).tolist()
-        )
+        v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
         # v_counts = v_counts[0:90]
         axis.plot(angles, h_counts, label="H Counts")
         axis.plot(angles, v_counts, label="V counts")

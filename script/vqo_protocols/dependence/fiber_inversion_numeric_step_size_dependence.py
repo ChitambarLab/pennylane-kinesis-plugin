@@ -38,9 +38,7 @@ for use_adam in [True, False]:
             return qml.expval(qml.Projector([1], wires=dev.wires[0]))
 
         step_size_filepath = filepath + "step_size_" + str(step_size).replace(".", "_") + "/"
-        init_settings = qnp.random.rand(2, requires_grad=True) * qnp.array(
-            [theta_period, phi_period]
-        )
+        init_settings = qnp.random.rand(2, requires_grad=True) * qnp.array([theta_period, phi_period])
 
         optimizer_str = "adam_optimization_" if use_adam else "standard_optimization_"
 

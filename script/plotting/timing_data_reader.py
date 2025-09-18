@@ -98,31 +98,20 @@ def plot_timing(timing_file):
                 facecolors="orange",
             )
 
-            title = "Active time of each rotation stage\n" + str(
-                timing_file.split("\\")[2].split(".")[0].split("Z")[0]
-            )
+            title = "Active time of each rotation stage\n" + str(timing_file.split("\\")[2].split(".")[0].split("Z")[0])
             ax.set_title(title)
-            ax.set_yticks(
-                [0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"]
-            )
+            ax.set_yticks([0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"])
             ax.set_xlabel("Time (s)")
 
-            Path(timing_file.rsplit("\\", 1)[0] + "/timing_files/").mkdir(
-                parents=True, exist_ok=True
-            )
+            Path(timing_file.rsplit("\\", 1)[0] + "/timing_files/").mkdir(parents=True, exist_ok=True)
             fig_path = (
-                timing_file.rsplit("\\", 1)[0]
-                + "/timing_files/"
-                + timing_file.split("\\")[-1].split(".")[0]
-                + ".png"
+                timing_file.rsplit("\\", 1)[0] + "/timing_files/" + timing_file.split("\\")[-1].split(".")[0] + ".png"
             )
             print("writing to file:" + fig_path)
             plt.savefig(fig_path, bbox_inches="tight")
             plt.close()
         diff = np.sum(run_times, axis=1) - np.sum(run_times_filtered, axis=1)
-        duty_cycle = np.sum(run_times, axis=1) / (
-            np.sum(off_times, axis=1) + np.sum(run_times, axis=1)
-        )
+        duty_cycle = np.sum(run_times, axis=1) / (np.sum(off_times, axis=1) + np.sum(run_times, axis=1))
 
         duty_cycles.append(duty_cycle)
         print("Duty cycle percentage:", np.sum(run_times, axis=1) / (np.sum(off_times, axis=1)))
@@ -244,9 +233,7 @@ if __name__ == "__main__":
                     total_time_files.append(directory + file)
     total_time_files = sorted(
         total_time_files,
-        key=lambda x: datetime.strptime(
-            x.split("/")[-1].split("Z")[0], "%Y-%m-%dT%H-%M-%S"
-        ).timestamp(),
+        key=lambda x: datetime.strptime(x.split("/")[-1].split("Z")[0], "%Y-%m-%dT%H-%M-%S").timestamp(),
     )
 
     if args.total_times:

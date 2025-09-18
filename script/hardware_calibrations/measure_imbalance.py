@@ -11,9 +11,7 @@ config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
 NUM_REPS = 50
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure the imbalance of the interferometer.")
-    parser.add_argument(
-        "-f", "--filepath", default="./data/detector_balance/", help="Path to the data folder."
-    )
+    parser.add_argument("-f", "--filepath", default="./data/detector_balance/", help="Path to the data folder.")
     parser.add_argument("-v", "--verbose", default=False)
     args = parser.parse_args()
 

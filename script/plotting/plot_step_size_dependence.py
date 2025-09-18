@@ -59,9 +59,7 @@ if __name__ == "__main__":
         print("Please provide a filepath to the data folder. (-f)")
         exit()
 
-    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(
-        tzinfo=timezone.utc
-    )
+    date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
     if not args.two_wp:
         args.subtitle.replace("two_wp", "four_wp")
 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
         numerics=args.numerics,
         two_wp=args.two_wp,
         # add_background=True,
-        background= args.background,
+        background=args.background,
         shot_rate=250000,
         title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
     )

@@ -285,11 +285,7 @@ if __name__ == "__main__":
                 print("alpha,beta,gamma : ", alpha, ",", beta, ",", gamma, ",")
 
                 rac2_ansatz = qnetvo.NetworkAnsatz(
-                    [
-                        qnetvo.PrepareNode(
-                            num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                        )
-                    ],
+                    [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                     [
                         qnetvo.NoiseNode(
                             wires=[0],
@@ -298,11 +294,7 @@ if __name__ == "__main__":
                             ),
                         )
                     ],
-                    [
-                        qnetvo.MeasureNode(
-                            num_out=2, num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-                        )
-                    ],
+                    [qnetvo.MeasureNode(num_out=2, num_in=3, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
                     dev_kwargs=dev_kwargs,
                 )
 

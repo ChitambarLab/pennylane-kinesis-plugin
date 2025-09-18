@@ -152,9 +152,7 @@ if diff_method == "finite-diff":
     qnode_kwargs["h"] = 1e-3
     qnode_kwargs["strategy"] = "center"
     qnode_kwargs["approx_order"] = 2
-state_disc_cost = qnetvo.linear_probs_cost_fn(
-    state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
-)
+state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
 
 # loss = lambda settings: state_disc_cost(*settings)
 
@@ -263,9 +261,7 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
     fig = go.Figure(data=data)
     fig.update_layout(width=800, height=800)
     fig.write_html(data_path + "plot_hardware_11-21.html", auto_open=False)
-    pkl.dump(
-        [ll, mean, Q, xy, scale, step], open(data_path + "loss_landscape_hardware_11-21.pkl", "wb")
-    )
+    pkl.dump([ll, mean, Q, xy, scale, step], open(data_path + "loss_landscape_hardware_11-21.pkl", "wb"))
     print(np.unravel_index(ll.argmin(), ll.shape))
     argmin_idx = np.unravel_index(ll.argmin(), ll.shape)
     argmin = [np.array(x[argmin_idx[0]]), np.array(y[argmin_idx[1]])]

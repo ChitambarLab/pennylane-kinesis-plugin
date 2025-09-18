@@ -58,9 +58,7 @@ for shots in shots_list:
         shots=shots,
     )
 
-    plt.semilogy(
-        range(len(opt_dict["cost_vals"])), opt_dict["cost_vals"], label="shots = " + str(shots)
-    )
+    plt.semilogy(range(len(opt_dict["cost_vals"])), opt_dict["cost_vals"], label="shots = " + str(shots))
 
     dev.disconnect()
 

@@ -16,9 +16,7 @@ NOTE: Before running script make sure that the "./data/state_discrimination_hard
 
 theta_period = qnp.pi / 2
 phi_period = qnp.pi
-period_array = qnp.array(
-    [theta_period, theta_period, phi_period, phi_period, theta_period, phi_period]
-)
+period_array = qnp.array([theta_period, theta_period, phi_period, phi_period, theta_period, phi_period])
 filepath = "./data/state_discrimination_hardware_shot_dependence/"
 shot_rate = 120000
 

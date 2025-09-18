@@ -51,9 +51,7 @@ if __name__ == "__main__":
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
     parser.add_argument(
         "-s",

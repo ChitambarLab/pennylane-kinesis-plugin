@@ -3,7 +3,6 @@ import argparse
 import re
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         prog="Elliptec Setup",
         description="Set up elliptec rotation mounts.",

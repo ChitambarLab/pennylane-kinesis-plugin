@@ -61,12 +61,7 @@ if __name__ == "__main__":
 
             deviceInfo = device.get_device_info()
 
-            print(
-                deviceInfo.model_no
-                + " (S/N "
-                + str(deviceInfo.serial_no)
-                + ") is ready to use."
-            )
+            print(deviceInfo.model_no + " (S/N " + str(deviceInfo.serial_no) + ") is ready to use.")
             print()
 
             return deviceConfig
@@ -117,9 +112,7 @@ if __name__ == "__main__":
                     print(f"WP {wp + 1} is at {motors.wps[wp].get_position()} degrees.")
                 break
             elif key in ["1", "2", "3", "4"]:
-                print(
-                    "Press a to move to an absolute angle or r to move to a relative angle."
-                )
+                print("Press a to move to an absolute angle or r to move to a relative angle.")
                 move_type = input()
                 if move_type in ["a", "r"]:
                     handle_input(move_type, key)
