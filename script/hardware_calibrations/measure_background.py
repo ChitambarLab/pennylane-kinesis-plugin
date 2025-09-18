@@ -20,14 +20,14 @@ if __name__ == "__main__":
             data = qnp.loadtxt(file)
             print(data)
             data = qnp.array(data)
-            print(f"Mean: {qnp.mean(qnp.sum(data,axis=1))}")
-            print(f"Standard deviation: {qnp.std(qnp.sum(data,axis=1))}")
+            print(f"Mean: {qnp.mean(qnp.sum(data, axis=1))}")
+            print(f"Standard deviation: {qnp.std(qnp.sum(data, axis=1))}")
             print(f"Variance: {qnp.var(data)}")
 
             print(f"Mean h: {qnp.mean(data[:, 0])}")
-            print(f"Standard deviation h: {qnp.std(data[:,0])}")
+            print(f"Standard deviation h: {qnp.std(data[:, 0])}")
             print(f"Mean v: {qnp.mean(data[:, 1])}")
-            print(f"Standard deviation v: {qnp.std(data[:,1])}")
+            print(f"Standard deviation v: {qnp.std(data[:, 1])}")
 
     else:
         print("Connecting to time-tagger")

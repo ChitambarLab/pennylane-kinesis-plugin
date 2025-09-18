@@ -1,4 +1,4 @@
-import pennylane_kinesis as pk
+ import pennylane_kinesis as pk
 from datetime import datetime, timezone
 import argparse
 from pathlib import Path
@@ -12,8 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pytz
 import plotly.express as px
+import os
 
-_COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]*3
+_COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] * 3
 PI = 3.141592653589793
 PI_2 = 1.5707963267948966
 PI_4 = 0.7853981633974483
@@ -48,7 +49,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-b", "--background", action="store_true", default=False, help="Plot background count line."
+        "-b",
+        "--background",
+        action="store_true",
+        default=False,
+        help="Plot background count line.",
     )
 
     parser.add_argument(
@@ -64,9 +69,9 @@ if __name__ == "__main__":
         help="Title for the plot.",
     )
 
-    
-
-    parser.add_argument("--subtitle", default="\n(two-wp, adagrad, parameter-shift, no fiber, SMF, Swapped QWP)")
+    parser.add_argument(
+        "--subtitle", default="\n(two-wp, adagrad, parameter-shift, NUMERICS)"
+    )
 
     args = parser.parse_args()
 
@@ -77,27 +82,41 @@ if __name__ == "__main__":
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
 
     datetime_str = datetime_now_string()
-    
+
     date_path = Path(args.filepath).name
-    date_of_run = pytz.timezone("UTC").localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")).astimezone(pytz.timezone("US/Central")).strftime("%Y-%m-%d %H:%M:%S")
-
-
+    date_of_run = (
+        pytz.timezone("UTC")
+        .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
+        .astimezone(pytz.timezone("US/Central"))
+        .strftime("%Y-%m-%d %H:%M:%S")
+    )
 
     # meas_settings_HWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
     # meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
     # meas_names_HWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
     # meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
 
-    
     meas_settings_HWP = [str(PI_4)]
     meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
     meas_names_HWP = [r"$\frac{\pi}{4}$"]
-    meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
+    meas_names_QWP = [
+        str(0),
+        r"$\frac{\pi}{4}$",
+        r"$\frac{\pi}{2}$",
+        r"$\frac{3\pi}{4}$",
+        r"$\pi$",
+    ]
 
-    # setting = 
-    
-    meas_settings_QWP = [str(0), str(PI_4),str(PI_2),str(PI_3_4), str(PI)]
-    meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
+    # setting =
+
+    meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
+    meas_names_QWP = [
+        str(0),
+        r"$\frac{\pi}{4}$",
+        r"$\frac{\pi}{2}$",
+        r"$\frac{3\pi}{4}$",
+        r"$\pi$",
+    ]
     # meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$"]
     meas_settings_HWP = [meas_settings_QWP[0]]
     meas_names_HWP = [meas_names_QWP[0]]
@@ -113,21 +132,23 @@ if __name__ == "__main__":
     # all_meas_settings = zip(meas_settings, meas_settings)
     for i in range(len(meas_settings_HWP)):
         for j in range(len(meas_settings_QWP)):
-            folder_names.append(f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}")
+            folder_names.append(
+                f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}"
+            )
             all_meas_names.append(f"{meas_names_HWP[i]} x {meas_names_QWP[j]}")
 
-
-    two_wp = "\\two_wp\\"
+    two_wp = "/two_wp/"
 
     N = len(meas_names_HWP)
     print(N)
     # plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.viridis(np.linspace(0,1,N)))
 
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     # fig, ax2 = plt.subplots()
 
     fig.suptitle(
-        args.title+args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        args.title
+        + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )
@@ -137,10 +158,18 @@ if __name__ == "__main__":
         # if k%5 == 0:
         # if all_meas_settings[k][0] == 0
         #     continue
-        opt_files = get_files(Path(pk.winapi_path(args.filepath + meas_setting+filepath_type+two_wp)), r"optimization_.*\.json")
+        opt_files = get_files(
+            Path(pk.winapi_path(args.filepath + meas_setting + filepath_type + two_wp)),
+            r"optimization_.*\.json",
+        )
 
         date_path = Path(args.filepath).name
-        date_of_run = pytz.timezone("UTC").localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")).astimezone(pytz.timezone("US/Central")).strftime("%Y-%m-%d %H:%M:%S")
+        date_of_run = (
+            pytz.timezone("UTC")
+            .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
+            .astimezone(pytz.timezone("US/Central"))
+            .strftime("%Y-%m-%d %H:%M:%S")
+        )
 
         for file in opt_files:
             print(f"Using {file}")
@@ -156,16 +185,16 @@ if __name__ == "__main__":
                 if len(aggregate_data) <= i:
                     aggregate_data += [[]]
 
-                aggregate_data[i] += [opt_dict["cost_vals"][i]/2 + 1]
+                aggregate_data[i] += [opt_dict["cost_vals"][i] / 2 + 1]
             if args.background:
                 # if np.sum(opt_dict["background_rate"]) > 1000:
-                    # print("Background rate too high!")
-                    # print(f"Background rate: {np.sum(opt_dict['background_rate'])}")
-                    # print(f"std_opt_dict['background_rate']: {opt_dict['background_rate']}")
-                    # print(f"filename: {opt_files[j]}")
-                    # input()
+                # print("Background rate too high!")
+                # print(f"Background rate: {np.sum(opt_dict['background_rate'])}")
+                # print(f"std_opt_dict['background_rate']: {opt_dict['background_rate']}")
+                # print(f"filename: {opt_files[j]}")
+                # input()
                 # else:
-                    background_rates += [np.sum(opt_dict["background_rate"])]
+                background_rates += [np.sum(opt_dict["background_rate"])]
 
             shot_rates += [np.sum(opt_dict["shot_rate"])]
 
@@ -194,7 +223,7 @@ if __name__ == "__main__":
         ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
-            alpha=3/4,
+            alpha=3 / 4,
             label=f"{all_meas_names[k]}",
             color=_COLORS[c_id],
             linestyle="--",
@@ -235,29 +264,48 @@ if __name__ == "__main__":
         )
         ax.fill_between(
             range(len(std_np_mean)),
-            ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
-            ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
+            (
+                [(background_mean - background_std_err) / np.mean(shot_rates)]
+                * len(std_np_mean)
+            ),
+            (
+                [(background_mean + background_std_err) / np.mean(shot_rates)]
+                * len(std_np_mean)
+            ),
             alpha=1 / 4,
             color="black",
             linestyle="--",
         )
 
-
     # plt.figtext(0.55, 0, date_of_run, fontsize=10, ha='center')
     ax.set_xlabel("Gradient Descent Step")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
-    fig.legend(loc="upper right", bbox_to_anchor=(1, 0.85), ncol=4, title="bHWP x bQWP Measurement Settings")
-    plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha='right')
+    fig.legend(
+        loc="upper right",
+        bbox_to_anchor=(1, 0.85),
+        ncol=4,
+        title="bHWP x bQWP Measurement Settings",
+    )
+    plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha="right")
     fig.tight_layout()
 
     plt.grid()
 
-    import os
     face_id = 1
-    while os.path.exists(Path(args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}.png")):
+    while os.path.exists(
+        Path(
+            args.filepath
+            + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}.png"
+        )
+    ):
         face_id += 1
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
-        plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"))
+        plt.savefig(
+            Path(
+                args.filepath
+                + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"
+            )
+        )

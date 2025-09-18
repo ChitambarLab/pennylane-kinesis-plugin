@@ -1,6 +1,11 @@
 import argparse
 import os
-from pennylane_kinesis import KinesisCageRotatorDevice, KinesisMotors, TimeTaggerType, swabian
+from pennylane_kinesis import (
+    KinesisCageRotatorDevice,
+    KinesisMotors,
+    TimeTaggerType,
+    swabian,
+)
 import time
 from pylablib.devices import Thorlabs
 
@@ -8,7 +13,6 @@ _WIMP_MODE = False
 _TEST_MODE = False
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         prog="Manual alignment",
         description="Manually align the rotation stages to the desired angles.",
@@ -57,7 +61,12 @@ if __name__ == "__main__":
 
             deviceInfo = device.get_device_info()
 
-            print(deviceInfo.model_no + " (S/N " + str(deviceInfo.serial_no) + ") is ready to use.")
+            print(
+                deviceInfo.model_no
+                + " (S/N "
+                + str(deviceInfo.serial_no)
+                + ") is ready to use."
+            )
             print()
 
             return deviceConfig
@@ -82,13 +91,13 @@ if __name__ == "__main__":
         motors.wps[int(motor) - 1].move_to(angle)
         motors.wps[int(motor) - 1].wait_for_stop()
         print(f"Moved motor {motor} to {angle} degrees.")
-        print(f"Current angle: {motors.wps[int(motor)-1].get_position()}.")
+        print(f"Current angle: {motors.wps[int(motor) - 1].get_position()}.")
 
     def move_relative(motor, angle):
         motors.wps[int(motor) - 1].move_by(angle)
         motors.wps[int(motor) - 1].wait_for_stop()
         print(f"Moved motor {motor} by {angle} degrees.")
-        print(f"Current angle: {motors.wps[int(motor)-1].get_position()}.")
+        print(f"Current angle: {motors.wps[int(motor) - 1].get_position()}.")
 
     print("Started motors.")
 
@@ -105,14 +114,16 @@ if __name__ == "__main__":
             key = input()
             if key == "q":
                 for wp in range(len(motors.wps)):
-                    print(f"WP {wp+1} is at {motors.wps[wp].get_position()} degrees.")
+                    print(f"WP {wp + 1} is at {motors.wps[wp].get_position()} degrees.")
                 break
             elif key in ["1", "2", "3", "4"]:
-                print("Press a to move to an absolute angle or r to move to a relative angle.")
+                print(
+                    "Press a to move to an absolute angle or r to move to a relative angle."
+                )
                 move_type = input()
                 if move_type in ["a", "r"]:
                     handle_input(move_type, key)
     except KeyboardInterrupt:
         for wp in range(len(motors.wps)):
-            print(f"WP {wp+1} is at {motors.wps[wp].get_position()} degrees.")
+            print(f"WP {wp + 1} is at {motors.wps[wp].get_position()} degrees.")
         exit()

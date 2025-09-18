@@ -64,7 +64,6 @@ def get_files(path, regex):
 
 
 def read_config(config_file):
-
     with open(config_file) as f:
         config_lines = f.readlines()
 

@@ -6,34 +6,45 @@ from .file_utilities import datetime_now_string
 from .file_utilities import make_dir
 from .kinesis_cage_rotator_device import KinesisMotors
 from .operators import HWPRotStage
-from .operators import QWPRotStage, VariableWPRotStage
+from .operators import QWPRotStage
+from .operators import (
+    HWPRotStage,
+    QWPRotStage,
+    VariableWPRotStage,
+    WaveplateTypes,
+    QWP_RETARDANCE_A,
+    QWP_RETARDANCE_B,
+    HWP_RETARDANCE_B
+)
 from .optimization import optimize
 import pennylane_kinesis as pk
 from .elliptec_rotator_device import ElliptecMotors
-import numpy as np
 import time
+import pickle
+
+with open("./data/fiber_kraus_operations/kraus_ops_03_04_fixed.pkl", "rb") as f:
+    fiber_ops = pickle.load(f)
 
 HWP_PERIOD = np.pi / 2
 QWP_PERIOD = np.pi
-
 
 def two_state_discrimination(
     filepath,
     shots=10000,
     shot_rate=3000000,
-    background_counts=300,
+    background_counts=[300,100],
     two_wp=False,
     numerics=False,
     step_size=0.08,
     num_steps=20,
-    optimizer="gradient-descent",
+    optimizer="adagrad",
     verbose=True,
     fixed_meas_settings=[0, 0],
     hwp_period=HWP_PERIOD,
     qwp_period=QWP_PERIOD,
     test_mode=False,
     diff_method="parameter-shift",
-    meas_only=False,
+    efficiencies=[1, 1],
 ):
     """
     Performs a hardware-compatible optimization of minimal error discrimination of two encoded states.
@@ -87,27 +98,31 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=[wires[0]])
         QWPRotStage(settings[1], wires=[wires[0]])
 
+    def arb_unitary_retardance(settings, wires):
+        HWPRotStage(settings[0], wires=[wires[0]])
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
+
     # Function to use for MeasureNode if we are not moving the measurement waveplates.
     def meas_fn(settings, wires):
         HWPRotStage(settings[0], wires=wires[0:1])
         QWPRotStage(settings[1], wires=wires[0:1])
 
-
-    def meas_fn_2(settings, wires):
+    def meas_fn_swapped_order(settings, wires):
         QWPRotStage(settings[1], wires=wires[0:1])
         HWPRotStage(settings[0], wires=wires[0:1])
 
-    def prep_fn(settings, wires):
-        HWPRotStage(settings[0], wires=wires[0:1])
-        QWPRotStage(settings[1], wires=wires[0:1])
+    def meas_fn_retardance(settings, wires):
+        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
 
-    def var_retardance_unitary(settings, wires):
-        HWPRotStage(settings[0],wires=wires[0:1])
-        VariableWPRotStage(settings[1], wires=wires[0:1], retardance=1.617103)
-    
-    def var_retardance_meas(settings, wires):
-        VariableWPRotStage(settings[1], wires=wires[0:1], retardance=1.6551547) #qwp
-        VariableWPRotStage(settings[0],wires=wires[0:1], retardance=3.00416) #hwp
+    def meas_fn_swapped_order_retardance(settings, wires):
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+        HWPRotStage(settings[0], wires=[wires[0]])
+
+    def noise_fn(settings, wires):
+        kraus_ops = fiber_ops
+        qml.QubitChannel(kraus_ops, wires=wires[0])
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -117,6 +132,8 @@ def two_state_discrimination(
             "background_counts": background_counts,
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
+            "h_efficiency": efficiencies[0],
+            "v_efficiency": efficiencies[1],
         }
     else:
         motors = ElliptecMotors(test_mode=test_mode)
@@ -142,47 +159,41 @@ def two_state_discrimination(
 
     meas_node = None
     if two_wp:
-        data_path += "two_wp/meas_only/" if meas_only else "two_wp/"
-        if meas_only:
-            pass
-            # prep_node = qnetvo.PrepareNode(
-            #     num_in=2,
-            #     wires=[0],
-            #     ansatz_fn=lambda *args: prep_fn(fixed_meas_settings, args[1]),
-            #     num_settings=0,
-            # )
-            # meas_node = qnetvo.MeasureNode(
-            #     num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
-            # )
-        else:
-            meas_node = qnetvo.MeasureNode(
-                num_in=1,
-                num_out=2,
-                wires=[0],
-                ansatz_fn=lambda *args: meas_fn_2(fixed_meas_settings, args[1]),
-                num_settings=0,
-            )
+        data_path += "two_wp/"
+        meas_node = qnetvo.MeasureNode(
+            num_in=1,
+            num_out=2,
+            wires=[0],
+            ansatz_fn=lambda *args: meas_fn_retardance(
+                fixed_meas_settings, args[1]
+            ),
+            num_settings=0,
+        )
+
     else:
         data_path += "four_wp/"
-        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
+        meas_node = qnetvo.MeasureNode(
+            num_in=1, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2
+        )
 
     make_dir(data_path)
 
     datetime_str = datetime_now_string()
 
     # network ansatz class manages circuit construction and settings
+
+    # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [
-            qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)
-        ],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
         [meas_node],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,
             "shots": shots,
             "debug": verbose,
-            **additional_dev_kwargs,
-        },
+            **additional_dev_kwargs
+        }
     )
 
     device = qml.device(**state_disc_ansatz.dev_kwargs)
@@ -197,7 +208,10 @@ def two_state_discrimination(
         qnode_kwargs["strategy"] = "center"
         qnode_kwargs["approx_order"] = 2
     state_disc_cost = qnetvo.linear_probs_cost_fn(
-        state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs
+        state_disc_ansatz,
+        np.eye(2),
+        qnode_kwargs=qnode_kwargs,
+        #postmap=np.eye(2),
     )
     behavior_fn = qnetvo.behavior_fn(state_disc_ansatz, qnode_kwargs=qnode_kwargs)
 
@@ -330,8 +344,16 @@ def qubit_dimensionality_witnessing(
 
     # network ansatz class manages circuit construction and settings
     dim_wit_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-        [qnetvo.MeasureNode(num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [
+            qnetvo.PrepareNode(
+                num_in=prep_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
+        [
+            qnetvo.MeasureNode(
+                num_in=meas_num_in, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+            )
+        ],
         dev_kwargs={
             "name": dev_name,
             "shot_rate": shot_rate,

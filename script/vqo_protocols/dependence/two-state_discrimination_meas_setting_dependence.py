@@ -9,8 +9,13 @@ import time
 import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
+try:
+    # If you're running this on hardware that doesn't have the swabian timetagger library
+    # such as when you're doing numerics work, this import will break
+    from pennylane_kinesis.tomography_utilities import take_tomography_data
+except:
+    pass
 import datetime
-from pennylane_kinesis.tomography_utilities import take_tomography_data
 
 """
 Runs multiple two-state discrimination optimizations with different step-sizes for each
@@ -89,13 +94,17 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="More verbose output.",
     )
 
     parser.add_argument(
         "--background_counts",
-        default=400,
-        type=int,
+        default=[300,100],
+        type=list,
         help="Background count rate for the experiment (for numerics)",
     )
 
@@ -106,13 +115,10 @@ if __name__ == "__main__":
         help="Number of optimization steps.",
     )
     parser.add_argument(
-        "--meas_only",
+        "--qpt",
         default=False,
         action="store_true",
-        help="For two waveplates, use only measurement waveplates instead of prepare.",
-    )
-    parser.add_argument(
-        "--qpt", default=False, action="store_true", help="Run process tomography each trial."
+        help="Run process tomography each trial.",
     )
     args = parser.parse_args()
 
@@ -129,7 +135,7 @@ if __name__ == "__main__":
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-    angles = [0,np.pi/4,np.pi/2,3*np.pi/4,np.pi]
+    angles = [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4, np.pi]
 
     meas_settings_list = []
     for i in range(5):
@@ -137,7 +143,6 @@ if __name__ == "__main__":
             meas_settings_list.append([angles[i], angles[j]])
 
     step_size = 0.2
-    
     print_bar(
         f"Taking {'two_wp' if args.two_wp else 'four_wp'} data for two-state discrimination with {args.optimizer} and {args.diff}."
     )
@@ -145,12 +150,18 @@ if __name__ == "__main__":
     print("Number of trials: ", args.num_trials)
     meas_settings_list = meas_settings_list * args.num_trials
     for i, meas_setting in enumerate(meas_settings_list):
-
         print_bar(f"Starting trial {i} out of {len(meas_settings_list)}")
-        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
+        cst_time = datetime.datetime.now(
+            datetime.timezone(datetime.timedelta(hours=-6))
+        )
         print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
 
-        meas_setting_filepath = filepath + "meas_setting" + str(meas_setting).replace("[","").replace("]","").replace(",","_") + "/"
+        meas_setting_filepath = (
+            filepath
+            + "meas_setting"
+            + str(meas_setting).replace("[", "").replace("]", "").replace(",", "_")
+            + "/"
+        )
         print(meas_setting_filepath)
 
         if args.qpt:
@@ -177,7 +188,6 @@ if __name__ == "__main__":
             diff_method=args.diff,
             fixed_meas_settings=meas_setting,
             background_counts=args.background_counts,
-            meas_only=args.meas_only,
         )
 
         end_time = time.time()
@@ -201,7 +211,7 @@ if __name__ == "__main__":
 
         time_remaining = time_taken * (len(meas_settings_list) - i)
         print_bar(
-            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours."
+            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
 
         """
@@ -250,13 +260,17 @@ if __name__ == "__main__":
         filename += "-" + args.diff
         filename += "-" + args.optimizer
         filename += "-" + str(args.num_steps)
-        filename += "-" + str(meas_setting).replace("[","").replace("]","").replace(",","_")
+        filename += "-" + str(meas_setting).replace("[", "").replace("]", "").replace(
+            ",", "_"
+        )
         if args.numerics:
             filename += "-numerics"
         if args.two_wp:
             filename += "-twowp"
 
-        output_file = pk.winapi_path(meas_setting_filepath + datetime_str + filename + ".png")
+        output_file = pk.winapi_path(
+            meas_setting_filepath + datetime_str + filename + ".png"
+        )
         plt.savefig(output_file)
         plt.close()
         time.sleep(0.5)

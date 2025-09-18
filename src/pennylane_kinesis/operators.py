@@ -1,7 +1,17 @@
 import pennylane as qml
 from pennylane.operation import Operation
-import pennylane.numpy as qnp
 import numpy as np
+from pennylane import numpy as qnp
+from enum import Enum
+
+class WaveplateTypes(Enum):
+    HWP = 0
+    QWP = 1
+
+QWP_RETARDANCE_A = 1.617103
+QWP_RETARDANCE_B = 1.6551547
+HWP_RETARDANCE_A = np.pi
+HWP_RETARDANCE_B = 3.00416
 
 class HWPRotStage(Operation):
     """A quarter wave plate (HWP) mounted on a rotational stage.
@@ -154,7 +164,6 @@ class QWPRotStage(Operation):
 
         return qml.math.stack([qml.math.stack(row, axis=-1) for row in mat], axis=-2)
 
-
 class VariableWPRotStage(Operation):
     """A variable retardance waveplate mounted on a rotational stage.
 
@@ -193,7 +202,7 @@ class VariableWPRotStage(Operation):
     parameter_frequencies = [(2, 4)]
     hyperparameters = {"retardance": None, "wp_type": None}
 
-    def __init__(self, theta, wires, id=None, retardance=np.pi / 2, wp_type="qwp"):
+    def __init__(self, theta, wires, id=None, retardance=np.pi / 2, wp_type: WaveplateTypes = WaveplateTypes.QWP):
         super().__init__(theta, wires=qml.wires.Wires(wires), id=id)
         self.hyperparameters["retardance"] = retardance
         self.hyperparameters["wp_type"] = wp_type

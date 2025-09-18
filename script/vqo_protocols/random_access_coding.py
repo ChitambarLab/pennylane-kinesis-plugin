@@ -7,33 +7,147 @@ import argparse
 import os
 import pennylane_kinesis as pk
 import time
-from pathlib import Path
-from pennylane_kinesis import swabian as swabian
-import elliptec
-import datetime
 import numpy as np
-import sys
-from pennylane_kinesis.tomography_utilities import take_tomography_data
+from pathlib import Path
 
 MAXIMUM_BOUND_3_BIT = 24
-QUANTUM_COST_BOUND_3_BIT = 12 + 12 / qnp.sqrt(3)
+QUANTUM_COST_BOUND_3_BIT = 12 + 12 / np.sqrt(3)
 CLASSICAL_COST_BOUND_3_BIT = 18
 
-QUANTUM_PROB_BOUND_3_BIT = QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
-CLASSICAL_PROB_BOUND_3_BIT = CLASSICAL_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
+QUANTUM_BOUND_3_BIT = QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
+CLASSICAL_BOUND_3_BIT = CLASSICAL_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
 MAXIMUM_BOUND_2_BIT = 8
-QUANTUM_COST_BOUND_2_BIT = 4 + 2 * qnp.sqrt(2)
+QUANTUM_COST_BOUND_2_BIT = 4 + 2 * np.sqrt(2)
 CLASSICAL_COST_BOUND_2_BIT = 6
 
-QUANTUM_PROB_BOUND_2_BIT = QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
-CLASSICAL_PROB_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
+QUANTUM_BOUND_2_BIT = QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
+CLASSICAL_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 
 BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
-config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
-wp_details = pk.read_config(config_file)
+def plot_data(opt_dict, rac_3, filepath, plot_filename):
+    if rac_3:
+        QUANTUM_BOUND = QUANTUM_BOUND_3_BIT
+        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
+        CLASSICAL_BOUND = CLASSICAL_BOUND_3_BIT
+        BACKGROUND_MULTIPLIER = BACKGROUND_3_BIT_MULTIPLIER
+        MAXIMUM_BOUND = MAXIMUM_BOUND_3_BIT
+        title = "RAC Optimization (3 bits)"
+    else:
+        QUANTUM_BOUND = QUANTUM_BOUND_2_BIT
+        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_2_BIT
+        CLASSICAL_BOUND = CLASSICAL_BOUND_2_BIT
+        BACKGROUND_MULTIPLIER = BACKGROUND_2_BIT_MULTIPLIER
+        MAXIMUM_BOUND = MAXIMUM_BOUND_2_BIT
+        title = "RAC Optimization (2 bits)"
+
+    fig, (ax1, ax2) = plt.subplots(ncols=2)
+    # fig, ax2 = plt.subplots()
+
+    fig.suptitle(
+        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        fontweight="bold",
+        fontsize=14,
+    )
+
+    prob_success = (qnp.array(opt_dict["cost_vals"]) * -1) / MAXIMUM_BOUND
+    num_steps = len(opt_dict["cost_vals"])
+    background_rate = qnp.sum(opt_dict["background_rate"])
+    shot_rate = qnp.sum(qnp.array(opt_dict["shot_rate"]))
+    ax1.plot(
+        range(num_steps),
+        prob_success,
+        # label=f"Average Optimization Trajectory ({len(opt_dicts)} trials)",
+    )
+    ax1.plot(
+        range(num_steps),
+        [CLASSICAL_BOUND] * num_steps,
+        label="Classical Bound",
+    )
+
+    ax1.plot(
+        range(num_steps),
+        [QUANTUM_BOUND] * num_steps,
+        label="Quantum Bound",
+    )
+
+    # ax1.fill_between(
+    #     range(num_steps),
+    #     (mean_cost_vals - std_err_cost),
+    #     (mean_cost_vals + std_err_cost),
+    #     alpha=1 / 4,
+    #     color="C1",
+    #     # label="Standard Error",
+    # )
+
+    # ax1.plot(
+    #     range(num_steps),
+    #     [QUANTUM_BOUND - (background_rate / shot_rate) * BACKGROUND_MULTIPLIER]
+    #     * num_steps,
+    #     "k--",
+    # )
+
+    # ax2.semilogy(
+    #     range(num_steps),
+    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
+    #     alpha=3 / 4,
+    #     label="Best Cost",
+    #     color="blue",
+    # )
+
+    ax2.semilogy(
+        range(num_steps),
+        # [QUANTUM_BOUND] * num_steps - mean_cost_vals,
+        [QUANTUM_BOUND] * num_steps - prob_success,
+        label=f"Optimization Trajectory",
+    )
+    ax2.semilogy(
+        range(num_steps),
+        [QUANTUM_BOUND - CLASSICAL_BOUND] * num_steps,
+        color="orange",
+        # label="Classical Limit",
+    )
+    # ax2.semilogy(
+    #     range(num_steps),
+    #     [(np.mean(background_rates)/np.mean(shot_rates))]*num_steps,
+    #     "k--",
+    #     label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
+    # )
+    ax2.semilogy(
+        range(num_steps),
+        [(background_rate / shot_rate) * BACKGROUND_MULTIPLIER] * num_steps,
+        "k--",
+        label=f"Background Limit \n(Average {background_rate} cps)",
+    )
+    # ax2.fill_between(
+    #     range(num_steps),
+    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals - std_err_cost),
+    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals + std_err_cost),
+    #     alpha=1 / 4,
+    #     label="Standard Error",
+    #     color="C1",
+    # )
+
+    ax2.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
+
+    ax1.set_ylabel("Success Probability")
+    ax1.set_xlabel("Optimization Iteration")
+
+    ax2.set_ylabel("Distance to Quantum Bound")
+    ax2.set_xlabel("Optimization Iteration")
+
+    fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15))
+    fig.tight_layout()
+
+    plt.grid()
+    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    Path.mkdir(Path(filepath + "/runtime_plots/"), exist_ok=True)
+    plt.savefig(Path(filepath + f"/runtime_plots/{plot_filename}"))
+    plt.close()
+
 
 """
 Optimizes the random access coding advantage.
@@ -56,7 +170,6 @@ def print_bar(msg):
     print(bar)
     print(formatted_msg)
     print(bar)
-
 
 def arb_unitary(settings, wires):
     pk.HWPRotStage(settings[0], wires=[wires[0]])
@@ -91,20 +204,32 @@ if __name__ == "__main__":
         help="If using the simulator backend.",
     )
     parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="More verbose output.",
     )
 
     parser.add_argument("--num_trials", default=40, help="number of trials to run.")
 
     parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 
-    parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
+    parser.add_argument(
+        "-p", "--plot", default=None, help="Only plot given filename, do not run"
+    )
 
-    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
+    parser.add_argument(
+        "--num_steps", default=20, help="Num steps to use per optimization."
+    )
 
-    parser.add_argument("--background", default=400, help="Number of background counts.")
+    parser.add_argument(
+        "--background", default=400, type=int, help="Number of background counts."
+    )
 
-    parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
+    parser.add_argument(
+        "--profile", default=False, action="store_true", help="Profile the code."
+    )
 
     parser.add_argument(
         "-d",
@@ -123,7 +248,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shots",
         default=10000,
-        type=float,
+        type=int,
         help="Number of shots to take.",
     )
 
@@ -139,28 +264,7 @@ if __name__ == "__main__":
         help="If using the 3 qubit random access code.",
     )
 
-    parser.add_argument(
-        "--qpt",
-        default=False,
-        action="store_true",
-        help="Run process tomography before and after each optimization.",
-    )
-
     args = parser.parse_args()
-
-    if args.rac_3:
-        QUANTUM_PROB_BOUND = QUANTUM_PROB_BOUND_3_BIT
-        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
-        CLASSICAL_PROB_BOUND = CLASSICAL_PROB_BOUND_3_BIT
-        BACKGROUND_MULTIPLIER = BACKGROUND_3_BIT_MULTIPLIER
-        MAXIMUM_BOUND = MAXIMUM_BOUND_3_BIT
-        title = "RAC Optimization (3 bits)"
-    else:
-        QUANTUM_PROB_BOUND = QUANTUM_PROB_BOUND_2_BIT
-        QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_2_BIT
-        CLASSICAL_PROB_BOUND = CLASSICAL_PROB_BOUND_2_BIT
-        BACKGROUND_MULTIPLIER = BACKGROUND_2_BIT_MULTIPLIER
-        MAXIMUM_BOUND = MAXIMUM_BOUND_2_BIT
 
     filepath = "./data/random_access_coding/"
     if args.numerics:
@@ -178,22 +282,15 @@ if __name__ == "__main__":
 
     pk.make_dir(filepath + "runtimes/")
 
+    def noise_fn(settings, wires):
+        kraus_ops = fiber_ops_03_08
+        qml.QubitChannel(kraus_ops, wires=wires[0])
+
     for i in range(num_trials):
-        shot_rate = qnp.array([400000, 400000])
+        shot_rate = qnp.array([200000, 200000])
         print_bar(f"Starting trial {i} out of {num_trials}")
-        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
-        print(f"Started trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
-
-        if args.qpt:
-            start_time = time.time()
-            take_tomography_data(filepath, None, 1, 10, False)
-            end_time = time.time()
-            time_taken = end_time - start_time
-            print(f"Took {time_taken} seconds to run process tomography.")
-
         start_time = time.time()
         if args.numerics:
-
             data_path = pk.make_dir(filepath + "numerics/")
             shots = args.shots
             dev_name = "kinesis.simulator"
@@ -225,10 +322,19 @@ if __name__ == "__main__":
         # network ansatz class manages circuit construction and settings
         if args.rac_3:
             rac_ansatz = qnetvo.NetworkAnsatz(
-                [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+                [
+                    qnetvo.PrepareNode(
+                        num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+                    )
+                ],
+                [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
                 [
                     qnetvo.MeasureNode(
-                        num_in=3, num_out=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+                        num_in=3,
+                        num_out=2,
+                        wires=[0],
+                        ansatz_fn=arb_unitary,
+                        num_settings=2,
                     )
                 ],
                 dev_kwargs={
@@ -240,8 +346,17 @@ if __name__ == "__main__":
             )
         else:
             rac_ansatz = qnetvo.NetworkAnsatz(
-                [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1)],
+                [
+                    qnetvo.PrepareNode(
+                        num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2
+                    )
+                ],
+                [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+                [
+                    qnetvo.MeasureNode(
+                        num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1
+                    )
+                ],
                 dev_kwargs={
                     "name": dev_name,
                     "shot_rate": shot_rate,
@@ -263,8 +378,8 @@ if __name__ == "__main__":
                 rac_ansatz,
                 qnp.array(
                     [
-                        [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+                        [1,1,1,1,1,0,1,0,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0],
+                        [0,0,0,0,0,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1,1,1],
                     ]
                 ),
                 qnode_kwargs=_qnode_kwargs,
@@ -320,78 +435,8 @@ if __name__ == "__main__":
         f.close()
         time_remaining = time_taken * (num_trials - i)
         print_bar(
-            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining/60:.3f} minutes or {time_remaining/3600:.3f} hours."
+            f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
-
-        """
-        Plotting
-        """
-
-        prob_vals = np.array(rac_opt_dict["cost_vals"]) * -1 / MAXIMUM_BOUND
-        num_steps = len(prob_vals)
-        background_rate = np.array(rac_opt_dict["background_rate"])
-        shot_rate = np.array(rac_opt_dict["shot_rate"])
-        fig, (ax1, ax2) = plt.subplots(ncols=2)
-
-        fig.suptitle(
-            "VQO of Random Access Code (2 bits)"
-            if not args.rac_3
-            else "VQO of Random Access Code (3 bits)"
-        )
-
-        ax1.plot(
-            range(num_steps),
-            [CLASSICAL_PROB_BOUND] * num_steps,
-            label="Classical Bound",
-        )
-
-        ax1.plot(
-            range(num_steps),
-            [QUANTUM_PROB_BOUND] * num_steps,
-            label="Quantum Bound",
-        )
-
-        ax1.plot(
-            range(num_steps),
-            prob_vals,
-            label="Optimization Trajectory",
-        )
-
-        ax2.semilogy(
-            range(num_steps),
-            [QUANTUM_PROB_BOUND] * num_steps - prob_vals,
-            # label=f"Optimization Trajectory trials)",
-        )
-        ax2.semilogy(
-            range(num_steps),
-            [QUANTUM_PROB_BOUND - CLASSICAL_PROB_BOUND] * num_steps,
-            color="orange",
-            # label="Classical Limit",
-        )
-
-        ax2.semilogy(
-            range(num_steps),
-            [(np.sum(background_rate) / np.sum(shot_rate)) * BACKGROUND_MULTIPLIER] * num_steps,
-            "k--",
-            label=f"Background Limit \n(Average {np.sum(background_rate):.2f} cps)",
-        )
-
-        ax1.set_ylabel("Success Probability")
-        ax1.set_xlabel("Optimization Iteration")
-
-        ax2.set_ylabel("Distance to Quantum Bound")
-        ax2.set_xlabel("Optimization Iteration")
-
-        ax1.set_ylabel(r"Random Access Code Score")
-        ax1.set_xlabel("Optimization Iteration")
-
-        ax2.set_ylabel("Distance to Optimal Random Access Code Score")
-        ax2.set_xlabel("Optimization Iteration")
-
-        fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15))
-        fig.tight_layout()
-
-        plt.grid()
 
         filename = "rac"
         if args.rac_3:
@@ -407,9 +452,5 @@ if __name__ == "__main__":
         if args.two_wp:
             filename += "-twowp"
 
-        plt.savefig(pk.file_utilities.winapi_path(filepath + datetime_str + filename + ".png"))
-        plt.close()
-
-        cst_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=-6)))
-        print(f"Finished trial at {cst_time.strftime('%Y-%m-%d %H:%M:%S %Z')}.")
+        plot_data(rac_opt_dict, args.rac_3, filepath, datetime_str + filename + ".png")
         time.sleep(0.1)
