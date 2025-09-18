@@ -3,7 +3,7 @@ import glob
 import serial
 import elliptec
 
-port = "/dev/ttyUSB0"
+port = "/dev/ttyUSB3"
 
 
 def serial_ports():
@@ -39,5 +39,5 @@ print(serial_ports())
 
 controller = elliptec.Controller(port, timeout=3, write_timeout=3)
 
-device = elliptec.Rotator(controller, address=str(1))
+device = elliptec.Rotator(controller, address=str(0))
 device.home()
