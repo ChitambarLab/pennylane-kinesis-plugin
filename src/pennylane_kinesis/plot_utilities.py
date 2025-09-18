@@ -229,7 +229,7 @@ def plot_shot_dependence(
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.suptitle(title, fontweight="bold", fontsize=14)
+    fig.suptitle(title, fontweight="bold", fontsize=20)
     ax.set_xlabel("Gradient Descent Iteration")
     ax.set_ylabel("Probability of undiscriminated photons (Cost)")
 
@@ -237,8 +237,7 @@ def plot_shot_dependence(
     filepath_wp = "two_wp/" if two_wp else "four_wp/"
 
     c_id = 0
-    background_rate = []
-    shot_rates = []
+
     color_id = 0
     for shots in shots_list:
         shots_filepath = (
@@ -247,34 +246,22 @@ def plot_shot_dependence(
         filenames = get_files(shots_filepath, r"optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
 
-        for f in filenames:
-            print(f"Using {f}")
         aggregate_data = []
-        # background_rates = []
-        for j, opt_dict in enumerate(opt_dicts):
+        background_rates = []
+        for opt_dict in opt_dicts:
             for i in range(len(opt_dict["cost_vals"])):
                 if len(aggregate_data) <= i:
                     aggregate_data += [[]]
 
-                # if add_background:
-                #     dark_count_rate = background / int(shots)
-                #     corrected_probs = opt_dict["cost_vals"][i] + 2 + dark_count_rate
-                #     aggregate_data[i] += [corrected_probs]
+                if add_background:
+                    dark_count_rate = background / int(shots)
+                    corrected_probs = opt_dict["cost_vals"][i] + 2 + dark_count_rate
+                    aggregate_data[i] += [corrected_probs]
 
-                # else:
-                aggregate_data[i] += [opt_dict["cost_vals"][i] + 2]
-            if background:
-                if np.sum(opt_dict["background_rate"]) > 1000:
-                    print("Background rate too high!")
-                    print(f"Background rate: {np.sum(opt_dict['background_rate'])}")
-                    print(f"std_opt_dict['background_rate']: {opt_dict['background_rate']}")
-                    print(f"filename: {filenames[j]}")
-                    input()
                 else:
-                    background_rate += [np.sum(opt_dict["background_rate"])]
-                # background_rates += [opt_dict["background_rate"]]
+                    aggregate_data[i] += [opt_dict["cost_vals"][i] + 2]
+                background_rates += [opt_dict["background_rate"]]
 
-            shot_rates += [np.sum(opt_dict["shot_rate"])]
         mean_cost_vals = []
         std_err_cost_vals = []
         min_cost_vals = []
@@ -312,44 +299,12 @@ def plot_shot_dependence(
         color_id += 1
 
     if background:
-        shot_rates = np.array(shot_rates)
-        print(f"Average shot rates: {np.mean(shot_rates)}")
-        shot_rate_std_err = np.std(shot_rates) / np.sqrt(len(shot_rates))
-        print(f"Shot rate std err: {shot_rate_std_err}")
-        background_rate = np.array(background_rate)
-        background_std_dev = np.std(background_rate)
-        background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
-        # print(f"bakcgorund rate: {background_rate}")
-        print(f"max background rate: {np.max(background_rate)}")
-        print(f"min background rate: {np.min(background_rate)}")
-        # print(f"Background rate: {background_rate}")
-        print(f"Background std dev: {background_std_dev}")
-        print(f"background mean: {np.mean(background_rate)}")
-        print(f"sqrt(n):", np.sqrt(len(background_rate)))
-        print(f"Background std err: {background_std_err}")
-        background_mean = np.mean(background_rate)
         ax.plot(
-            range(len(np_mean)),
-            [background_mean / np.mean(shot_rates)] * len(np_mean),
+            range(len(mean_cost_vals)),
+            [np.mean(background_rates) / shot_rate] * len(mean_cost_vals),
             "k--",
-            label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
+            label="Background (" + str(background) + " cps)",
         )
-        ax.fill_between(
-            range(len(np_mean)),
-            ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(np_mean)),
-            ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(np_mean)),
-            alpha=1 / 4,
-            color="black",
-            linestyle="--",
-        )
-
-    # if background:
-    #     ax.plot(
-    #         range(len(mean_cost_vals)),
-    #         [np.mean(background_rates) / shot_rate] * len(mean_cost_vals),
-    #         "k--",
-    #         label="Background (" + str(background) + " cps)",
-    #     )
 
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
     plt.grid()
@@ -368,7 +323,6 @@ def plot_step_size_dependence(
     date_after=None,
     add_background=False,
     background=None,
-    no_plot=False,
     shot_rate=None,
     plot_adam=False,
     title="Step Size Vs. Gradient Descent Performance",
@@ -407,17 +361,25 @@ def plot_step_size_dependence(
         if len(std_filenames) == 0:
             std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
 
+        adam_filenames = get_files(step_size_filepath, r"adam_optimization_.*\.json")
+
         if date_after:
             new_std_filenames = []
+            new_adam_filenames = []
             for filename in std_filenames:
                 if get_date_from_filename(filename) >= date_after:
                     new_std_filenames.append(filename)
+            for filename in adam_filenames:
+                if get_date_from_filename(filename) >= date_after:
+                    new_adam_filenames.append(filename)
             std_filenames = new_std_filenames
+            adam_filenames = new_adam_filenames
 
         for f in std_filenames:
             print(f"Using {f}")
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
-        num_trials = len(std_opt_dicts)
+        adam_opt_dicts = [read_json(filename) for filename in adam_filenames]
+
         std_aggregate_data = []
         for j, std_opt_dict in enumerate(std_opt_dicts):
             for i in range(len(std_opt_dict["cost_vals"])):
@@ -437,6 +399,18 @@ def plot_step_size_dependence(
 
             shot_rates += [np.sum(std_opt_dict["shot_rate"])]
 
+        adam_aggregate_data = []
+        for adam_opt_dict in adam_opt_dicts:
+            for i in range(len(adam_opt_dict["cost_vals"])):
+                if len(adam_aggregate_data) <= i:
+                    adam_aggregate_data += [[]]
+
+                if add_background:
+                    corrected_val = adam_opt_dict["cost_vals"][i] + 2 + background / shot_rate
+                    adam_aggregate_data[i] += [corrected_val]
+                else:
+                    adam_aggregate_data[i] += [adam_opt_dict["cost_vals"][i] + 2]
+
         std_mean_cost_vals = []
         std_std_err_cost_vals = []
         std_min_cost_vals = []
@@ -447,17 +421,26 @@ def plot_step_size_dependence(
             ]
             std_min_cost_vals += [np.min(std_aggregate_data[i])]
 
+        adam_mean_cost_vals = []
+        adam_std_err_cost_vals = []
+        for i in range(len(adam_aggregate_data)):
+            adam_mean_cost_vals += [np.mean(adam_aggregate_data[i])]
+            adam_std_err_cost_vals += [
+                np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))
+            ]
+
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
-        best_cost_val = np.min(std_aggregate_data)
-        ax.semilogy(
-            range(len(std_mean_cost_vals)),
-            best_cost_val * np.ones(len(std_mean_cost_vals)),
-            alpha=3 / 4,
-            label="Best Cost",
-            color=_COLORS[c_id],
-        )
+        # ax.loglog(
+        #     range(len(std_min_cost_vals)),
+        #     std_min_cost_vals,
+        #     alpha=3 / 4,
+        #     label="step_size = " + str(step_size),
+        #     color=_COLORS[c_id],
+        #     linestyle="-"
+        # )
+
         ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
@@ -474,6 +457,25 @@ def plot_step_size_dependence(
             alpha=1 / 4,
             color=_COLORS[c_id],
         )
+
+        if plot_adam:
+            adam_np_mean = np.array(adam_mean_cost_vals)
+            adam_np_std_err = np.array(adam_std_err_cost_vals)
+            ax.semilogy(
+                range(len(adam_mean_cost_vals)),
+                adam_mean_cost_vals,
+                alpha=3 / 4,
+                color=_COLORS[c_id],
+                linestyle="--",
+            )
+            ax.fill_between(
+                range(len(adam_mean_cost_vals)),
+                adam_np_mean - adam_np_std_err,
+                adam_np_mean + adam_np_std_err,
+                alpha=1 / 4,
+                color=_COLORS[c_id],
+                linestyle="--",
+            )
 
         c_id += 1
 
@@ -512,13 +514,10 @@ def plot_step_size_dependence(
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     plt.grid()
-    plt.legend(ncols=2)
-    # plt.tight_layout(pad=2)
-    plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha='right')
+    plt.legend(ncols=2, loc="upper right")
 
-    if not no_plot:
-        Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
-        plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str,bbox_inches='tight')
+    Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
+    plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
 
 
 def plot_step_size_dependence_convergence(
