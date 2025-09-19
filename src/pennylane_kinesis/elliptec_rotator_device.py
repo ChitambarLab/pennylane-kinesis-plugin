@@ -4,7 +4,7 @@ from pennylane import QubitDevice
 from pylablib.devices import Thorlabs
 import time
 from enum import Enum
-from .file_utilities import datetime_now_string, winapi_path
+from .file_utilities import datetime_now_string, winapi_path, read_config
 import pickle
 import re
 from pathlib import Path
@@ -30,7 +30,7 @@ class ElliptecMotors:
         com_port=["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"],
         test_mode=_TEST_MODE,
     ):
-        self.wp_details = self.read_config()
+        self.wp_details = read_config()
         self.test_mode = test_mode
         self.parallel = False
         if test_mode:
@@ -110,40 +110,13 @@ class ElliptecMotors:
         print("Measurement HWP:")
         print(self.meas_hwp.info["Serial No."])
 
-    def read_config(self):
-        """Read the configuration file and set the motor serial numbers."""
-        config_file = "./src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt"
-
-        with open(config_file) as f:
-            config_lines = f.readlines()
-
-        wp_details = []
-
-        for i in range(1, 5):
-            config_line = re.sub(r"[\n\t\s]*", "", config_lines[i])
-
-            entries = config_line.strip().split(",")
-            rot_mount = {}
-            rot_mount["device"] = entries[0]
-            rot_mount["address"] = entries[1]
-            rot_mount["serial_number"] = entries[2]
-            rot_mount["angle_offset"] = entries[3]
-            rot_mount["name"] = entries[4]
-
-            # If we have extra entries in the config file, it's going to be the port
-            # which is used for parallel operation
-            if len(entries) > 5:
-                rot_mount["port"] = entries[5]
-            wp_details.append(rot_mount)
-
-        self.prep_hwp_sn = wp_details[0]["serial_number"]
-        self.prep_qwp_sn = wp_details[1]["serial_number"]
-        self.meas_hwp_sn = wp_details[3]["serial_number"]
-        self.meas_qwp_sn = wp_details[2]["serial_number"]
+        self.prep_hwp_sn = self.wp_details[0]["serial_number"]
+        self.prep_qwp_sn = self.wp_details[1]["serial_number"]
+        self.meas_hwp_sn = self.wp_details[3]["serial_number"]
+        self.meas_qwp_sn = self.wp_details[2]["serial_number"]
 
         print("Read config")
-        print(wp_details)
-        return wp_details
+        print(self.wp_details)
 
     def close(self):
         if self.test_mode:

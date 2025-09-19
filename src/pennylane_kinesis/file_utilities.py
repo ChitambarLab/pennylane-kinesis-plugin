@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 import sys
 
+DEFAULT_CONF = "/home/timur/Documents/research/pennylane-kinesis-plugin/src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt"
 
 def winapi_path(dos_path, encoding=None):
     """Stolen from stack overflow, this function converts a dos path to a windows api path.
@@ -59,7 +60,7 @@ def get_files(path, regex):
     ]
 
 
-def read_config(config_file):
+def read_config(config_file=DEFAULT_CONF):
     with open(config_file) as f:
         config_lines = f.readlines()
 
@@ -76,6 +77,11 @@ def read_config(config_file):
         rot_mount["angle_offset"] = float(entries[3])
         rot_mount["name"] = entries[4]
         rot_mount["background_angle"] = float(entries[5])
+
+        # If we have extra entries in the config file, it's going to be the port
+        # which is used for parallel operation
+        if len(entries) > 5:
+            rot_mount["port"] = entries[6]
         wp_details.append(rot_mount)
 
     return wp_details

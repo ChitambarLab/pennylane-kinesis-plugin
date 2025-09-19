@@ -2,23 +2,25 @@ import sys
 import glob
 import serial
 import elliptec
-from pennylane_kinesis import read_config
+from pennylane_kinesis.file_utilities import read_config
 import argparse
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mount", "-m", default=0, type=int)
-    parser.add_argument("--zero", default=False, action="store_true")
-    parser.add_argument("--angle", default=None, type=float)
-    parser.add_argument("--raw", default=False, action="store_true")
+    parser = argparse.ArgumentParser(
+        prog="Manual alignment",
+        description="Manually align the rotation stages to the desired angles.",
+    )
+    parser.add_argument("--mount", "-m", default=0, type=int, help="Which mount to rotate.")
+    parser.add_argument("--zero", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
+    parser.add_argument("--angle", default=None, type=float, help="Set waveplate to angle + calibrated offset.")
+    parser.add_argument("--raw", default=False, action="store_true", help="Set waveplate to raw angle (use with --angle argument).")
+    
     args = parser.parse_args()
-    conf = read_config("./src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt")
-
+    conf = read_config()
     mount = int(args.mount)
-    print("background_angle is ", conf[mount]["background_angle"])
 
     controller = elliptec.Controller(ports[mount], timeout=3, write_timeout=3)
     device = elliptec.Rotator(controller, address=str(0))

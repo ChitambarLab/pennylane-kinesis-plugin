@@ -3,6 +3,10 @@ import argparse
 import re
 
 if __name__ == "__main__":
+    """
+    To set the address of each mount, they need to be connected one by one to the controller
+    then the newly connected mount can be accessed at address 0 and assigned a different address.
+    """
     parser = argparse.ArgumentParser(
         prog="Elliptec Setup",
         description="Set up elliptec rotation mounts.",

@@ -1,5 +1,4 @@
 import pyvisa
-
 # from ThorlabsPM100 import ThorlabsPM100
 import elliptec
 from pennylane_kinesis.elliptec_rotator_device import ElliptecRotatorDevice
@@ -7,7 +6,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from pennylane_kinesis.file_utilities import datetime_now_string
+from pennylane_kinesis.file_utilities import datetime_now_string, read_config
 import scipy as sp
 import numpy
 import scipy
@@ -32,39 +31,6 @@ def set_angle(device, angle):
     print("set angle to", angle)
     print("actual angle is", angle_ret)
 
-
-def fit_sin(tt, yy):
-    '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
-    tt = numpy.array(tt, dtype=float)
-    yy = numpy.array(yy, dtype=float)
-    ff = numpy.fft.fftfreq(len(tt), (tt[1] - tt[0]))  # assume uniform spacing
-    Fyy = abs(numpy.fft.fft(yy))
-    guess_freq = abs(
-        ff[numpy.argmax(Fyy[1:]) + 1],
-    )  # excluding the zero frequency "peak", which is related to offset
-    guess_amp = numpy.std(yy) * 2.0**0.5
-    guess_offset = numpy.mean(yy)
-    guess = numpy.array([guess_amp, 2.0 * numpy.pi * guess_freq, 0.0, guess_offset])
-
-    def sinfunc(t, A, w, p, c):
-        return A * numpy.sin(w * t + p) + c
-
-    popt, pcov = scipy.optimize.curve_fit(sinfunc, tt, yy, p0=guess)
-    A, w, p, c = popt
-    f = w / (2.0 * numpy.pi)
-    fitfunc = lambda t: A * numpy.sin(w * t + p) + c
-    return {
-        "amp": A,
-        "omega": w,
-        "phase": p,
-        "offset": c,
-        "freq": f,
-        "period": 1.0 / f,
-        "fitfunc": fitfunc,
-        "maxcov": numpy.max(pcov),
-        "rawres": (guess, popt, pcov),
-        "perr": np.sqrt(np.diag(pcov)),
-    }
 
 
 class Meter:
@@ -116,33 +82,6 @@ class Meter:
             self.counter.set_integration_time(time)
 
 
-def param_sin(x, offset, amplitude, phase, freq):
-    return amplitude * np.sin(phase + freq * x) + offset
-
-
-def read_config():
-    config_file = "./src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt"
-
-    with open(config_file) as f:
-        config_lines = f.readlines()
-
-    wp_details = []
-
-    for i in range(1, 5):
-        config_line = re.sub(r"[\n\t\s]*", "", config_lines[i])
-
-        entries = config_line.strip().split(",")
-        rot_mount = {}
-        rot_mount["device"] = entries[0]
-        rot_mount["address"] = entries[1]
-        rot_mount["serial_number"] = entries[2]
-        rot_mount["angle_offset"] = float(entries[3])
-        rot_mount["name"] = entries[4]
-        rot_mount["background_angle"] = float(entries[5])
-        wp_details.append(rot_mount)
-    print(wp_details)
-    return wp_details
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -170,14 +109,7 @@ if __name__ == "__main__":
         type=int,
         help="Number of power meters connected.",
     )
-    parser.add_argument(
-        "-m",
-        "--manual",
-        default=False,
-        action="store_true",
-        help="Manual mode (rotate manually)",
-    )
-
+    
     parser.add_argument(
         "--counts",
         default=False,
@@ -201,19 +133,6 @@ if __name__ == "__main__":
         help="Step size for rotation (in manual mode)",
     )
 
-    parser.add_argument(
-        "-f",
-        "--fit",
-        default=False,
-        action="store_true",
-        help="fit data (put data into array)",
-    )
-
-    parser.add_argument(
-        "--file",
-        default=None,
-        help="File to use for fitting data. (with --plot or --fit option)",
-    )
 
     parser.add_argument(
         "--serial_no",
@@ -248,26 +167,6 @@ if __name__ == "__main__":
         help="Calibrate a polarizer (Manually rotating)",
     )
 
-    parser.add_argument(
-        "--gv",
-        default=None,
-        type=int,
-        help="Get the velocity from the motor at address specified.",
-    )
-
-    parser.add_argument(
-        "--sv",
-        default=None,
-        type=int,
-        help="Set the velocity of the motor at address specified.",
-    )
-
-    parser.add_argument(
-        "--velocity",
-        default=None,
-        type=int,
-        help="Velocity to set for the motor (with sv).",
-    )
     parser.add_argument(
         "--meter",
         default=False,
@@ -306,20 +205,6 @@ if __name__ == "__main__":
     if args.counts:
         h_counts, v_counts = meter.get_counts()
         print(f"T counts: {h_counts}, R counts {v_counts}")
-        exit()
-
-    # Get velocity of the mounts
-    if args.gv:
-        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-        device = elliptec.Rotator(controller, address=str(args.gv))
-        print("Velocity of" + str(args.gv) + "is ", device.send_instruction(b"gv"))
-        exit()
-
-    # Set velocity of mounts
-    if args.sv and args.velocity:
-        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-        device = elliptec.Rotator(controller, address=str(args.sv))
-        print(device.send_instruction(b"sv" + str(args.velocity).encode()))
         exit()
 
     # If only taking background counts (no rotation)
@@ -466,131 +351,6 @@ if __name__ == "__main__":
 
         exit()
 
-    """
-    To set the address of each mount, they need to be connected one by one to the controller
-    then the newly connected mount can be accessed at address 0 and assigned a different address.
-    """
-    if args.address:
-        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-        print(elliptec.scan_for_devices(controller, start_address=0, stop_address=4))
-        device = elliptec.Rotator(controller, address="0")
-        device.change_address(str(args.address))
-        device.load_motor_info()
-        print(device.info)
-        exit()
-
-    # Set angle of the waveplate at address 0 and get the average power reading
-    if args.angle:
-        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-
-        device = elliptec.Rotator(controller, address=str(int(args.mount)))
-
-        print(device.info["Serial No."])
-
-        wp_details = read_config()
-
-        device.home()
-
-        print(
-            "Setting angle of ",
-            args.mount,
-            "to",
-            float(args.angle) + wp_details[int(args.mount) - 1]["angle_offset"],
-        )
-        angle = float(args.angle) + float(wp_details[int(args.mount) - 1]["angle_offset"])
-        print(angle)
-        set_angle(device, angle)
-        itr_powers_h = []
-        itr_powers_v = []
-        if args.meter:
-            for i in range(NUM_MEASUREMENTS):
-                # itr_powers_h.append(H_meter.r)
-                h_counts, v_counts = meter.get_counts()
-            # itr_powers_v.append(V_meter.read)
-            # avg_power_h = np.mean(np.array(itr_powers_h))
-            # avg_power_v = np.mean(np.array(itr_powers_v))
-            print(f"Device at {device.get_angle()}\n T counts: {h_counts}, R counts {v_counts}")
-        exit()
-
-    # Plot the data from the file
-    if args.plot:
-        with open(args.file, "rb") as f:
-            (angles, h_counts, v_counts) = pickle.load(f)
-
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-
-            wp_details = read_config()
-
-            zero_angle = wp_details[int(args.apds) - 1]["angle_offset"]
-
-            print(np.array(angles).shape)
-            print(np.array(h_counts).shape)
-            print(np.array(v_counts).shape)
-            # angles = angles[0:72]
-            if args.average:
-                mean_h_counts = np.mean(np.array(h_counts), axis=1)
-                mean_v_counts = np.mean(np.array(v_counts), axis=1)
-                sum_mean_counts = mean_h_counts + mean_v_counts
-                std_dev_sum_counts = np.std(np.array(h_counts) + np.array(v_counts), axis=1)
-                std_dev_h_counts = np.std(np.array(h_counts), axis=1)
-                std_dev_v_counts = np.std(np.array(v_counts), axis=1)
-                plt.plot(angles, mean_h_counts, color="red", label="H")
-                plt.plot(angles, mean_v_counts, color="blue", label="V")
-                plt.plot(
-                    angles,
-                    np.array(mean_h_counts) + np.array(mean_v_counts),
-                    color="green",
-                    label="Total",
-                )
-                ax.axvline(x=zero_angle, color="black", linestyle="--", label="Zero angle")
-                plt.fill_between(
-                    angles,
-                    sum_mean_counts - std_dev_sum_counts,
-                    sum_mean_counts + std_dev_sum_counts,
-                    color="darkgreen",
-                    alpha=0.3,
-                )
-            else:
-                ax.plot(
-                    angles,
-                    np.array(h_counts) + np.array(v_counts),
-                    color="green",
-                    label="Total",
-                )
-                ax.plot(angles, h_counts, color="red", label="H")
-                ax.plot(angles, v_counts, color="blue", label="V")
-                ax.axvline(x=zero_angle, color="black", linestyle="--", label="Zero angle")
-            ax.xaxis.set_ticks(np.arange(0, 360, 10))
-            # ax.axvline(x=204, color="r", linestyle="--")
-            # ax.axvline(x=294, color="r", linestyle="--")
-            # ax.axvline(x=204 - 180, color="b", linestyle="--")
-            labels = ax.xaxis.get_majorticklabels()
-            new_labels = []
-            for label in labels:
-                if float(label.get_text()) % 30 < 1:
-                    new_labels.append(label)
-                else:
-                    new_labels.append(label.set_text(""))
-            ax.xaxis.set_ticklabels(new_labels)
-            ax.xaxis.set_tick_params(labelsize=10)
-
-            # ax.set_yscale("log")
-            ax.set_xlabel("Angle of rotation (degrees)")
-            ax.set_ylabel("Photon Counts")
-            ax.set_title("Photon counts vs angle of rotation " + args.name)
-            ax.legend()
-            plt.savefig(
-                "./data/calibrations/zero_angle/"
-                + args.name
-                + "/power_vs_angle_auto_"
-                + args.name
-                + "_"
-                + datetime_now_string()
-                + ".png"
-            )
-        exit()
-
     # Check repeatability of waveplate rotations
     elif args.repeat:
         controller = elliptec.Controller(port, timeout=3, write_timeout=3)
@@ -658,125 +418,7 @@ if __name__ == "__main__":
         device.set_angle(90)
         time.sleep(1)
         device.home()
-
-    # Fit existing data
-    elif args.fit:
-        if args.file == None:
-            print("Need to specify a file to use for fitting!")
-            exit()
-        # Plot fit for a polarizer (with manual rotation)
-        if args.polarizer:
-            with open(args.file, "rb") as f:
-                (angles, powers) = pickle.load(f)
-                print(powers)
-                powers = np.array(powers)
-                powers_h = powers[:, 0]
-                powers_v = powers[:, 1]
-
-                # powers_h = np.array(powers_h)
-                print(len(powers_h))
-                fig = plt.figure()
-                x_data = np.linspace(0, 360, num=1000)
-                fit_dict_h = fit_sin(angles, powers_h)
-                func_h = fit_dict_h["fitfunc"]
-                ax = fig.add_subplot(1, 1, 1)
-
-                # ax.scatter
-                ax.scatter(angles, powers_h, color="red", label="Power data (H)")
-                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
-
-                ax.xaxis.set_ticks(np.arange(0, 360, 10))
-                labels = ax.xaxis.get_majorticklabels()
-                new_labels = []
-                for label in labels:
-                    if float(label.get_text()) % 30 < 1:
-                        new_labels.append(label)
-                    else:
-                        new_labels.append(label.set_text(""))
-                ax.xaxis.set_ticklabels(new_labels)
-                ax.xaxis.set_tick_params(labelsize=10)
-
-                ax.set_title("Power vs Angle of Rotation " + args.name)
-                ax.set_xlabel("Angle of rotation (degrees)")
-                ax.set_ylabel("Laser Power (μW)")
-
-                ax.legend()
-                ax.grid()
-                # print(args.file.split('.'))
-
-                plt.savefig(args.file + "fit.png")
-
-                print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
-
-                opt = fmin(lambda x: -1 * func_h(x), 90, full_output=True)
-                print("max is at", opt[0], "with value", opt[1])
-
-                exit()
-
-        else:
-            with open(args.file, "rb") as f:
-                (angles, powers_h, powers_v) = pickle.load(f)
-
-                powers_h = np.array(powers_h, dtype=float).flatten()
-                powers_v = np.array(powers_v, dtype=float).flatten()
-                # powers_h = (powers_h - np.min(powers_h)) / (np.max(powers_h) - np.min(powers_h))
-                # powers_v = (powers_v - np.min(powers_v)) / (np.max(powers_v) - np.min(powers_v))
-
-                print(angles)
-                print(powers_h)
-                print(powers_h + powers_v)
-
-                print(len(angles))
-                print(len)
-                fig = plt.figure()
-                angles = np.array(angles, dtype=float)
-                # angles = angles[45:130]
-                # powers_h = powers_h[45:130]
-                # powers_v = powers_v[45:130]
-                x_data = np.linspace(0, 360, num=1000)
-
-                fit_dict_h = fit_sin(angles, powers_h)
-                func_h = fit_dict_h["fitfunc"]
-                fit_dict_v = fit_sin(angles, powers_v)
-                func_v = fit_dict_v["fitfunc"]
-
-                ax = fig.add_subplot(1, 1, 1)
-
-                ax.scatter(angles, powers_h, color="red", label="Power data (H)")
-                ax.scatter(angles, powers_v, color="blue", label="Power data (V)")
-                ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
-                ax.plot(
-                    x_data,
-                    func_v(x_data),
-                    color="lightblue",
-                    label="Sinusoidal fit (V)",
-                )
-
-                ax.xaxis.set_ticks(np.arange(0, 360, 10))
-                labels = ax.xaxis.get_majorticklabels()
-                new_labels = []
-                for label in labels:
-                    if float(label.get_text()) % 30 < 1:
-                        new_labels.append(label)
-                    else:
-                        new_labels.append(label.set_text(""))
-                ax.xaxis.set_ticklabels(new_labels)
-                ax.xaxis.set_tick_params(labelsize=10)
-
-                ax.set_title("Power vs Angle of Rotation " + args.name)
-                ax.set_xlabel("Angle of rotation (degrees)")
-                ax.set_ylabel("Laser Power (μW)")
-
-                ax.legend()
-                ax.grid()
-                plt.savefig(args.file.split(".")[0] + "fit.png")
-
-                print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
-
-                opt = fmin(lambda x: -1 * func_h(x), 180, full_output=True)
-                print("max is at", opt[0], "with value", opt[1])
-
-                exit()
+        
     # Calibrating a polarizer (with manual rotation)
     elif args.polarizer:
         from pathlib import Path, PurePath
