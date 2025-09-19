@@ -31,8 +31,6 @@ def set_angle(device, angle):
     print("set angle to", angle)
     print("actual angle is", angle_ret)
 
-
-
 class Meter:
     def __init__(self, swabian_mode, HV_meter=False):
         self.swabian_mode = swabian_mode

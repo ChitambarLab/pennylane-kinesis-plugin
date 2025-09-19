@@ -1,9 +1,10 @@
 import scipy
 import numpy as np
 import argparse
-from pennylane_kinesis.file_utilities import datetime_now_string, read_config
+from pennylane_kinesis.file_utilities import datetime_now_string, read_config, get_date_from_filename
 import pickle
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 def param_sin(x, offset, amplitude, phase, freq):
     return amplitude * np.sin(phase + freq * x) + offset
@@ -52,13 +53,6 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-f",
-        "--fit",
-        default=False,
-        action="store_true",
-        help="fit data (put data into array)",
-    )
-
-    parser.add_argument(
         "--file",
         default=None,
         help="File to use for fitting data. (with --plot or --fit option)",
@@ -70,11 +64,27 @@ if __name__ == "__main__":
         help="Fitting a linear polarizer data instead.",
     )
 
+    parser.add_argument(
+        "-p",
+        "--plot",
+        default=False,
+        action="store_true",
+        help="Plot the data from the file (no fitting)."
+    )
+
+    parser.add_argument(
+        "-n",
+        "--name",
+        default="None",
+        help="Name of the waveplate (for the plot)."
+    )
+
     args = parser.parse_args()
+    path = Path(args.file)
 
     # Plot the data from the file
     if args.plot:
-        with open(args.file, "rb") as f:
+        with open(path, "rb") as f:
             (angles, h_counts, v_counts) = pickle.load(f)
 
             fig = plt.figure()
@@ -140,19 +150,21 @@ if __name__ == "__main__":
             ax.set_ylabel("Photon Counts")
             ax.set_title("Photon counts vs angle of rotation " + args.name)
             ax.legend()
-            plt.savefig(
-                "./data/calibrations/zero_angle/"
-                + args.name
-                + "/power_vs_angle_auto_"
+            save_location = path.parents[0]
+            datetime = get_date_from_filename(path.name)
+            save_path = Path(
+                str(save_location)
+                +"power_vs_angle_auto_"
                 + args.name
                 + "_"
-                + datetime_now_string()
+                + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
                 + ".png"
             )
+            plt.savefig(save_path)
         exit()
 
      # Fit existing data
-    elif args.fit:
+    else:
         if args.file == None:
             print("Need to specify a file to use for fitting!")
             exit()
@@ -195,8 +207,15 @@ if __name__ == "__main__":
                 ax.legend()
                 ax.grid()
                 # print(args.file.split('.'))
-
-                plt.savefig(args.file + "fit.png")
+                save_location = path.parents[0]
+                datetime = get_date_from_filename(path.name)
+                save_path = Path(
+                    str(save_location)
+                    +"/"
+                    + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
+                    + "_fit.png"
+                )
+                plt.savefig(save_path)
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
 
@@ -261,11 +280,19 @@ if __name__ == "__main__":
 
                 ax.legend()
                 ax.grid()
-                plt.savefig(args.file.split(".")[0] + "fit.png")
+                save_location = path.parents[0]
+                datetime = get_date_from_filename(path.name)
+                save_path = Path(
+                    str(save_location)
+                    +"/"
+                    + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
+                    + "_fit.png"
+                )
+                plt.savefig(save_path)
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
 
-                opt = np.fmin(lambda x: -1 * func_h(x), 180, full_output=True)
+                opt = scipy.optimize.fmin(lambda x: -1 * func_h(x), 180, full_output=True)
                 print("max is at", opt[0], "with value", opt[1])
 
                 exit()

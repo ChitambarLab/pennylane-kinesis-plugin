@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 import sys
 
-DEFAULT_CONF = "/home/timur/Documents/research/pennylane-kinesis-plugin/src/pennylane_kinesis/2025_09_12_timur_elliptec_config.txt"
+DEFAULT_CONF = "/home/timur/Documents/research/pennylane-kinesis-plugin/src/pennylane_kinesis/2025_09_18_timur_elliptec_config.txt"
 
 def winapi_path(dos_path, encoding=None):
     """Stolen from stack overflow, this function converts a dos path to a windows api path.
@@ -23,7 +23,7 @@ def winapi_path(dos_path, encoding=None):
 
 
 def datetime_now_string():
-    return datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+    return datetime.now().strftime("%Y-%m-%dT%H-%M-%SZ")
 
 
 def get_date_from_filename(filename):
