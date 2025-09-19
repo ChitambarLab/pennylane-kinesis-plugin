@@ -13,28 +13,52 @@ if __name__ == "__main__":
         prog="Manual alignment",
         description="Manually align the rotation stages to the desired angles.",
     )
-    parser.add_argument("--mount", "-m", default=0, type=int, help="Which mount to rotate.")
+    parser.add_argument("-m","--mount", default=0, type=int, help="Which mount to rotate.")
+    parser.add_argument("--all", default=False, action="store_true", help="Set all waveplates to background (or calibrated zero angle).")
     parser.add_argument("--zero", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
     parser.add_argument("--angle", default=None, type=float, help="Set waveplate to angle + calibrated offset.")
     parser.add_argument("--raw", default=False, action="store_true", help="Set waveplate to raw angle (use with --angle argument).")
     
     args = parser.parse_args()
     conf = read_config()
-    mount = int(args.mount)
+    if args.all:
+        mounts = []
+        for port in ports:
+            controller = elliptec.Controller(port, timeout=3, write_timeout=3)
+            device = elliptec.Rotator(controller, address=str(0))
+            mounts.append(device)
+        
+        for i, device in enumerate(mounts):
+            if args.zero:
+                print(f"Setting mount {i} to {float(conf[i]['angle_offset'])}")
+                device.set_angle(float(conf[i]["angle_offset"]))
+                print(f"Set device {i} to {device.get_angle()}")
+            else:
+                print(f"Setting {args.mount} to {float(conf[i]['background_angle'])}")
+                device.set_angle(float(conf[i]["background_angle"]))
+                print(f"Set device {i} to {device.get_angle()}")
 
-    controller = elliptec.Controller(ports[mount], timeout=3, write_timeout=3)
-    device = elliptec.Rotator(controller, address=str(0))
-    if args.zero:
-        device.set_angle(float(conf[mount]["angle_offset"]))
-    elif args.angle:
-        if args.raw:
-            device.set_angle(float(args.angle))
-        else:
-            device.set_angle(float(args.angle) + float(conf[mount]["angle_offset"]))
     else:
-        device.set_angle(float(conf[mount]["background_angle"]))
+        mount = int(args.mount)
 
-    print(f"Set device {args.mount} to {device.get_angle()}")
+        controller = elliptec.Controller(ports[mount], timeout=3, write_timeout=3)
+        device = elliptec.Rotator(controller, address=str(0))
+
+        if args.zero:
+            print(f"Setting {args.mount} to {float(conf[mount]['angle_offset'])}")
+            device.set_angle(float(conf[mount]["angle_offset"]))
+        elif args.angle is not None:
+            if args.raw:
+                print(f"Setting {args.mount} to {float(args.angle)}")
+                device.set_angle(float(args.angle))
+            else:
+                print(f"Setting {args.mount} to {float(args.angle) + float(conf[mount]['angle_offset'])}")
+                device.set_angle(float(args.angle) + float(conf[mount]["angle_offset"]))
+        else:
+            print(f"Setting {args.mount} to {float(conf[mount]['background_angle'])}")
+            device.set_angle(float(conf[mount]["background_angle"]))
+
+        print(f"Set device {args.mount} to {device.get_angle()}")
 
 
 def serial_ports():
