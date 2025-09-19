@@ -220,7 +220,7 @@ class VariableWPRotStage(Operation):
         return (0,)
 
     @staticmethod
-    def compute_decomposition(theta, wires, retardance):
+    def compute_decomposition(theta, wires, retardance, wp_type=None):
         return [
             qml.RY(-2 * theta, wires=wires[0]),
             qml.PhaseShift(retardance, wires=wires[0]),
