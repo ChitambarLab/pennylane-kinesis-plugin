@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--optimizer",
-        default="gradient-descent",
+        default="adagrad",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
 
@@ -107,12 +107,6 @@ if __name__ == "__main__":
         default=20,
         type=int,
         help="Number of optimization steps.",
-    )
-    parser.add_argument(
-        "--meas_only",
-        default=False,
-        action="store_true",
-        help="For two waveplates, use only measurement waveplates instead of prepare.",
     )
     parser.add_argument("--qpt", default=False, action="store_true", help="Run process tomography each trial.")
     args = parser.parse_args()
@@ -166,7 +160,6 @@ if __name__ == "__main__":
             optimizer=args.optimizer,
             diff_method=args.diff,
             background_counts=args.background_counts,
-            meas_only=args.meas_only,
         )
 
         end_time = time.time()
