@@ -135,7 +135,6 @@ def optimize(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
                 )
-            print("after step")
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
 

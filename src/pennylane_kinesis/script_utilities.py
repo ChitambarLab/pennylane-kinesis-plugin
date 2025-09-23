@@ -5,8 +5,6 @@ import pennylane as qml
 from .file_utilities import datetime_now_string
 from .file_utilities import make_dir
 from .kinesis_cage_rotator_device import KinesisMotors
-from .operators import HWPRotStage
-from .operators import QWPRotStage
 from .operators import (
     HWPRotStage,
     QWPRotStage,
@@ -18,7 +16,7 @@ from .operators import (
 )
 from .optimization import optimize
 import pennylane_kinesis as pk
-from .elliptec_rotator_device import ElliptecMotors
+from .elliptec_rotator_device import ElliptecMotors, DeviceIndex
 import time
 import pickle
 
@@ -145,6 +143,7 @@ def two_state_discrimination(
             "motors": motors,
             "test_mode": test_mode,
             "filepath": filepath,
+            "waveplate_order": [DeviceIndex.aHWP.value, DeviceIndex.aQWP.value, DeviceIndex.bQWP.value, DeviceIndex.bHWP.value]
         }
 
     # Legacy code: old thorlabs rotator mounts:
@@ -166,7 +165,7 @@ def two_state_discrimination(
             num_in=1,
             num_out=2,
             wires=[0],
-            ansatz_fn=lambda *args: meas_fn_retardance(fixed_meas_settings, args[1]),
+            ansatz_fn=lambda *args: meas_fn_swapped_order_retardance(fixed_meas_settings, args[1]),
             num_settings=0,
         )
 
@@ -182,7 +181,7 @@ def two_state_discrimination(
 
     # network ansatz class manages circuit construction and settings
     state_disc_ansatz = qnetvo.NetworkAnsatz(
-        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+        [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)],
         # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
         [meas_node],
         dev_kwargs={
