@@ -1,4 +1,4 @@
- import pennylane_kinesis as pk
+import pennylane_kinesis as pk
 from datetime import datetime, timezone
 import argparse
 from pathlib import Path
@@ -11,7 +11,6 @@ from pennylane_kinesis.file_utilities import (
 import numpy as np
 import matplotlib.pyplot as plt
 import pytz
-import plotly.express as px
 import os
 
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] * 3
