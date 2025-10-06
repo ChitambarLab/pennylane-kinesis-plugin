@@ -43,13 +43,14 @@ class TimeTaggerType(Enum):
     UQD = 1
     SWABIAN = 2
 
+COM_PORTS = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"]
 
 class ElliptecMotors:
     """Connect and control kinesis motors for the Cage Rotator Device."""
 
     def __init__(
         self,
-        com_port=["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"],
+        com_port=COM_PORTS,
         test_mode=_TEST_MODE,
     ):
         self.wp_details = read_config()
@@ -193,7 +194,7 @@ class ElliptecRotatorDevice(QubitDevice):
         test_mode=_TEST_MODE,
         filepath="./test/tmp/",
         debug=False,
-        waveplate_order = [DeviceIndex.aHWP.value, DeviceIndex.aQWP.value, DeviceIndex.bHWP.value, DeviceIndex.bQWP.value]
+        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bHWP, DeviceIndex.bQWP]
     ):
         self.motors = motors
         self.debug = debug
@@ -696,11 +697,13 @@ class ElliptecRotatorDevice(QubitDevice):
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
             device_index = self.waveplate_order[i]
-            if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.HWP):
+            if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)):
+                device_index = device_index.value
                 angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
             elif op.name == "QWPRotStage" or (
-                op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.QWP
+                op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
+                device_index = device_index.value
                 angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
             else:
                 print("Operation : ", op.name, ", is not supported")

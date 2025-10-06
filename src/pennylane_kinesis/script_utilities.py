@@ -117,7 +117,7 @@ def two_state_discrimination(
 
     def meas_fn_swapped_order_retardance(settings, wires):
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        HWPRotStage(settings[0], wires=[wires[0]])
+        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
 
     def noise_fn(settings, wires):
         kraus_ops = fiber_ops
@@ -143,7 +143,7 @@ def two_state_discrimination(
             "motors": motors,
             "test_mode": test_mode,
             "filepath": filepath,
-            "waveplate_order": [DeviceIndex.aHWP.value, DeviceIndex.aQWP.value, DeviceIndex.bQWP.value, DeviceIndex.bHWP.value]
+            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP]
         }
 
     # Legacy code: old thorlabs rotator mounts:
