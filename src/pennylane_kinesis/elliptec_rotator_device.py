@@ -699,12 +699,14 @@ class ElliptecRotatorDevice(QubitDevice):
             device_index = self.waveplate_order[i]
             if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)):
                 device_index = device_index.value
-                angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
+                angles[device_index] = ((angle) + float(self.wp_details[device_index]["angle_offset"]))%360
+                # angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
             elif op.name == "QWPRotStage" or (
                 op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
                 device_index = device_index.value
-                angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
+                # angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
+                angles[device_index] = ((angle) + float(self.wp_details[device_index]["angle_offset"]))%360
             else:
                 print("Operation : ", op.name, ", is not supported")
 
