@@ -68,8 +68,13 @@ if __name__ == "__main__":
         help="Title for the plot.",
     )
 
+    parser.add_argument("--subtitle", default="\n(two-wp, adagrad, parameter-shift, parallel mounts)")
+
     parser.add_argument(
-        "--subtitle", default="\n(two-wp, adagrad, parameter-shift, NUMERICS)"
+        "--best",
+        default=False,
+        action="store_true",
+        help="Plot the best cost achieved out of all runs for a particular measurement setting.",
     )
 
     args = parser.parse_args()
@@ -131,9 +136,7 @@ if __name__ == "__main__":
     # all_meas_settings = zip(meas_settings, meas_settings)
     for i in range(len(meas_settings_HWP)):
         for j in range(len(meas_settings_QWP)):
-            folder_names.append(
-                f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}"
-            )
+            folder_names.append(f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}")
             all_meas_names.append(f"{meas_names_HWP[i]} x {meas_names_QWP[j]}")
 
     two_wp = "/two_wp/"
@@ -146,8 +149,7 @@ if __name__ == "__main__":
     # fig, ax2 = plt.subplots()
 
     fig.suptitle(
-        args.title
-        + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        args.title + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )
@@ -202,23 +204,23 @@ if __name__ == "__main__":
         std_min_cost_vals = []
         for i in range(len(aggregate_data)):
             std_mean_cost_vals += [np.mean(aggregate_data[i])]
-            std_std_err_cost_vals += [
-                np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))
-            ]
+            std_std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
             std_min_cost_vals += [np.min(aggregate_data[i])]
 
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
-        print(aggregate_data)
-        # best_cost_val = np.min(aggregate_data)
-        # ax.semilogy(
-        #     range(len(std_mean_cost_vals)),
-        #     best_cost_val * np.ones(len(std_mean_cost_vals)),
-        #     alpha=3 / 4,
-        #     label="Best Cost",
-        #     # color=_COLORS[c_id],
-        # )
+        if args.best:
+            best_cost_val = np.min(aggregate_data)
+            ax.semilogy(
+                range(len(std_mean_cost_vals)),
+                best_cost_val * np.ones(len(std_mean_cost_vals)),
+                alpha=3 / 4,
+                linestyle="--",
+                label="Best Cost",
+                color=_COLORS[c_id],
+            )
+
         ax.semilogy(
             range(len(std_mean_cost_vals)),
             std_mean_cost_vals,
@@ -263,14 +265,8 @@ if __name__ == "__main__":
         )
         ax.fill_between(
             range(len(std_np_mean)),
-            (
-                [(background_mean - background_std_err) / np.mean(shot_rates)]
-                * len(std_np_mean)
-            ),
-            (
-                [(background_mean + background_std_err) / np.mean(shot_rates)]
-                * len(std_np_mean)
-            ),
+            ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
+            ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
             alpha=1 / 4,
             color="black",
             linestyle="--",
@@ -293,18 +289,10 @@ if __name__ == "__main__":
 
     face_id = 1
     while os.path.exists(
-        Path(
-            args.filepath
-            + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}.png"
-        )
+        Path(args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}.png")
     ):
         face_id += 1
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
-        plt.savefig(
-            Path(
-                args.filepath
-                + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"
-            )
-        )
+        plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"))
