@@ -2,6 +2,7 @@ import numpy as np
 import qnetvo
 
 import pennylane as qml
+import pennylane.numpy as qnp
 from .file_utilities import datetime_now_string
 from .file_utilities import make_dir
 from .kinesis_cage_rotator_device import KinesisMotors
@@ -301,6 +302,7 @@ def qubit_dimensionality_witnessing(
         HWPRotStage(settings[0], wires=[wires[0]])
         QWPRotStage(settings[1], wires=[wires[0]])
 
+
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -380,3 +382,175 @@ def qubit_dimensionality_witnessing(
         filename="optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * prep_num_in + [hwp_period, qwp_period] * meas_num_in,
     )
+
+def rac(
+    filepath,
+    shots=10000,
+    shot_rate=3000000,
+    background_counts=[300, 100],
+    rac_3 = False,
+    numerics=False,
+    step_size=0.08,
+    num_steps=20,
+    optimizer="adagrad",
+    verbose=True,
+    fixed_meas_settings=[0, 0],
+    hwp_period=HWP_PERIOD,
+    qwp_period=QWP_PERIOD,
+    test_mode=False,
+    diff_method="parameter-shift",
+    efficiencies=[1, 1],
+):
+    
+    data_path = make_dir(filepath)
+    
+    def arb_unitary_retardance(settings, wires):
+        HWPRotStage(settings[0], wires=[wires[0]])
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
+
+    # Function to use for MeasureNode if we are not moving the measurement waveplates.
+    def meas_fn(settings, wires):
+        HWPRotStage(settings[0], wires=wires[0:1])
+        QWPRotStage(settings[1], wires=wires[0:1])
+
+    def meas_fn_swapped_order(settings, wires):
+        QWPRotStage(settings[1], wires=wires[0:1])
+        HWPRotStage(settings[0], wires=wires[0:1])
+
+    def meas_fn_retardance(settings, wires):
+        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+
+    def meas_fn_swapped_order_retardance(settings, wires):
+        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+
+    def hwp_only_meas_fn_retardance(settings, wires):
+        VariableWPRotStage(0, wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+
+    if numerics:
+        data_path += "numerics/"
+        dev_name = "kinesis.simulator"
+        additional_dev_kwargs = {
+            "shot_rate": shot_rate,
+            "shots": shots,
+            "background_counts": background_counts,
+            "qwp_domain_period": qwp_period,
+            "hwp_domain_period": hwp_period,
+            "h_efficiency": efficiencies[0],
+            "v_efficiency": efficiencies[1],
+        }
+    else:
+        motors = ElliptecMotors(test_mode=test_mode)
+        data_path += "hardware/"
+        dev_name = "elliptec.rotator"
+        additional_dev_kwargs = {
+            "motors": motors,
+            "test_mode": test_mode,
+            "filepath": filepath,
+            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP]
+        }
+
+    pk.make_dir(data_path)
+
+    datetime_str = pk.datetime_now_string()
+
+    # network ansatz class manages circuit construction and settings
+    if rac_3:
+        rac_ansatz = qnetvo.NetworkAnsatz(
+            [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)],
+            # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+            [
+                qnetvo.MeasureNode(
+                    num_in=3,
+                    num_out=2,
+                    wires=[0],
+                    ansatz_fn=meas_fn_swapped_order_retardance,
+                    num_settings=2,
+                )
+            ],
+            dev_kwargs={
+                "name": dev_name,
+                "shot_rate": shot_rate,
+                "shots": shots,
+                **additional_dev_kwargs,
+            },
+        )
+    else:
+        rac_ansatz = qnetvo.NetworkAnsatz(
+            [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)],
+            # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+            [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=meas_fn_swapped_order_retardance, num_settings=2)],
+            dev_kwargs={
+                "name": dev_name,
+                "shot_rate": shot_rate,
+                "shots": shots,
+                **additional_dev_kwargs,
+            },
+        )
+
+    # Take background and shot_rate data
+    device = qml.device(**rac_ansatz.dev_kwargs)
+    shot_rate = device.shot_rate.tolist()
+    background_rate = device.take_background()
+
+    _qnode_kwargs = {"diff_method": diff_method}
+    if diff_method == "finite-diff":
+        _qnode_kwargs["h"] = 1e-3
+        _qnode_kwargs["strategy"] = "center"
+        _qnode_kwargs["approx_order"] = 2
+    # construct a linear inequality cost function that
+    # corresponds to the minimal qubit random access code.
+    if rac_3:
+        rac_cost = qnetvo.linear_probs_cost_fn(
+            rac_ansatz,
+            qnp.array(
+                [
+                    [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+                ]
+            ),
+            qnode_kwargs=_qnode_kwargs,
+        )
+    else:
+        rac_cost = qnetvo.linear_probs_cost_fn(
+            rac_ansatz,
+            qnp.array(
+                [
+                    [1,1,1,0,0,1,0,0],
+                    [0,0,0,1,1,0,1,1]
+                ]
+            ),
+            qnode_kwargs=_qnode_kwargs,
+        )
+
+    behavior_fn = qnetvo.behavior_fn(rac_ansatz, qnode_kwargs=_qnode_kwargs)
+
+    if rac_3:
+        domain_periods = [hwp_period, qwp_period] * 11
+    else:
+        domain_periods = [hwp_period, qwp_period] * 4 + [hwp_period, qwp_period] * 2
+
+    rac_opt_dict = optimize(
+        lambda settings: rac_cost(*settings),
+        qnp.array(rac_ansatz.rand_network_settings()),
+        background_rate=background_rate,
+        shot_rate=shot_rate,
+        verbose=verbose,
+        behavior_fn=behavior_fn,
+        shots=int(shots),
+        numerics=numerics,
+        step_size=float(step_size),
+        num_steps=int(num_steps),
+        diff_method=diff_method,
+        background_counts=background_counts,
+        optimizer=optimizer,
+        filepath=data_path,
+        filename="optimization_" + datetime_str,
+        domain_periods=domain_periods,
+    )
+    if not numerics:
+        motors.close()
+
+    return rac_opt_dict
