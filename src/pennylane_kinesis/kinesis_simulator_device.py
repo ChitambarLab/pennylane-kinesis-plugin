@@ -21,7 +21,6 @@ class DeviceIndex(Enum):
     bHWP = 2
     bQWP = 3
 
-
 class KinesisSimulatorDevice(QubitDevice):
     """A PennyLane plugin device for simulating the integration with the ThorLabs Kinesis software.
 
