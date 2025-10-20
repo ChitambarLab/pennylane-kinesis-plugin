@@ -1,6 +1,7 @@
 import pennylane as qml
 from pennylane import numpy as qnp
 import time
+import numpy as np
 
 from .file_utilities import datetime_now_string, tmp_dir, write_json
 
@@ -109,6 +110,10 @@ def optimize(
         opt = qml.AdagradOptimizer(stepsize=step_size)
     elif optimizer == "spsa":
         opt = qml.SPSAOptimizer(maxiter=num_steps)
+    elif optimizer == "rmsprop":
+        opt = qml.RMSPropOptimizer(stepsize=step_size)
+    elif optimizer == "qng":
+        opt = qml.QNGOptimizer(stepsize=step_size)
     else:
         opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
@@ -151,6 +156,21 @@ def optimize(
         if behavior_fn is not None:
             behavior_mat = behavior_fn(settings)
             opt_dict["behavior_mat"] += [behavior_mat.tolist()]
+
+        setting_iterations = []
+        for i, setting in enumerate(settings):
+            setting_iterations.append([setting, setting+domain_periods[i]])
+        
+        all_settings = list(zip(*(x.flat for x in np.meshgrid(*setting_iterations))))
+        
+        opt_dict["periodic_cost_vals"] = []
+        opt_dict["periodic_settings"] = []
+        for setting in all_settings:
+            cost_val = [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
+            if cost_val[0] < np.min(opt_dict["cost_vals"]):
+                print(f"better periodic cost found: {cost_val[0]} at {setting}")
+            opt_dict["periodic_cost_vals"] += [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
+            opt_dict["periodic_settings"] += [setting]
 
     except BaseException as err:
         msg_template = "An exception of type {0} occurred during optimization step {1}. Arguments:\n{2!r}"
