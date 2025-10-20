@@ -13,7 +13,13 @@ from .operators import (
 )
 import pennylane as qml
 from .version import __version__
+from enum import Enum
 
+class DeviceIndex(Enum):
+    aHWP = 0
+    aQWP = 1
+    bHWP = 2
+    bQWP = 3
 
 class KinesisSimulatorDevice(QubitDevice):
     """A PennyLane plugin device for simulating the integration with the ThorLabs Kinesis software.
@@ -66,6 +72,7 @@ class KinesisSimulatorDevice(QubitDevice):
         debug=False,
         h_efficiency=1,
         v_efficiency=1,
+        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bHWP, DeviceIndex.bQWP]
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
@@ -98,8 +105,9 @@ class KinesisSimulatorDevice(QubitDevice):
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
         for i, operation in enumerate(all_ops):
+            device_index = self.waveplate_order[i]
             if operation.name == "HWPRotStage" or (
-                operation.name == "VariableWPRotStage" and operation.hyperparameters["wp_type"] == WaveplateTypes.HWP
+                operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)
             ):
                 angle = (
                     np.mod(operation.parameters[0], self.hwp_domain_period)
@@ -119,7 +127,7 @@ class KinesisSimulatorDevice(QubitDevice):
                     ).compute_matrix(angle, HWP_RETARDANCE_B)
                 self._state = mat @ self._state @ mat.conj().T
             elif operation.name == "QWPRotStage" or (
-                operation.name == "VariableWPRotStage" and operation.hyperparameters["wp_type"] == WaveplateTypes.QWP
+                operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
                 angle = (
                     np.mod(operation.parameters[0], self.qwp_domain_period)
