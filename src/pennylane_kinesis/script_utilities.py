@@ -172,7 +172,7 @@ def two_state_discrimination(
 
     else:
         data_path += "four_wp/"
-        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)
+        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=meas_fn_swapped_order_retardance, num_settings=2)
 
     make_dir(data_path)
 
@@ -517,10 +517,10 @@ def rac(
         rac_cost = qnetvo.linear_probs_cost_fn(
             rac_ansatz,
             qnp.array(
-                [
-                    [1,1,1,0,0,1,0,0],
-                    [0,0,0,1,1,0,1,1]
-                ]
+                    [
+                        [1, 0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 1, 0, 0, 0, 1, 1],
+                    ]
             ),
             qnode_kwargs=_qnode_kwargs,
         )
