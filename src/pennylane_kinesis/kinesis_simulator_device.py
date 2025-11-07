@@ -72,11 +72,21 @@ class KinesisSimulatorDevice(QubitDevice):
         debug=False,
         h_efficiency=1,
         v_efficiency=1,
-        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bHWP, DeviceIndex.bQWP]
+        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
+        retardances=[HWP_RETARDANCE_A, QWP_RETARDANCE_A, HWP_RETARDANCE_B, QWP_RETARDANCE_B]
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
+        self.retardances = retardances
+        self.waveplate_order = waveplate_order
+        wp_angles = np.linspace(0,2*np.pi, 10)
+        wedge_interp = np.linspace(0,2*np.pi, 720)
+        wedge_vals = np.ones(10)
+        wedge_vals[7] = 1
+
+        self.bqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
         self.background_counts = background_counts
+        self.bqwp_angle = 0
         if seed:
             np.random.seed(seed)
 
@@ -109,43 +119,24 @@ class KinesisSimulatorDevice(QubitDevice):
             if operation.name == "HWPRotStage" or (
                 operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)
             ):
-                angle = (
-                    np.mod(operation.parameters[0], self.hwp_domain_period)
-                    if self.hwp_domain_period
-                    else operation.parameters[0]
-                )
-                # mat = qml.matrix(operation)
-                if i == 0:
-                    mat = VariableWPRotStage(
-                        angle,
-                        wires=[0],
-                    ).compute_matrix(angle, HWP_RETARDANCE_A)
-                else:
-                    mat = VariableWPRotStage(
-                        angle,
-                        wires=[0],
-                    ).compute_matrix(angle, HWP_RETARDANCE_B)
+                angle = operation.parameters[0]
+                mat = VariableWPRotStage(
+                    angle,
+                    wires=[0],
+                ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
             elif operation.name == "QWPRotStage" or (
                 operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
-                angle = (
-                    np.mod(operation.parameters[0], self.qwp_domain_period)
-                    if self.qwp_domain_period
-                    else operation.parameters[0]
-                )
+                angle = operation.parameters[0]
                 # mat = qml.matrix(operation)
-                if i == 1:
-                    mat = VariableWPRotStage(
-                        angle,
-                        wires=[0],
-                    ).compute_matrix(angle, retardance=QWP_RETARDANCE_A)
-                else:
-                    mat = VariableWPRotStage(
-                        angle,
-                        wires=[0],
-                    ).compute_matrix(angle, retardance=QWP_RETARDANCE_B)
+                mat = VariableWPRotStage(
+                    angle,
+                    wires=[0],
+                ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
+                if device_index == DeviceIndex.bQWP:
+                    self.bqwp_angle = angle
             elif operation.name == "QubitChannel":
                 kraus_ops = operation.kraus_matrices()
                 output_state = np.zeros(self._state.shape, dtype=complex)
@@ -174,8 +165,12 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         zero_state = np.array([[1, 0], [0, 0]])
         one_state = np.array([[0, 0], [0, 1]])
-        p0 = np.trace(self._state @ zero_state).real
-        p1 = np.trace(self._state @ one_state).real
+        p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-8, a_max=None)
+        p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-8,a_max=None)
+
+        p0 *= self.bqwp_wedge[self.bqwp_angle]
+        p1 *= self.bqwp_wedge[self.bqwp_angle]
+
 
         # Poisson(background counts /s) * background_ratio
         zero_background_counts = int(
