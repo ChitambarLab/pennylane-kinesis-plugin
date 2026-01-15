@@ -81,7 +81,8 @@ class ElliptecMotors:
                 scanned = elliptec.scan_for_devices(control, start_address=0, stop_address=0)
                 # Each motor has it's own controller, so it should ideally only return
                 # one device when scanned
-                scanned_devices.append(scanned[0])
+                if len(scanned) > 0:
+                    scanned_devices.append(scanned[0])
         else:
             scanned_devices = elliptec.scan_for_devices(self.controller, start_address=1, stop_address=4)
         if len(scanned_devices) < 4:
@@ -620,8 +621,13 @@ class ElliptecRotatorDevice(QubitDevice):
             print("Moved device S/N " + device + " to position " + str(angle))
         else:
             angle_ret = None
+            counter = 0
             while angle_ret is None:
+                counter += 1
                 angle_ret = device.set_angle(angle)  # This will block until the device reaches the desired angle
+                if counter > 4:
+                    print(f"Something is wrong! Tried setting {device.info['Serial No.']} to angle {angle} {counter} times in a row! Exiting...")
+                    exit()
                 if angle_ret is None:
                     print(
                         "Angle return is None when setting",
@@ -698,15 +704,17 @@ class ElliptecRotatorDevice(QubitDevice):
             angle = op.parameters[0] * 360 / (2 * np.pi)
             device_index = self.waveplate_order[i]
             if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)):
-                device_index = device_index.value
-                angles[device_index] = ((angle) + float(self.wp_details[device_index]["angle_offset"]))%360
+                if device_index is DeviceIndex.bHWP:
+                    angle = ((angle % 180) + float(self.wp_details[device_index.value]["angle_offset"]))%360
+                else:
+                    angle = ((angle) + float(self.wp_details[device_index.value]["angle_offset"]))%360
+                angles[device_index.value] = angle
                 # angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
             elif op.name == "QWPRotStage" or (
                 op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
-                device_index = device_index.value
                 # angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
-                angles[device_index] = ((angle) + float(self.wp_details[device_index]["angle_offset"]))%360
+                angles[device_index.value] = ((angle) + float(self.wp_details[device_index.value]["angle_offset"]))%360
             else:
                 print("Operation : ", op.name, ", is not supported")
 
