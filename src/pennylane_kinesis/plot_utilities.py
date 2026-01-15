@@ -332,6 +332,8 @@ def plot_step_size_dependence(
     )
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
+    plt.rcParams.update({'axes.titlepad': 22, 'axes.titlesize': 16})
+
     ax.set_title(
         title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
@@ -343,8 +345,8 @@ def plot_step_size_dependence(
     #     fontweight="bold",
     #     fontsize=14,
     # )
-    ax.set_xlabel("Gradient Descent Step")
-    ax.set_ylabel("Probability of undiscriminated photons (Cost)")
+    ax.set_xlabel("Gradient Descent Step", fontdict={"fontsize": 12})
+    ax.set_ylabel("Probability of undiscriminated photons (Cost)", fontdict={"fontsize": 12})
 
     filepath_type = "/numerics/" if numerics else "/hardware/"
     filepath_wp = "two_wp/" if two_wp else "four_wp/"
@@ -437,6 +439,16 @@ def plot_step_size_dependence(
         #     color=_COLORS[c_id],
         #     linestyle="-"
         # )
+        num_trials = len(std_filenames)
+
+        ax.semilogy(
+            range(len(std_mean_cost_vals)),
+            [np.min(std_aggregate_data)]*len(std_mean_cost_vals),
+            alpha=3 / 4,
+            label=f"Best Cost Achieved",
+            color=_COLORS[c_id],
+            # linestyle="--",
+        )
 
         ax.semilogy(
             range(len(std_mean_cost_vals)),
