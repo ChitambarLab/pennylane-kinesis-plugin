@@ -60,7 +60,7 @@ class KinesisSimulatorDevice(QubitDevice):
         self,
         wires,
         shots=10000,
-        background_counts=[300, 100],
+        background_counts=[400, 100],
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
@@ -79,12 +79,18 @@ class KinesisSimulatorDevice(QubitDevice):
         self._state = self.init_state
         self.retardances = retardances
         self.waveplate_order = waveplate_order
-        wp_angles = np.linspace(0,2*np.pi, 10)
-        wedge_interp = np.linspace(0,2*np.pi, 720)
-        wedge_vals = np.ones(10)
-        wedge_vals[7] = 1
+        # wp_angles = np.linspace(0,2*np.pi, 3)
+        # wedge_interp = np.linspace(0,2*np.pi, 1800)
+        # wedge_vals = np.ones(3)
+        # wedge_vals[1] = 0.2
 
-        self.bqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
+        # print("Initializing")
+
+        # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
+
+        # print(self.aqwp_wedge)
+        self.shots=shots
+
         self.background_counts = background_counts
         self.bqwp_angle = 0
         if seed:
@@ -93,8 +99,11 @@ class KinesisSimulatorDevice(QubitDevice):
         self.qwp_domain_period = qwp_domain_period
         self.hwp_domain_period = hwp_domain_period
         self.shot_rate = np.array(shot_rate)
-        self.h_efficiency = h_efficiency
-        self.v_efficiency = v_efficiency
+        self.noise_percentage = 8e-4
+        self.h_efficiency = 1-1e-4
+        self.v_efficiency = 1
+        self.integration_time = self.shots/np.sum(self.shot_rate)
+        self.crosstalk = np.array([[1,1e-2],[1e-1,1]])
 
     def reset(self):
         super().reset()
@@ -114,29 +123,34 @@ class KinesisSimulatorDevice(QubitDevice):
 
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
+        angles = []
         for i, operation in enumerate(all_ops):
+            # print(operation)
             device_index = self.waveplate_order[i]
+            # print("i", i)
+            # print(self.waveplate_order[i])
+            # print(operation.parameters[0])
+            # print(operation.name)
+            # print(device_index.value == DeviceIndex.aHWP.value)
             if operation.name == "HWPRotStage" or (
-                operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)
+                operation.name == "VariableWPRotStage" and (device_index.value == DeviceIndex.aHWP.value or device_index.value == DeviceIndex.bHWP.value)
             ):
                 angle = operation.parameters[0]
                 mat = VariableWPRotStage(
-                    angle,
+                    angle%self.hwp_domain_period,
                     wires=[0],
                 ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
             elif operation.name == "QWPRotStage" or (
-                operation.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
+                operation.name == "VariableWPRotStage" and (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value)
             ):
                 angle = operation.parameters[0]
                 # mat = qml.matrix(operation)
                 mat = VariableWPRotStage(
-                    angle,
+                    angle%self.qwp_domain_period,
                     wires=[0],
                 ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
-                if device_index == DeviceIndex.bQWP:
-                    self.bqwp_angle = angle
             elif operation.name == "QubitChannel":
                 kraus_ops = operation.kraus_matrices()
                 output_state = np.zeros(self._state.shape, dtype=complex)
@@ -144,8 +158,14 @@ class KinesisSimulatorDevice(QubitDevice):
                     output_state += op @ self._state @ op.conj().T
                 self._state = output_state
             else:
+                print("else")
                 mat = qml.matrix(operation)
                 self._state = mat @ self._state @ mat.conj().T
+            
+            # print(angle)
+            angles.append(angle*180/np.pi)
+        self.angles = angles
+        # print(self.angles)
 
     def take_background(self):
         zero_background_counts = np.random.poisson(int((self.background_counts[0])))
@@ -165,44 +185,74 @@ class KinesisSimulatorDevice(QubitDevice):
     def generate_samples(self):
         zero_state = np.array([[1, 0], [0, 0]])
         one_state = np.array([[0, 0], [0, 1]])
-        p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-8, a_max=None)
-        p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-8,a_max=None)
+        p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-16, a_max=None)
+        p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16,a_max=None)
+        # p0 = np.trace(self._state @ zero_state).real
+        # p1 = np.trace(self._state @ one_state).real
 
-        p0 *= self.bqwp_wedge[self.bqwp_angle]
-        p1 *= self.bqwp_wedge[self.bqwp_angle]
+        # print(p0)
+        # print(p1)
+        # print(self.angles)
+        # print(self.angles)
+        # print(int(self.angles[self.waveplate_order[1].value]))
+        # p0 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[0].value])]
+        # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
+        # print(self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])])
+        # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
+        
 
 
         # Poisson(background counts /s) * background_ratio
         zero_background_counts = int(
-            (np.random.poisson(self.background_counts[0]) * self.background_counts[0] / self.shot_rate[0])
+            (np.random.poisson(self.background_counts[0]) * self.integration_time)
         )
         one_background_counts = int(
-            (np.random.poisson(self.background_counts[1]) * self.background_counts[1] / self.shot_rate[1])
+            (np.random.poisson(self.background_counts[1]) * self.integration_time)
         )
 
-        # Poisson(rate at input of PBS * prob of measurement) * measurement time + background
+        zero_incident_rate = p0*np.sum(self.shot_rate)
+        one_incident_rate = p1*np.sum(self.shot_rate)
+
+        crosstalk_zero_rate = self.crosstalk[0,1]*one_incident_rate
+        crosstalk_one_rate = self.crosstalk[1,0]*zero_incident_rate
+
+        crosstalk_zero_counts = int(np.random.poisson(crosstalk_zero_rate)*self.integration_time)
+        crosstalk_one_counts = int(np.random.poisson(crosstalk_one_rate)*self.integration_time)
+
+        noise_counts_zero =int(
+            np.random.poisson(zero_incident_rate*self.noise_percentage)*self.integration_time
+        )
+        noise_counts_one = int(
+            np.random.poisson(one_incident_rate*self.noise_percentage)*self.integration_time
+            )
+
+        # Poisson(rate at input of PBS * prob of measurement) * measurement time (= num_shots/shot_rate) + background + noise_counts
         zero_counts = (
             int(
                 (
-                    np.random.poisson(p0 * np.sum(self.shot_rate))
+                    np.random.poisson(zero_incident_rate)
                     * self.h_efficiency
-                    * self.shots
-                    / np.sum(self.shot_rate)
+                    * self.integration_time
                 )
             )
             + zero_background_counts
+            + noise_counts_zero
+            + crosstalk_zero_counts
         )
         one_counts = (
             int(
                 (
-                    np.random.poisson(p1 * np.sum(self.shot_rate))
+                    np.random.poisson(one_incident_rate)
                     * self.v_efficiency
-                    * self.shots
-                    / np.sum(self.shot_rate)
+                    * self.integration_time
                 )
             )
             + one_background_counts
+            + noise_counts_one
+            + crosstalk_one_counts
         )
+
+        # print(zero_counts,one_countsg)
 
         return np.concatenate(
             (
