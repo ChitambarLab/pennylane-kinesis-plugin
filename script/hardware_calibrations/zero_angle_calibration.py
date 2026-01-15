@@ -448,14 +448,6 @@ if __name__ == "__main__":
             pickler.dump((angles, powers))
         exit()
 
-    elif args.manual:
-        controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-        device = elliptec.Rotator(controller, address=str(args.sv))
-        wp_details = read_config()
-
-        device.home()
-        device.set_angle(wp_details[args.sv - 1]["background_angle"])
-
     else:
         print("opening port")
         print(port)
@@ -467,7 +459,7 @@ if __name__ == "__main__":
         device.home()
 
         device.set_angle(0)
-        device.set_jog_step(5)
+        device.set_jog_step(1)
         powers_h = []
         powers_v = []
         angles = []

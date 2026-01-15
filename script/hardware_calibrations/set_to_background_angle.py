@@ -2,10 +2,46 @@ import sys
 import glob
 import serial
 import elliptec
+from pennylane_kinesis import ElliptecMotors
+import numpy as np
 from pennylane_kinesis.file_utilities import read_config
 import argparse
+import time
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
+
+controllers = [elliptec.Controller(ports[i], timeout=3, write_timeout=3) for i in range(len(ports))]
+
+def move_to_angle(device, angle, offset_angle=0):
+    angle_ret = None
+    while angle_ret is None:
+        angle_ret = device.set_angle((angle+offset_angle)%360)  # This will block until the device reaches the desired angle
+        if angle_ret is None:
+            print(
+                "Angle return is None when setting",
+                device.info["Serial No."],
+                "to ",
+                angle,
+            )
+            print("Trying again...")
+            time.sleep(0.01)
+
+
+def get_mount(mount_num):
+    print("Scanning devices...")
+    wp_details = read_config()
+
+    for control in controllers:
+        scanned = elliptec.scan_for_devices(control, start_address=0, stop_address=0)
+        # Each motor has it's own controller, so it should ideally only return
+        # one device when scanned
+        if len(scanned) > 0:
+            device_serial = scanned[0]["info"]["Serial No."]
+            if device_serial == wp_details[mount_num]["serial_number"]:
+                print(f"Found device with serial {device_serial}")
+                return elliptec.Rotator(control, address="0", debug=False)
+
+
 
 
 if __name__ == "__main__":
@@ -17,48 +53,47 @@ if __name__ == "__main__":
     parser.add_argument("--all", default=False, action="store_true", help="Set all waveplates to background (or calibrated zero angle).")
     parser.add_argument("--zero", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
     parser.add_argument("--angle", default=None, type=float, help="Set waveplate to angle + calibrated offset.")
-    parser.add_argument("--raw", default=False, action="store_true", help="Set waveplate to raw angle (use with --angle argument).")
-    
+    parser.add_argument("--background", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
+    parser.add_argument("--raw", default=False, action="store_true", help="ignore offsets and set to raw angle.")
     args = parser.parse_args()
+    
+    if not args.all:
+        rotators =[get_mount(args.mount)]
+        rotator = rotators[0]
+        rotator.home()
+    else:
+        motors = ElliptecMotors()
+        rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
+
+        for rotator in rotators:
+            rotator.home()
+
+    wp_details = read_config()
+
+    # wp_details = motors.wp_details[args.mount]
+
+    # move_to_angle(rotator, 0, wp_details["angle_offset"])
     conf = read_config()
     if args.all:
-        mounts = []
-        for port in ports:
-            controller = elliptec.Controller(port, timeout=3, write_timeout=3)
-            device = elliptec.Rotator(controller, address=str(0))
-            mounts.append(device)
-        
-        for i, device in enumerate(mounts):
-            if args.zero:
-                print(f"Setting mount {i} to {float(conf[i]['angle_offset'])}")
-                device.set_angle(float(conf[i]["angle_offset"]))
-                print(f"Set device {i} to {device.get_angle()}")
-            else:
-                print(f"Setting {args.mount} to {float(conf[i]['background_angle'])}")
-                device.set_angle(float(conf[i]["background_angle"]))
-                print(f"Set device {i} to {device.get_angle()}")
+        if args.background:
+            for i, rotator in enumerate(rotators):
+                print(wp_details[i]["background_angle"])
+                move_to_angle(rotator, 0, wp_details[i]["background_angle"])
+                print(f"Set device {args.mount} to {rotator.get_angle()}")
+        else:
+            for i, rotator in enumerate(rotators):
+                print(wp_details[i]["angle_offset"])
+                move_to_angle(rotator, 0, wp_details[i]["angle_offset"])
+                print(f"Set device {args.mount} to {rotator.get_angle()}")
 
     else:
         mount = int(args.mount)
-
-        controller = elliptec.Controller(ports[mount], timeout=3, write_timeout=3)
-        device = elliptec.Rotator(controller, address=str(0))
-
-        if args.zero:
-            print(f"Setting {args.mount} to {float(conf[mount]['angle_offset'])}")
-            device.set_angle(float(conf[mount]["angle_offset"]))
-        elif args.angle is not None:
-            if args.raw:
-                print(f"Setting {args.mount} to {float(args.angle)}")
-                device.set_angle(float(args.angle))
-            else:
-                print(f"Setting {args.mount} to {float(args.angle) + float(conf[mount]['angle_offset'])}")
-                device.set_angle(float(args.angle) + float(conf[mount]["angle_offset"]))
+        if args.raw:
+            move_to_angle(rotators[0],args.angle, 0)
         else:
-            print(f"Setting {args.mount} to {float(conf[mount]['background_angle'])}")
-            device.set_angle(float(conf[mount]["background_angle"]))
+            move_to_angle(rotators[0],args.angle, wp_details[args.mount]["angle_offset"])
 
-        print(f"Set device {args.mount} to {device.get_angle()}")
+        print(f"Set device {args.mount} to {rotators[0].get_angle()}")
 
 
 def serial_ports():

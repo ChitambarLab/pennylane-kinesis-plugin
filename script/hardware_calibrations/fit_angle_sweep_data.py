@@ -79,6 +79,13 @@ if __name__ == "__main__":
         help="Name of the waveplate (for the plot)."
     )
 
+    parser.add_argument(
+        "--power_meter",
+        default=False,
+        action="store_true",
+        help="if using power meter data instead"
+    )
+
     args = parser.parse_args()
     path = Path(args.file)
 
@@ -226,44 +233,53 @@ if __name__ == "__main__":
 
         else:
             with open(args.file, "rb") as f:
-                (angles, powers_h, powers_v) = pickle.load(f)
+                angle_cutoffs = [0,360]
+                # (angles, powers_h, powers_v) = pickle.load(f)
+                counts = pickle.load(f)
+                counts = np.array(counts)
+                if not args.power_meter:
+                    norm = counts[:,:,0] + counts[:,:,1]
+                # norm_counts = counts
+                # norm_counts[:,:,0] /= norm
+                # norm_counts[:,:,1] /= norm
 
-                powers_h = np.array(powers_h, dtype=float).flatten()
-                powers_v = np.array(powers_v, dtype=float).flatten()
+                mean_data = np.mean(counts, axis=0)
+                print(mean_data)
+                # std_data = np.std(norm_counts,axis=0)
+
+                mean_data = mean_data[angle_cutoffs[0]:angle_cutoffs[1]]
+
+                mean_data_h = mean_data[:,0]
+                mean_data_v = mean_data[:,1]
+                angles = np.linspace(angle_cutoffs[0],angle_cutoffs[1],angle_cutoffs[1]-angle_cutoffs[0])
                 # powers_h = (powers_h - np.min(powers_h)) / (np.max(powers_h) - np.min(powers_h))
                 # powers_v = (powers_v - np.min(powers_v)) / (np.max(powers_v) - np.min(powers_v))
 
-                print(angles)
-                print(powers_h)
-                print(powers_h + powers_v)
-
-                print(len(angles))
-                print(len)
                 fig = plt.figure()
-                angles = np.array(angles, dtype=float)
                 # angles = angles[45:130]
                 # powers_h = powers_h[45:130]
                 # powers_v = powers_v[45:130]
-                x_data = np.linspace(0, 360, num=1000)
+                x_data = np.linspace(angle_cutoffs[0],angle_cutoffs[1],1000)
 
-                fit_dict_h = fit_sin(angles, powers_h)
+                fit_dict_h = fit_sin(angles, mean_data_h)
                 func_h = fit_dict_h["fitfunc"]
-                fit_dict_v = fit_sin(angles, powers_v)
-                func_v = fit_dict_v["fitfunc"]
-
+                
                 ax = fig.add_subplot(1, 1, 1)
-
-                ax.scatter(angles, powers_h, color="red", label="Power data (H)")
-                ax.scatter(angles, powers_v, color="blue", label="Power data (V)")
+                ax.scatter(angles, mean_data_h, color="red", label="P(H)")
                 ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
-                ax.plot(
-                    x_data,
-                    func_v(x_data),
-                    color="lightblue",
-                    label="Sinusoidal fit (V)",
-                )
+                if not args.power_meter:
+                    fit_dict_v = fit_sin(angles, mean_data_v)
+                    func_v = fit_dict_v["fitfunc"]
+                    ax.scatter(angles, mean_data_v, color="blue", label="P(V)")
+                    ax.plot(
+                        x_data,
+                        func_v(x_data),
+                        color="lightblue",
+                        label="Sinusoidal fit (V)",
+                    )
 
-                ax.xaxis.set_ticks(np.arange(0, 360, 10))
+
+                ax.xaxis.set_ticks(np.arange(angle_cutoffs[0], angle_cutoffs[1], 10))
                 labels = ax.xaxis.get_majorticklabels()
                 new_labels = []
                 for label in labels:
@@ -274,9 +290,9 @@ if __name__ == "__main__":
                 ax.xaxis.set_ticklabels(new_labels)
                 ax.xaxis.set_tick_params(labelsize=10)
 
-                ax.set_title("Power vs Angle of Rotation " + args.name)
+                ax.set_title("Normalized Counts vs Angle of Rotation " + args.name)
                 ax.set_xlabel("Angle of rotation (degrees)")
-                ax.set_ylabel("Laser Power (μW)")
+                ax.set_ylabel("Normalized Detection Probability")
 
                 ax.legend()
                 ax.grid()
@@ -292,7 +308,10 @@ if __name__ == "__main__":
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
 
-                opt = scipy.optimize.fmin(lambda x: -1 * func_h(x), 180, full_output=True)
+                opt = scipy.optimize.fmin(lambda x: -1 * func_h(x), 0, full_output=True)
                 print("max is at", opt[0], "with value", opt[1])
+
+                # opt = scipy.optimize.fmin(lambda x: func_v(x), 0, full_output=True)
+                # print("max is at", opt[0], "with value", opt[1])
 
                 exit()
