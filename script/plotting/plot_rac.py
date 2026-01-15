@@ -86,6 +86,12 @@ if __name__ == "__main__":
         help="Title for the plot.",
     )
 
+    parser.add_argument(
+        "--param_shift",
+        default=False,
+        action="store_true"
+    )
+
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -109,6 +115,10 @@ if __name__ == "__main__":
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
 
     title = args.title
+    if args.param_shift:
+        title+= ", parameter shift"
+    else:
+        title+= ", finite difference"
     if args.numerics:
         title += " (numerics)"
     datetime_str = datetime_now_string()
@@ -213,11 +223,24 @@ if __name__ == "__main__":
     # print(np.mean(background_rates)/np.mean(shot_rates)*(1+np.sqrt(2)/4))
     # print(np.mean(background_rates)/np.mean(shot_rates)*(np.sqrt(2)/4))
 
+    # ax2.semilogy(
+    #     range(num_steps),
+    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
+    #     alpha=3 / 4,
+    #     label="Best Cost",
+    #     color="blue",
+    # )
+    best_cost_vals = np.max(aggregate_data, axis=1)
+    aggregate_data = np.array(aggregate_data)
+
+    best_single_opt_cost_vals = aggregate_data[:,np.unravel_index(np.argmax(aggregate_data),aggregate_data.shape)[1]]
+
+
     ax2.semilogy(
         range(num_steps),
-        [QUANTUM_BOUND - best_cost_val] * num_steps,
-        alpha=3 / 4,
-        label="Best Cost",
+        [QUANTUM_BOUND]*num_steps - best_single_opt_cost_vals,
+        # label=f"Best Cost at Step (out of {len(opt_dicts)} trials)",
+        label=f"Lowest-cost optimization \n(out of {len(opt_dicts)} trials)",
         color="blue",
     )
 
@@ -261,7 +284,7 @@ if __name__ == "__main__":
     ax2.set_ylabel("Distance to Quantum Bound")
     ax2.set_xlabel("Optimization Iteration")
 
-    fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15))
+    fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15),fontsize=10)
     fig.tight_layout()
 
     plt.grid()

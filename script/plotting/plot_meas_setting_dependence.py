@@ -64,11 +64,11 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--title",
-        default="Two-state Discrimination Measurement Setting Dependence\n",
+        default="Local Optima in State Discrimination\n",
         help="Title for the plot.",
     )
 
-    parser.add_argument("--subtitle", default="\n(two-wp, adagrad, parameter-shift, parallel mounts)")
+    parser.add_argument("--subtitle", default="\n(adagrad, parameter-shift)")
 
     parser.add_argument(
         "--best",
@@ -85,6 +85,15 @@ if __name__ == "__main__":
 
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
 
+    plt.rc("font", family="sans-serif",size=12)
+    plt.rc('text', usetex=True)
+    plt.rcParams['text.latex.preamble'] = r'\centering'
+    title = r'{' + args.title
+    # if Path(args.filepath).stem == "parameter-shift":
+    title += '{parameter-shift'
+    # else:
+        # title += "\\fontsize{12pt}{3em}\\selectfont{}{finite-diff"
+    title += ', adagrad, $\eta_0 = 0.2$'
     datetime_str = datetime_now_string()
 
     date_path = Path(args.filepath).name
@@ -114,12 +123,13 @@ if __name__ == "__main__":
     # setting =
 
     meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
+    meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4)]
     meas_names_QWP = [
         str(0),
         r"$\frac{\pi}{4}$",
         r"$\frac{\pi}{2}$",
         r"$\frac{3\pi}{4}$",
-        r"$\pi$",
+        # r"$\pi$",
     ]
     # meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$"]
     meas_settings_HWP = [meas_settings_QWP[0]]
@@ -137,7 +147,7 @@ if __name__ == "__main__":
     for i in range(len(meas_settings_HWP)):
         for j in range(len(meas_settings_QWP)):
             folder_names.append(f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}")
-            all_meas_names.append(f"{meas_names_HWP[i]} x {meas_names_QWP[j]}")
+            all_meas_names.append(f"${float(meas_settings_QWP[j])*180/np.pi:.0f}^\circ$ x ${float(meas_settings_HWP[i])*180/np.pi:.0f}^\circ$ ")
 
     two_wp = "/two_wp/"
 
@@ -145,11 +155,11 @@ if __name__ == "__main__":
     print(N)
     # plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.viridis(np.linspace(0,1,N)))
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(7, 5))
     # fig, ax2 = plt.subplots()
 
     fig.suptitle(
-        args.title + args.subtitle,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
         fontweight="bold",
         fontsize=14,
     )
@@ -273,16 +283,28 @@ if __name__ == "__main__":
         )
 
     # plt.figtext(0.55, 0, date_of_run, fontsize=10, ha='center')
-    ax.set_xlabel("Gradient Descent Step")
-    ax.set_ylabel("Probability of undiscriminated photons (Cost)")
+    ax.set_xlabel("Optimization Iteration")
+    ax.set_ylabel("Probability of Undiscriminated States")
+    from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=7))
+    ax.set_xlim(0,60)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    # labels = ax.get_xticklabels()
+    # new_labels = []
+    # for label in labels:
+    #     label.set_text(str(int(float(label.get_text()))))
+    #     new_labels.append(label)
+    # # new_labels = [str(int(label)) for label in labels]
+    # ax.set_xticklabels(new_labels)
+
 
     fig.legend(
         loc="upper right",
-        bbox_to_anchor=(1, 0.85),
-        ncol=4,
-        title="bHWP x bQWP Measurement Settings",
+        bbox_to_anchor=(0.97, 0.84),
+        ncol=2,
+        title="bQWP x bHWP Measurement Settings",
     )
-    plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha="right")
+    # plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha="right")
     fig.tight_layout()
 
     plt.grid()
