@@ -63,8 +63,13 @@ class ElliptecMotors:
             self.meas_qwp = self.meas_qwp_sn
             return
 
+        self.controller = []
         if isinstance(com_port, list):
-            self.controller = [elliptec.Controller(port, timeout=5, write_timeout=2, debug=False) for port in com_port]
+            for port in com_port:
+                try:
+                    self.controller.append(elliptec.Controller(port, timeout=5, write_timeout=2, debug=False))
+                except:
+                    continue
             self.parallel = True
         else:
             self.controller = elliptec.Controller(com_port, timeout=5, write_timeout=2, debug=False)
@@ -86,33 +91,34 @@ class ElliptecMotors:
         else:
             scanned_devices = elliptec.scan_for_devices(self.controller, start_address=1, stop_address=4)
         if len(scanned_devices) < 4:
-            print("All 4 waveplates not detected! Exiting...")
-            exit()
+            scanned_devices.append(None)
+            print("All 4 waveplates not detected!")
         for i, device in enumerate(scanned_devices):
-            device_serial = device["info"]["Serial No."]
-            device_address = int(device["info"]["Address"])
-            serial_address_mapping = int(addresses[serial_nos.index(device_serial)])
+            if device:
+                device_serial = device["info"]["Serial No."]
+                device_address = int(device["info"]["Address"])
+                serial_address_mapping = int(addresses[serial_nos.index(device_serial)])
 
-            if device_serial not in serial_nos:
-                print("Unexpected device serial number! Exiting...")
-                exit()
-            elif not self.parallel and device_address != serial_address_mapping:
-                print(
-                    "Device ",
-                    device_serial,
-                    " has unexpected address ",
-                    device_address,
-                    ". Expected ",
-                    serial_address_mapping,
-                    ".",
-                )
-                exit()
+                if device_serial not in serial_nos:
+                    print("Unexpected device serial number! Exiting...")
+                    exit()
+                elif not self.parallel and device_address != serial_address_mapping:
+                    print(
+                        "Device ",
+                        device_serial,
+                        " has unexpected address ",
+                        device_address,
+                        ". Expected ",
+                        serial_address_mapping,
+                        ".",
+                    )
+                    exit()
 
-            if self.parallel:
-                rotator = elliptec.Rotator(self.controller[i], address="0", debug=False)
-            else:
-                rotator = elliptec.Rotator(self.controller, address=device["info"]["Address"], debug=False)
-            self.wps[serial_nos.index(device_serial)] = rotator
+                if self.parallel:
+                    rotator = elliptec.Rotator(self.controller[i], address="0", debug=False)
+                else:
+                    rotator = elliptec.Rotator(self.controller, address=device["info"]["Address"], debug=False)
+                self.wps[serial_nos.index(device_serial)] = rotator
 
         # for address in addresses:
         #     print(address)
@@ -324,7 +330,6 @@ class ElliptecRotatorDevice(QubitDevice):
             else:
                 # with pathos.pools.ProcessPool(4) as p:
                 [map(func, devices)]
-
 
         end_time = time.time()
         active_times[0].append(end_time - start_time)
