@@ -1,4 +1,5 @@
 import pyvisa
+
 # from ThorlabsPM100 import ThorlabsPM100
 import elliptec
 from pennylane_kinesis.elliptec_rotator_device import ElliptecRotatorDevice
@@ -30,6 +31,7 @@ def set_angle(device, angle):
             print("angle is none")
     print("set angle to", angle)
     print("actual angle is", angle_ret)
+
 
 class Meter:
     def __init__(self, swabian_mode, HV_meter=False):
@@ -80,7 +82,6 @@ class Meter:
             self.counter.set_integration_time(time)
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Manual alignment",
@@ -107,7 +108,7 @@ if __name__ == "__main__":
         type=int,
         help="Number of power meters connected.",
     )
-    
+
     parser.add_argument(
         "--counts",
         default=False,
@@ -130,7 +131,6 @@ if __name__ == "__main__":
         default=22.5,
         help="Step size for rotation (in manual mode)",
     )
-
 
     parser.add_argument(
         "--serial_no",
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         print(len(devices), "devices connected")
         print()
         device = devices[int(args.apds) - 1]
-        num_trials = 1
+        num_trials = 5
         # TODO: Change this to 1 if you want finer resolution
         for j in range(num_trials):
             start_time = time.time()
@@ -416,7 +416,7 @@ if __name__ == "__main__":
         device.set_angle(90)
         time.sleep(1)
         device.home()
-        
+
     # Calibrating a polarizer (with manual rotation)
     elif args.polarizer:
         from pathlib import Path, PurePath
