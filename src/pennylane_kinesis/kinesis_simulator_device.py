@@ -15,11 +15,13 @@ import pennylane as qml
 from .version import __version__
 from enum import Enum
 
+
 class DeviceIndex(Enum):
     aHWP = 0
     aQWP = 1
     bHWP = 2
     bQWP = 3
+
 
 class KinesisSimulatorDevice(QubitDevice):
     """A PennyLane plugin device for simulating the integration with the ThorLabs Kinesis software.
@@ -72,8 +74,8 @@ class KinesisSimulatorDevice(QubitDevice):
         debug=False,
         h_efficiency=1,
         v_efficiency=1,
-        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
-        retardances=[HWP_RETARDANCE_A, QWP_RETARDANCE_A, HWP_RETARDANCE_B, QWP_RETARDANCE_B]
+        waveplate_order=[DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
+        retardances=[HWP_RETARDANCE_A, QWP_RETARDANCE_A, HWP_RETARDANCE_B, QWP_RETARDANCE_B],
     ):
         super().__init__(wires, shots, r_dtype=r_dtype, c_dtype=c_dtype, analytic=analytic)
         self._state = self.init_state
@@ -89,7 +91,7 @@ class KinesisSimulatorDevice(QubitDevice):
         # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
 
         # print(self.aqwp_wedge)
-        self.shots=shots
+        self.shots = shots
 
         self.background_counts = background_counts
         self.bqwp_angle = 0
@@ -100,10 +102,10 @@ class KinesisSimulatorDevice(QubitDevice):
         self.hwp_domain_period = hwp_domain_period
         self.shot_rate = np.array(shot_rate)
         self.noise_percentage = 8e-4
-        self.h_efficiency = 1-1e-4
+        self.h_efficiency = 1 - 1e-4
         self.v_efficiency = 1
-        self.integration_time = self.shots/np.sum(self.shot_rate)
-        self.crosstalk = np.array([[1,1e-2],[1e-1,1]])
+        self.integration_time = self.shots / np.sum(self.shot_rate)
+        self.crosstalk = np.array([[1, 1e-2], [1e-1, 1]])
 
     def reset(self):
         super().reset()
@@ -133,21 +135,23 @@ class KinesisSimulatorDevice(QubitDevice):
             # print(operation.name)
             # print(device_index.value == DeviceIndex.aHWP.value)
             if operation.name == "HWPRotStage" or (
-                operation.name == "VariableWPRotStage" and (device_index.value == DeviceIndex.aHWP.value or device_index.value == DeviceIndex.bHWP.value)
+                operation.name == "VariableWPRotStage"
+                and (device_index.value == DeviceIndex.aHWP.value or device_index.value == DeviceIndex.bHWP.value)
             ):
                 angle = operation.parameters[0]
                 mat = VariableWPRotStage(
-                    angle%self.hwp_domain_period,
+                    angle % self.hwp_domain_period,
                     wires=[0],
                 ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
             elif operation.name == "QWPRotStage" or (
-                operation.name == "VariableWPRotStage" and (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value)
+                operation.name == "VariableWPRotStage"
+                and (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value)
             ):
                 angle = operation.parameters[0]
                 # mat = qml.matrix(operation)
                 mat = VariableWPRotStage(
-                    angle%self.qwp_domain_period,
+                    angle % self.qwp_domain_period,
                     wires=[0],
                 ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
@@ -161,9 +165,9 @@ class KinesisSimulatorDevice(QubitDevice):
                 print("else")
                 mat = qml.matrix(operation)
                 self._state = mat @ self._state @ mat.conj().T
-            
+
             # print(angle)
-            angles.append(angle*180/np.pi)
+            angles.append(angle * 180 / np.pi)
         self.angles = angles
         # print(self.angles)
 
@@ -186,7 +190,7 @@ class KinesisSimulatorDevice(QubitDevice):
         zero_state = np.array([[1, 0], [0, 0]])
         one_state = np.array([[0, 0], [0, 1]])
         p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-16, a_max=None)
-        p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16,a_max=None)
+        p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16, a_max=None)
         # p0 = np.trace(self._state @ zero_state).real
         # p1 = np.trace(self._state @ one_state).real
 
@@ -199,54 +203,32 @@ class KinesisSimulatorDevice(QubitDevice):
         # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
         # print(self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])])
         # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
-        
-
 
         # Poisson(background counts /s) * background_ratio
-        zero_background_counts = int(
-            (np.random.poisson(self.background_counts[0]) * self.integration_time)
-        )
-        one_background_counts = int(
-            (np.random.poisson(self.background_counts[1]) * self.integration_time)
-        )
+        zero_background_counts = int((np.random.poisson(self.background_counts[0]) * self.integration_time))
+        one_background_counts = int((np.random.poisson(self.background_counts[1]) * self.integration_time))
 
-        zero_incident_rate = p0*np.sum(self.shot_rate)
-        one_incident_rate = p1*np.sum(self.shot_rate)
+        zero_incident_rate = p0 * np.sum(self.shot_rate)
+        one_incident_rate = p1 * np.sum(self.shot_rate)
 
-        crosstalk_zero_rate = self.crosstalk[0,1]*one_incident_rate
-        crosstalk_one_rate = self.crosstalk[1,0]*zero_incident_rate
+        crosstalk_zero_rate = self.crosstalk[0, 1] * one_incident_rate
+        crosstalk_one_rate = self.crosstalk[1, 0] * zero_incident_rate
 
-        crosstalk_zero_counts = int(np.random.poisson(crosstalk_zero_rate)*self.integration_time)
-        crosstalk_one_counts = int(np.random.poisson(crosstalk_one_rate)*self.integration_time)
+        crosstalk_zero_counts = int(np.random.poisson(crosstalk_zero_rate) * self.integration_time)
+        crosstalk_one_counts = int(np.random.poisson(crosstalk_one_rate) * self.integration_time)
 
-        noise_counts_zero =int(
-            np.random.poisson(zero_incident_rate*self.noise_percentage)*self.integration_time
-        )
-        noise_counts_one = int(
-            np.random.poisson(one_incident_rate*self.noise_percentage)*self.integration_time
-            )
+        noise_counts_zero = int(np.random.poisson(zero_incident_rate * self.noise_percentage) * self.integration_time)
+        noise_counts_one = int(np.random.poisson(one_incident_rate * self.noise_percentage) * self.integration_time)
 
         # Poisson(rate at input of PBS * prob of measurement) * measurement time (= num_shots/shot_rate) + background + noise_counts
         zero_counts = (
-            int(
-                (
-                    np.random.poisson(zero_incident_rate)
-                    * self.h_efficiency
-                    * self.integration_time
-                )
-            )
+            int((np.random.poisson(zero_incident_rate) * self.h_efficiency * self.integration_time))
             + zero_background_counts
             + noise_counts_zero
             + crosstalk_zero_counts
         )
         one_counts = (
-            int(
-                (
-                    np.random.poisson(one_incident_rate)
-                    * self.v_efficiency
-                    * self.integration_time
-                )
-            )
+            int((np.random.poisson(one_incident_rate) * self.v_efficiency * self.integration_time))
             + one_background_counts
             + noise_counts_one
             + crosstalk_one_counts

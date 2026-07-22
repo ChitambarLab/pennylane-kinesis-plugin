@@ -8,11 +8,13 @@ from .file_utilities import datetime_now_string, winapi_path, read_config
 import pickle
 import re
 from pathlib import Path
+
 # from multiprocessing import Pool
 import pathos
 import sys
 import multiprocessing
 import threading
+
 multiprocessing.set_start_method("spawn")
 
 from .operators import (
@@ -31,6 +33,7 @@ from .version import __version__
 _TEST_MODE = False
 _SWABIAN_TEST_MODE = False
 
+
 class DeviceIndex(Enum):
     aHWP = 0
     aQWP = 1
@@ -43,7 +46,9 @@ class TimeTaggerType(Enum):
     UQD = 1
     SWABIAN = 2
 
+
 COM_PORTS = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"]
+
 
 class ElliptecMotors:
     """Connect and control kinesis motors for the Cage Rotator Device."""
@@ -201,7 +206,7 @@ class ElliptecRotatorDevice(QubitDevice):
         test_mode=_TEST_MODE,
         filepath="./test/tmp/",
         debug=False,
-        waveplate_order = [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bHWP, DeviceIndex.bQWP]
+        waveplate_order=[DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bHWP, DeviceIndex.bQWP],
     ):
         self.motors = motors
         self.debug = debug
@@ -257,13 +262,18 @@ class ElliptecRotatorDevice(QubitDevice):
         self.a_qwp_config = self.device_setup(self.dev_a_qwp)
 
         # b waveplates are 810
-        self.dev_b_hwp = motors.meas_hwp 
+        self.dev_b_hwp = motors.meas_hwp
         self.dev_b_qwp = motors.meas_qwp
         self.b_hwp_config = self.device_setup(self.dev_b_hwp)
         self.b_qwp_config = self.device_setup(self.dev_b_qwp)
 
         self.dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_hwp, self.dev_b_qwp]
-        self.dev_indices = [DeviceIndex.aHWP.value, DeviceIndex.aQWP.value, DeviceIndex.bHWP.value, DeviceIndex.bQWP.value]
+        self.dev_indices = [
+            DeviceIndex.aHWP.value,
+            DeviceIndex.aQWP.value,
+            DeviceIndex.bHWP.value,
+            DeviceIndex.bQWP.value,
+        ]
 
         if self.motors.parallel:
             for controller in self.motors.controller:
@@ -325,8 +335,8 @@ class ElliptecRotatorDevice(QubitDevice):
                 for i, thread in enumerate(threads):
                     thread.join()
                 # with pathos.pools.ProcessPool(4) as p:
-                    # p.map(self.dev_move_to_angle, func_args)
-                    # p.join()
+                # p.map(self.dev_move_to_angle, func_args)
+                # p.join()
             else:
                 # with pathos.pools.ProcessPool(4) as p:
                 [map(func, devices)]
@@ -631,7 +641,9 @@ class ElliptecRotatorDevice(QubitDevice):
                 counter += 1
                 angle_ret = device.set_angle(angle)  # This will block until the device reaches the desired angle
                 if counter > 4:
-                    print(f"Something is wrong! Tried setting {device.info['Serial No.']} to angle {angle} {counter} times in a row! Exiting...")
+                    print(
+                        f"Something is wrong! Tried setting {device.info['Serial No.']} to angle {angle} {counter} times in a row! Exiting..."
+                    )
                     exit()
                 if angle_ret is None:
                     print(
@@ -704,22 +716,28 @@ class ElliptecRotatorDevice(QubitDevice):
 
     def apply_parallel(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
-        angles = np.zeros(4,dtype=float)
+        angles = np.zeros(4, dtype=float)
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
             device_index = self.waveplate_order[i]
-            if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)):
+            if op.name == "HWPRotStage" or (
+                op.name == "VariableWPRotStage"
+                and (device_index is DeviceIndex.aHWP or device_index is DeviceIndex.bHWP)
+            ):
                 if device_index is DeviceIndex.bHWP:
-                    angle = ((angle % 180) + float(self.wp_details[device_index.value]["angle_offset"]))%360
+                    angle = ((angle % 180) + float(self.wp_details[device_index.value]["angle_offset"])) % 360
                 else:
-                    angle = ((angle) + float(self.wp_details[device_index.value]["angle_offset"]))%360
+                    angle = ((angle) + float(self.wp_details[device_index.value]["angle_offset"])) % 360
                 angles[device_index.value] = angle
                 # angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
             elif op.name == "QWPRotStage" or (
-                op.name == "VariableWPRotStage" and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
+                op.name == "VariableWPRotStage"
+                and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
                 # angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
-                angles[device_index.value] = ((angle) + float(self.wp_details[device_index.value]["angle_offset"]))%360
+                angles[device_index.value] = (
+                    (angle) + float(self.wp_details[device_index.value]["angle_offset"])
+                ) % 360
             else:
                 print("Operation : ", op.name, ", is not supported")
 
@@ -744,7 +762,9 @@ class ElliptecRotatorDevice(QubitDevice):
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
-            if op.name == "HWPRotStage" or (op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.HWP):
+            if op.name == "HWPRotStage" or (
+                op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.HWP
+            ):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,

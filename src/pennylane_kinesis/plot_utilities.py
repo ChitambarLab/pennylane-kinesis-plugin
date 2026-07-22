@@ -332,7 +332,7 @@ def plot_step_size_dependence(
     )
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    plt.rcParams.update({'axes.titlepad': 22, 'axes.titlesize': 16})
+    plt.rcParams.update({"axes.titlepad": 22, "axes.titlesize": 16})
 
     ax.set_title(
         title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
@@ -443,7 +443,7 @@ def plot_step_size_dependence(
 
         ax.semilogy(
             range(len(std_mean_cost_vals)),
-            [np.min(std_aggregate_data)]*len(std_mean_cost_vals),
+            [np.min(std_aggregate_data)] * len(std_mean_cost_vals),
             alpha=3 / 4,
             label=f"Best Cost Achieved",
             color=_COLORS[c_id],

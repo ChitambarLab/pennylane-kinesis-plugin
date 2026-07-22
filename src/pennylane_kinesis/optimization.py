@@ -160,9 +160,9 @@ def optimize(
         # setting_iterations = []
         # for i, setting in enumerate(settings):
         #     setting_iterations.append([setting, setting+domain_periods[i]])
-        
+
         # all_settings = list(zip(*(x.flat for x in np.meshgrid(*setting_iterations))))
-        
+
         # opt_dict["periodic_cost_vals"] = []
         # opt_dict["periodic_settings"] = []
         # for setting in all_settings:
