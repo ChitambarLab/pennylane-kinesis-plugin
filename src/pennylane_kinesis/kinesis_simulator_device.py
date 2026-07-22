@@ -86,11 +86,7 @@ class KinesisSimulatorDevice(QubitDevice):
         # wedge_vals = np.ones(3)
         # wedge_vals[1] = 0.2
 
-        # print("Initializing")
-
         # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
-
-        # print(self.aqwp_wedge)
         self.shots = shots
 
         self.background_counts = background_counts
@@ -127,13 +123,7 @@ class KinesisSimulatorDevice(QubitDevice):
         all_ops = operations + rotations if rotations else operations
         angles = []
         for i, operation in enumerate(all_ops):
-            # print(operation)
             device_index = self.waveplate_order[i]
-            # print("i", i)
-            # print(self.waveplate_order[i])
-            # print(operation.parameters[0])
-            # print(operation.name)
-            # print(device_index.value == DeviceIndex.aHWP.value)
             if operation.name == "HWPRotStage" or (
                 operation.name == "VariableWPRotStage"
                 and (device_index.value == DeviceIndex.aHWP.value or device_index.value == DeviceIndex.bHWP.value)
@@ -149,7 +139,6 @@ class KinesisSimulatorDevice(QubitDevice):
                 and (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value)
             ):
                 angle = operation.parameters[0]
-                # mat = qml.matrix(operation)
                 mat = VariableWPRotStage(
                     angle % self.qwp_domain_period,
                     wires=[0],
@@ -166,10 +155,8 @@ class KinesisSimulatorDevice(QubitDevice):
                 mat = qml.matrix(operation)
                 self._state = mat @ self._state @ mat.conj().T
 
-            # print(angle)
             angles.append(angle * 180 / np.pi)
         self.angles = angles
-        # print(self.angles)
 
     def take_background(self):
         zero_background_counts = np.random.poisson(int((self.background_counts[0])))
@@ -191,18 +178,11 @@ class KinesisSimulatorDevice(QubitDevice):
         one_state = np.array([[0, 0], [0, 1]])
         p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-16, a_max=None)
         p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16, a_max=None)
-        # p0 = np.trace(self._state @ zero_state).real
-        # p1 = np.trace(self._state @ one_state).real
 
-        # print(p0)
-        # print(p1)
-        # print(self.angles)
-        # print(self.angles)
-        # print(int(self.angles[self.waveplate_order[1].value]))
+        # Trying to simulate wedged waveplates
         # p0 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[0].value])]
         # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
         # print(self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])])
-        # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
 
         # Poisson(background counts /s) * background_ratio
         zero_background_counts = int((np.random.poisson(self.background_counts[0]) * self.integration_time))
@@ -233,8 +213,6 @@ class KinesisSimulatorDevice(QubitDevice):
             + noise_counts_one
             + crosstalk_one_counts
         )
-
-        # print(zero_counts,one_countsg)
 
         return np.concatenate(
             (

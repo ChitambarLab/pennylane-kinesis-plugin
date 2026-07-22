@@ -1,8 +1,7 @@
 import numpy as np
-from pennylane_kinesis import read_config, write_json, read_json, datetime_now_string
+from pennylane_kinesis import read_config, write_json, datetime_now_string
 from pennylane_kinesis.swabian import Counter
 import elliptec
-import argparse
 from pathlib import Path
 import time
 

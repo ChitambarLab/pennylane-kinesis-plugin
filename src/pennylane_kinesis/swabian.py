@@ -1,5 +1,4 @@
 import numpy as np
-import time
 
 try:
     import TimeTagger as TT
@@ -92,25 +91,13 @@ class Counter:
         channels = []
         iteration = 0
         while True:
-            # if iteration == 0:
             _ = self.ttag_stream.getData()  # Clear the buffer (it will return stored data otherwise)
-            # time.sleep(self.integration_time)
-            # iteration += 1
             self.ttag_stream.startFor(int(self.integration_time * 1e12))  # Take data for integration time
             self.ttag_stream.waitUntilFinished()
             ttag_buffer = self.ttag_stream.getData()
-            # counts = self.counter.getDataTotalCounts()
-            # print(counts)
             channels = np.append(channels, ttag_buffer.getChannels())
-            # print(iteration)
             break
-            # if self.shots is None:
-            #     break
-            # elif len(channels) >= self.shots:
-            #     break
 
-        # if self.shots is not None and self.truncate:
-        #     channels = channels[: self.shots]  # truncate to desired number of shots
         h_counts = len(channels[channels == self.ttag_channel_transmit])
         v_counts = len(channels[channels == self.ttag_channel_reflect])
 

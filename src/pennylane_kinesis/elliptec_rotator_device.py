@@ -5,13 +5,8 @@ from pylablib.devices import Thorlabs
 import time
 from enum import Enum
 from .file_utilities import datetime_now_string, winapi_path, read_config
-import pickle
-import re
 from pathlib import Path
 
-# from multiprocessing import Pool
-import pathos
-import sys
 import multiprocessing
 import threading
 
@@ -79,7 +74,6 @@ class ElliptecMotors:
         else:
             self.controller = elliptec.Controller(com_port, timeout=5, write_timeout=2, debug=False)
 
-        # devices = elliptec.scan_for_devices(self.controller)
         addresses = [int(device["address"]) for device in self.wp_details]
         serial_nos = [device["serial_number"] for device in self.wp_details]
         self.wps = [None, None, None, None]
@@ -124,10 +118,6 @@ class ElliptecMotors:
                 else:
                     rotator = elliptec.Rotator(self.controller, address=device["info"]["Address"], debug=False)
                 self.wps[serial_nos.index(device_serial)] = rotator
-
-        # for address in addresses:
-        #     print(address)
-        #     self.wps[int(address)-1] = elliptec.Rotator(self.controller, address=str(address))
 
         self.prep_hwp = self.wps[0]
         self.prep_qwp = self.wps[1]
@@ -326,19 +316,14 @@ class ElliptecRotatorDevice(QubitDevice):
                 func_args = list(zip(devices, args[0]))
                 threads = []
                 for args in func_args:
-                    # self.device_move_to_angle(args[0], args[1])
-                    # print(args)
                     x = threading.Thread(target=self.device_move_to_angle, args=args)
                     threads.append(x)
                     x.start()
 
                 for i, thread in enumerate(threads):
                     thread.join()
-                # with pathos.pools.ProcessPool(4) as p:
-                # p.map(self.dev_move_to_angle, func_args)
-                # p.join()
+
             else:
-                # with pathos.pools.ProcessPool(4) as p:
                 [map(func, devices)]
 
         end_time = time.time()
@@ -729,12 +714,10 @@ class ElliptecRotatorDevice(QubitDevice):
                 else:
                     angle = ((angle) + float(self.wp_details[device_index.value]["angle_offset"])) % 360
                 angles[device_index.value] = angle
-                # angles[device_index] = ((angle % 90) + float(self.wp_details[device_index]["angle_offset"]))%360
             elif op.name == "QWPRotStage" or (
                 op.name == "VariableWPRotStage"
                 and (device_index is DeviceIndex.aQWP or device_index is DeviceIndex.bQWP)
             ):
-                # angles[device_index] = ((angle % 180) + float(self.wp_details[device_index]["angle_offset"]))%360
                 angles[device_index.value] = (
                     (angle) + float(self.wp_details[device_index.value]["angle_offset"])
                 ) % 360
@@ -816,7 +799,6 @@ class ElliptecRotatorDevice(QubitDevice):
                     channels = np.append(channels, ttag_buffer.getChannels())
                 if len(channels) >= self.shots:
                     break
-            # channels = channels[: self.shots]  # truncate to desired number of shots
             h_counts = len(channels[channels == self.ttag_channel_transmit])
             v_counts = len(channels[channels == self.ttag_channel_reflect])
         counts = h_counts + v_counts
