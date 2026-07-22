@@ -121,6 +121,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Run process tomography each trial.",
     )
+
+    parser.add_argument(
+        "--step_size",
+        default=0.2
+    )
     args = parser.parse_args()
 
     filepath = "./data/state_discrimination"
@@ -141,11 +146,11 @@ if __name__ == "__main__":
     meas_settings_list = []
     for i in range(5):
         for j in range(5):
-            meas_settings_list.append([angles[i], angles[j]])
+            meas_settings_list.append([0, angles[j]])
 
-    step_size = 0.2
+    step_size = args.step_size
     print_bar(
-        f"Taking {'two_wp' if args.two_wp else 'four_wp'} data for two-state discrimination with {args.optimizer} and {args.diff}."
+        f"Taking {'two_wp' if args.two_wp else 'four_wp'} data for two-state discrimination with {args.optimizer} and {args.diff} and step size {args.step_size}."
     )
     print("Meas_settings_list", meas_settings_list)
     print("Number of trials: ", args.num_trials)
