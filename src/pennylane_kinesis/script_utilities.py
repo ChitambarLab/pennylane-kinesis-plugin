@@ -32,7 +32,7 @@ QWP_PERIOD = np.pi
 def two_state_discrimination(
     filepath,
     shots=10000,
-    shot_rate=3000000,
+    shot_rate=[300000, 400000],
     background_counts=[300, 100],
     two_wp=False,
     numerics=False,
@@ -118,7 +118,7 @@ def two_state_discrimination(
 
     def meas_fn_swapped_order_retardance(settings, wires):
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
 
     def noise_fn(settings, wires):
         kraus_ops = fiber_ops
@@ -144,7 +144,7 @@ def two_state_discrimination(
             "motors": motors,
             "test_mode": test_mode,
             "filepath": filepath,
-            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP]
+            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
         }
 
     # Legacy code: old thorlabs rotator mounts:
@@ -302,7 +302,6 @@ def qubit_dimensionality_witnessing(
         HWPRotStage(settings[0], wires=[wires[0]])
         QWPRotStage(settings[1], wires=[wires[0]])
 
-
     if numerics:
         data_path += "numerics/"
         dev_name = "kinesis.simulator"
@@ -383,12 +382,13 @@ def qubit_dimensionality_witnessing(
         domain_periods=[hwp_period, qwp_period] * prep_num_in + [hwp_period, qwp_period] * meas_num_in,
     )
 
+
 def rac(
     filepath,
     shots=10000,
-    shot_rate=3000000,
+    shot_rate=[300000, 400000],
     background_counts=[300, 100],
-    rac_3 = False,
+    rac_3=False,
     numerics=False,
     step_size=0.08,
     num_steps=20,
@@ -401,9 +401,8 @@ def rac(
     diff_method="parameter-shift",
     efficiencies=[1, 1],
 ):
-    
     data_path = make_dir(filepath)
-    
+
     def arb_unitary_retardance(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
@@ -423,11 +422,11 @@ def rac(
 
     def meas_fn_swapped_order_retardance(settings, wires):
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
 
     def hwp_only_meas_fn_retardance(settings, wires):
         VariableWPRotStage(0, wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]],retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
 
     if numerics:
         data_path += "numerics/"
@@ -449,7 +448,7 @@ def rac(
             "motors": motors,
             "test_mode": test_mode,
             "filepath": filepath,
-            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP]
+            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
         }
 
     pk.make_dir(data_path)
@@ -517,10 +516,10 @@ def rac(
         rac_cost = qnetvo.linear_probs_cost_fn(
             rac_ansatz,
             qnp.array(
-                    [
-                        [1, 0, 0, 1, 1, 1, 0, 0],
-                        [0, 1, 1, 0, 0, 0, 1, 1],
-                    ]
+                [
+                    [1, 0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 1, 0, 0, 0, 1, 1],
+                ]
             ),
             qnode_kwargs=_qnode_kwargs,
         )
