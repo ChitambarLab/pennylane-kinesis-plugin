@@ -10,12 +10,15 @@ import time
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 
-controllers = [elliptec.Controller(ports[i], timeout=3, write_timeout=3) for i in range(len(ports))]
+# controllers = [elliptec.Controller(ports[i], timeout=3, write_timeout=3) for i in range(len(ports))]
+
 
 def move_to_angle(device, angle, offset_angle=0):
     angle_ret = None
     while angle_ret is None:
-        angle_ret = device.set_angle((angle+offset_angle)%360)  # This will block until the device reaches the desired angle
+        angle_ret = device.set_angle(
+            (angle + offset_angle) % 360
+        )  # This will block until the device reaches the desired angle
         if angle_ret is None:
             print(
                 "Angle return is None when setting",
@@ -37,11 +40,11 @@ def get_mount(mount_num):
         # one device when scanned
         if len(scanned) > 0:
             device_serial = scanned[0]["info"]["Serial No."]
+            print(device_serial)
+            print(wp_details[mount_num]["serial_number"])
             if device_serial == wp_details[mount_num]["serial_number"]:
                 print(f"Found device with serial {device_serial}")
                 return elliptec.Rotator(control, address="0", debug=False)
-
-
 
 
 if __name__ == "__main__":
@@ -49,18 +52,26 @@ if __name__ == "__main__":
         prog="Manual alignment",
         description="Manually align the rotation stages to the desired angles.",
     )
-    parser.add_argument("-m","--mount", default=0, type=int, help="Which mount to rotate.")
-    parser.add_argument("--all", default=False, action="store_true", help="Set all waveplates to background (or calibrated zero angle).")
-    parser.add_argument("--zero", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
+    parser.add_argument("-m", "--mount", default=0, type=int, help="Which mount to rotate.")
+    parser.add_argument(
+        "--all", default=False, action="store_true", help="Set all waveplates to background (or calibrated zero angle)."
+    )
+    parser.add_argument("--zero", default=False, action="store_true", help="Set waveplate to calibrated zero angle.")
     parser.add_argument("--angle", default=None, type=float, help="Set waveplate to angle + calibrated offset.")
-    parser.add_argument("--background", default=False, action="store_true",help="Set waveplate to calibrated zero angle.")
+    parser.add_argument(
+        "--background", default=False, action="store_true", help="Set waveplate to calibrated zero angle."
+    )
     parser.add_argument("--raw", default=False, action="store_true", help="ignore offsets and set to raw angle.")
     args = parser.parse_args()
-    
+
     if not args.all:
-        rotators =[get_mount(args.mount)]
-        rotator = rotators[0]
-        rotator.home()
+        # rotators = [get_mount(args.mount)]
+        # print(rotators)
+        # rotator = rotators[0]
+        # rotator.home()
+        motors = ElliptecMotors()
+        rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
+        rotator = rotators[args.mount]
     else:
         motors = ElliptecMotors()
         rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
@@ -71,9 +82,13 @@ if __name__ == "__main__":
     wp_details = read_config()
 
     # wp_details = motors.wp_details[args.mount]
+    print(wp_details[args.mount])
+    print(rotator.info["Serial No."])
 
     # move_to_angle(rotator, 0, wp_details["angle_offset"])
     conf = read_config()
+    rotator.home()
+    print(wp_details[args.mount]["serial_number"])
     if args.all:
         if args.background:
             for i, rotator in enumerate(rotators):
@@ -89,11 +104,12 @@ if __name__ == "__main__":
     else:
         mount = int(args.mount)
         if args.raw:
-            move_to_angle(rotators[0],args.angle, 0)
+            move_to_angle(rotator, args.angle, 0)
         else:
-            move_to_angle(rotators[0],args.angle, wp_details[args.mount]["angle_offset"])
+            print(wp_details[args.mount]["angle_offset"])
+            move_to_angle(rotator, args.angle, wp_details[args.mount]["angle_offset"])
 
-        print(f"Set device {args.mount} to {rotators[0].get_angle()}")
+        print(f"Set device {args.mount} to {rotator.get_angle()}")
 
 
 def serial_ports():

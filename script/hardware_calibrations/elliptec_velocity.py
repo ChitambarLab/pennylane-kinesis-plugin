@@ -7,11 +7,14 @@ import argparse
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 
+
 def set_velocity(velocity, device):
-    return(device.send_instruction(b"sv" + str(args.velocity).encode()))
-    
+    return device.send_instruction(b"sv" + str(args.velocity).encode())
+
+
 def get_velocity(device):
-    return(device.send_instruction(b"gv"))
+    return device.send_instruction(b"gv")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -50,11 +53,16 @@ if __name__ == "__main__":
     controller = elliptec.Controller(ports[mount], timeout=3, write_timeout=3)
     device = elliptec.Rotator(controller, address=str(0))
 
+    ret = controller.send_instruction(b"sv64")
+    print(device.info["Serial No."])
+    print(ret)
+    # exit()
     if args.get_velocity:
         print(f"Velocity of motor {args.mount} is {get_velocity(device)}")
-    
+
     elif args.set_velocity:
         device.set_velocity(args.velocity)
         print(f"Set velocity of motor {args.mount} is {set_velocity(str(args.velocity), device)}")
     else:
         print("Need to specify either set or get velocity")
+
