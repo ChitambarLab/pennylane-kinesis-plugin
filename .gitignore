@@ -5,3 +5,4 @@
 .vscode/
 build/*
 src/pennylane_kinesis_plugin.egg-info/*
+data/*

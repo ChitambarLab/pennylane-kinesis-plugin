@@ -34,9 +34,10 @@ dependencies = [
   "elliptec==0.0.5",
   "autoray==0.7.2",
   "setuptools",
-# You will need to configure the source at tool.uv.sources
-# if you want to use the Swabian timetagger library
-# "timetagger",
+  "thorlabspm100>=1.2.2",
+  # You will need to configure the source at tool.uv.sources
+  # if you want to use the Swabian timetagger library
+  # "timetagger",
 ]
 
 [project.urls]
