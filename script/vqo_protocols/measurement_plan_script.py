@@ -10,6 +10,7 @@ import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import itertools
+import cProfile, pstats
 
 try:
     # If you're running this on hardware that doesn't have the swabian timetagger library
@@ -83,6 +84,9 @@ if __name__ == "__main__":
             print(data_path)
             # filepath = data_path + protocol+ "/"+grad_method +"/" + f"{meas_settings[j][0]:.3f}_{meas_settings[j][1]:.3f}/"
             filepath = data_path + protocol + "/" + grad_method + "/"
+            prof = cProfile.Profile()
+            print("Starting Profiler")
+            prof.enable()
 
             Path(filepath).mkdir(parents=True, exist_ok=True)
 
@@ -159,6 +163,11 @@ if __name__ == "__main__":
                 datetime_str = datetime_now_string()
                 f = open(filepath + datetime_str + "runtime.txt", "a")
                 f.write(str(end_time - start_time))
+
+            prof.disable()
+            stats = pstats.Stats(prof)
+            stats.print_stats("kinesis_simulator_device.py:")
+            stats.print_stats("optimization.py:")
 
             background_rate = np.sum(state_disc_opt_dict["background_rate"])
             shot_rate = np.sum(state_disc_opt_dict["shot_rate"])
