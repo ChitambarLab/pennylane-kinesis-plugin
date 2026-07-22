@@ -1,5 +1,0 @@
-device,address,serial_number,angle_offset,name, background_angle, port
-aHWP,   0,  11400288,   204.306,    prep_HWP, 204.306, /dev/ttyUSB0
-aQWP,	0,	11400240,    191.821,    prep_QWP, 191.821, /dev/ttyUSB1
-bHWP,	0,11400238,    122.550,   proj_HWP, 30,/dev/ttyUSB2
-bQWP,	0,11400239,    199.532,    proj_QWP, 199.532,/dev/ttyUSB3

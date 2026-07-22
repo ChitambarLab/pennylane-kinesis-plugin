@@ -1,5 +1,0 @@
-device,address,serial_number,angle_offset,name, background_angle,
-aHWP,   1,  11400288,    204.128,    prep_HWP, 24.128
-aQWP,	2,	11400240,    11.734,    prep_QWP, 11.734
-bHWP,	3,  11400238,    32.457,   proj_HWP, 32.457
-bQWP,	4,	11400239,   66.635,    proj_QWP, 66.635
