@@ -209,7 +209,6 @@ def two_state_discrimination(
         state_disc_ansatz,
         np.eye(2),
         qnode_kwargs=qnode_kwargs,
-        # postmap=np.eye(2),
     )
     behavior_fn = qnetvo.behavior_fn(state_disc_ansatz, qnode_kwargs=qnode_kwargs)
 
