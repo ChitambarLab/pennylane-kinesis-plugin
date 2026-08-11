@@ -3,7 +3,7 @@ A PennyLane device plugin for controlling Thorlabs Elliptec and Kinesis rotation
 
 This is part of the software stack that is used as part of our work "Variational Quantum Optimization of Noisy Polarization Qubit Experiments", currently found on the [arxiv]() TODO: ADD ARXIV LINK.
 
-The main PennyLane/Thorlabs Elliptec integration can be found in `src`, and the scripts used to set up various protocols and experiments are in `src/script_utilities.py` and `script`.
+The main PennyLane/Thorlabs Elliptec integration can be found in `src/pennylane-kinesis`, and the scripts used to set up various protocols and experiments are in `script/vqo_protocols` which utilizes protocol descriptions in `src/pennylane_kinesis/script_utilities.py`. There are some scripts that we used for calibrating our hardware and gathering setup-specific data in `script/hardware_calibrations`; these may or may not be useful to the average viewer. 
 
 ## Requirements
 
