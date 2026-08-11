@@ -66,7 +66,7 @@ class KinesisSimulatorDevice(QubitDevice):
         *,
         r_dtype=np.float64,
         c_dtype=np.complex128,
-        shot_rate=[300000, 300000],
+        shot_rate=[400000, 400000],
         analytic=None,
         seed=None,
         qwp_domain_period=np.pi,
@@ -97,11 +97,17 @@ class KinesisSimulatorDevice(QubitDevice):
         self.qwp_domain_period = qwp_domain_period
         self.hwp_domain_period = hwp_domain_period
         self.shot_rate = np.array(shot_rate)
-        self.noise_percentage = 8e-4
-        self.h_efficiency = 1 - 1e-4
+        # self.noise_percentage = 8e-4
+        self.noise_percentage = 0
+        # self.h_efficiency = 1 - 1e-4
+        self.h_efficiency = 1
         self.v_efficiency = 1
-        self.integration_time = self.shots / np.sum(self.shot_rate)
-        self.crosstalk = np.array([[1, 1e-2], [1e-1, 1]])
+        # self.shots is None in analytic mode but photon-count sampling still needs a concrete
+        # integration time, so fall back to the class's default shots in that case.
+        integration_shots = self.shots if self.shots is not None else 10000
+        self.integration_time = integration_shots / np.sum(self.shot_rate)
+        self.crosstalk = np.eye(2)
+        # self.crosstalk = np.array([[1, 1e-2], [1e-1, 1]])
 
     def reset(self):
         super().reset()
@@ -122,28 +128,43 @@ class KinesisSimulatorDevice(QubitDevice):
     def apply(self, operations, rotations=[]):
         all_ops = operations + rotations if rotations else operations
         angles = []
-        for i, operation in enumerate(all_ops):
-            device_index = self.waveplate_order[i]
-            if operation.name == "HWPRotStage" or (
-                operation.name == "VariableWPRotStage"
-                and (device_index.value == DeviceIndex.aHWP.value or device_index.value == DeviceIndex.bHWP.value)
-            ):
+        # need to keep track of waveplate index separately for applying
+        # imperfect-retardance waveplates
+        wp_index = 0 
+        for operation in all_ops:
+            if operation.name in ("HWPRotStage", "QWPRotStage", "VariableWPRotStage"):
+                device_index = self.waveplate_order[wp_index]
+                wp_index += 1
+
+            if operation.name == "HWPRotStage":
                 angle = operation.parameters[0]
+                if self.hwp_domain_period:
+                    angle %= self.hwp_domain_period
+                mat = HWPRotStage(angle, wires=[0]).compute_matrix(angle)
+                self._state = mat @ self._state @ mat.conj().T
+                angles.append(angle * 180 / np.pi)
+
+            elif operation.name == "QWPRotStage":
+                angle = operation.parameters[0]
+                if self.qwp_domain_period:
+                    angle %= self.qwp_domain_period
+                mat = QWPRotStage(angle, wires=[0]).compute_matrix(angle)
+                self._state = mat @ self._state @ mat.conj().T
+                angles.append(angle * 180 / np.pi)
+            elif operation.name == "VariableWPRotStage":
+                angle = operation.parameters[0]
+                if (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value):
+                    domain_period = self.qwp_domain_period
+                else:
+                    domain_period = self.hwp_domain_period
+                if self.hwp_domain_period:
+                    angle %= domain_period
                 mat = VariableWPRotStage(
-                    angle % self.hwp_domain_period,
+                    angle,
                     wires=[0],
                 ).compute_matrix(angle, retardance=self.retardances[device_index.value])
                 self._state = mat @ self._state @ mat.conj().T
-            elif operation.name == "QWPRotStage" or (
-                operation.name == "VariableWPRotStage"
-                and (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value)
-            ):
-                angle = operation.parameters[0]
-                mat = VariableWPRotStage(
-                    angle % self.qwp_domain_period,
-                    wires=[0],
-                ).compute_matrix(angle, retardance=self.retardances[device_index.value])
-                self._state = mat @ self._state @ mat.conj().T
+                angles.append(angle * 180 / np.pi)
             elif operation.name == "QubitChannel":
                 kraus_ops = operation.kraus_matrices()
                 output_state = np.zeros(self._state.shape, dtype=complex)
@@ -151,11 +172,9 @@ class KinesisSimulatorDevice(QubitDevice):
                     output_state += op @ self._state @ op.conj().T
                 self._state = output_state
             else:
-                print("else")
                 mat = qml.matrix(operation)
                 self._state = mat @ self._state @ mat.conj().T
 
-            angles.append(angle * 180 / np.pi)
         self.angles = angles
 
     def take_background(self):
@@ -168,9 +187,7 @@ class KinesisSimulatorDevice(QubitDevice):
         if self._state is None:
             return None
 
-        real = self._real(self._state)
-        imag = self._imag(self._state)
-        prob = self.marginal_prob(real**2 + imag**2, wires)
+        prob = self.marginal_prob(self._real(self._diag(self._state)), wires)
         return prob
 
     def generate_samples(self):
