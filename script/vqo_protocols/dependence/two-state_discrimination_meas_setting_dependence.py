@@ -9,7 +9,6 @@ import time
 import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
-
 try:
     # If you're running this on hardware that doesn't have the swabian timetagger library
     # such as when you're doing numerics work, this import will break

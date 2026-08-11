@@ -1,6 +1,7 @@
 import elliptec
 import argparse
 import re
+from pennylane_kinesis import DEFAULT_CONF
 
 if __name__ == "__main__":
     """
@@ -59,7 +60,7 @@ if __name__ == "__main__":
         print("Homing device.")
         device.home()
     elif args.test:
-        config_file = "./src/pennylane_kinesis/2024_06_04_timur_elliptec_config.txt"
+        config_file = DEFAULT_CONF
 
         with open(config_file) as f:
             config_lines = f.readlines()

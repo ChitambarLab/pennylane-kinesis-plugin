@@ -1,12 +1,12 @@
 import numpy as np
 import elliptec
-from pennylane_kinesis import read_config, datetime_now_string, write_json
+from pennylane_kinesis import read_config, datetime_now_string, write_json, DEFAULT_CONF
 from pennylane_kinesis.tomography_utilities import set_angle_raw, set_mount_angle
 from pennylane_kinesis.swabian import Counter
 from pathlib import Path
 import argparse
 
-config_file = "./src/pennylane_kinesis/2024_09_18_timur_elliptec_config.txt"
+config_file = DEFAULT_CONF
 
 NUM_REPS = 50
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 import numpy as np
-from pennylane_kinesis import read_config, write_json, datetime_now_string
+from pennylane_kinesis import read_config, write_json, datetime_now_string, DEFAULT_CONF
 from pennylane_kinesis.swabian import Counter
 import elliptec
 from pathlib import Path
 import time
 
-config_file = "./src/pennylane_kinesis/2024_05_07_timur_elliptec_config.txt"
+config_file = DEFAULT_CONF
 
 
 def set_angle_raw(angle, index, rotation_mounts):
@@ -45,7 +45,7 @@ def take_tomography_data(
     integration_time,
     repetitions,
     state,
-    config_file="./src/pennylane_kinesis/2025_05_07_timur_elliptec_config.txt",
+    config_file=DEFAULT_CONF,
     verbose=False,
 ):
     wp_details = read_config(config_file)
