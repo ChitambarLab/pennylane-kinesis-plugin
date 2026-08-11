@@ -46,7 +46,19 @@ COM_PORTS = ["/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3"]
 
 
 class ElliptecMotors:
-    """Connect and control kinesis motors for the Cage Rotator Device."""
+    """Connect and control Thorlabs Elliptec rotation stages
+
+    This uses the `elliptec` library to set up controllers for the rotation stages and
+    reads a configuration file to ensure a proper assignment of rotation stages to
+    expected waveplate elements.
+
+    :param com_port: A list of COM ports or ttyUSB devices pointing to the Elliptec controllers.
+    :type com_port: list[str]
+
+    :param test_mode: If not using the actual hardware. For testing purposes.
+    :type test_mode: bool
+
+    """
 
     def __init__(
         self,
@@ -56,7 +68,14 @@ class ElliptecMotors:
         self.wp_details = read_config()
         self.test_mode = test_mode
         self.parallel = False
+
+        self.prep_hwp_sn = self.wp_details[0]["serial_number"]
+        self.prep_qwp_sn = self.wp_details[1]["serial_number"]
+        self.meas_hwp_sn = self.wp_details[2]["serial_number"]
+        self.meas_qwp_sn = self.wp_details[3]["serial_number"]
+
         if test_mode:
+            self.controller = None
             self.prep_hwp = self.prep_hwp_sn
             self.prep_qwp = self.prep_qwp_sn
             self.meas_hwp = self.meas_hwp_sn
@@ -133,11 +152,6 @@ class ElliptecMotors:
         print("Measurement HWP:")
         print(self.meas_hwp.info["Serial No."])
 
-        self.prep_hwp_sn = self.wp_details[0]["serial_number"]
-        self.prep_qwp_sn = self.wp_details[1]["serial_number"]
-        self.meas_hwp_sn = self.wp_details[2]["serial_number"]
-        self.meas_qwp_sn = self.wp_details[3]["serial_number"]
-
     def close(self):
         if self.test_mode:
             return
@@ -146,9 +160,10 @@ class ElliptecMotors:
 
 
 class ElliptecRotatorDevice(QubitDevice):
-    """A PennyLane plugin device for integrating with Kinesis Cage Rotational Stages.
+    """A PennyLane plugin device integrating Thorlabs Elliptec rotation stages.
 
-    This plugin device assumes a single qubit experiment with time-tagger detector device.
+    This plugin device assumes a single qubit experiment with a time-tagger device for
+    obtaining measurement information.
 
 
     :param wires: A single qubit wire, should be set as ``[0]``.
@@ -159,11 +174,6 @@ class ElliptecRotatorDevice(QubitDevice):
 
     :param shots: The number shots desired for the experiment.
     :type shots: int
-
-    :param shot_rate: The mean number of photons incident upon the
-                      detector per second. This quantity may want to include
-                      one or more standard deviations of error where ``std_dev = np.sqrt(shots)``.
-    :type shot_rate: int
 
     :param wimp_mode: If ``True``, device velocities are set to one-half speed.
     :type wimp_mode: bool
@@ -188,7 +198,7 @@ class ElliptecRotatorDevice(QubitDevice):
         r_dtype=np.float64,
         c_dtype=np.complex128,
         analytic=None,
-        shot_rate=6000,
+        shot_rate=None,  # accepted for interface parity with other devices; measured automatically via the detector
         wimp_mode=False,
         ttag_type=TimeTaggerType.SWABIAN,
         ttag_channel_transmit=5,
@@ -213,10 +223,12 @@ class ElliptecRotatorDevice(QubitDevice):
         self.wimp_mode = wimp_mode
         self.ttag_channel_transmit = ttag_channel_transmit
         self.ttag_channel_reflect = ttag_channel_reflect
-        self.shot_rate = shot_rate  # mean num photons incident upon detector per second
         self.shots = shots
-        self.integration_time = shots / (self.shot_rate)
         self.ttag_stream = None
+        # Placeholder until a real detector measurement (get_shot_rate/take_background)
+        # overwrites these; test_mode and TimeTaggerType.NONE never take a measurement.
+        self.shot_rate = np.zeros(2)
+        self.background_shot_rate = np.zeros(2)
 
         self.active_times = [[] for _ in range(4)]
 
@@ -265,11 +277,12 @@ class ElliptecRotatorDevice(QubitDevice):
             DeviceIndex.bQWP.value,
         ]
 
-        if self.motors.parallel:
-            for controller in self.motors.controller:
-                controller.s.flush()
-        else:
-            self.motors.controller.s.flush()
+        if not self.test_mode:
+            if self.motors.parallel:
+                for controller in self.motors.controller:
+                    controller.s.flush()
+            else:
+                self.motors.controller.s.flush()
 
         # Home all a devices
         print("Homing all devices...")
@@ -289,12 +302,12 @@ class ElliptecRotatorDevice(QubitDevice):
                 ],
             )
         else:
-            self.time_rotation(self.device_home, self.active_times, 0, self.dev_a_hwp)
-            self.time_rotation(self.device_home, self.active_times, 1, self.dev_a_qwp)
+            self.time_rotation(self.device_home, self.active_times, 0, DeviceIndex.aHWP.value)
+            self.time_rotation(self.device_home, self.active_times, 1, DeviceIndex.aQWP.value)
 
             # Home all b devices
-            self.time_rotation(self.device_home, self.active_times, 2, self.dev_b_hwp)
-            self.time_rotation(self.device_home, self.active_times, 3, self.dev_b_qwp)
+            self.time_rotation(self.device_home, self.active_times, 2, DeviceIndex.bHWP.value)
+            self.time_rotation(self.device_home, self.active_times, 3, DeviceIndex.bQWP.value)
             print("Setting angle to zero")
             self.device_move_to_angle(DeviceIndex.aHWP.value, self.a_hwp_offset)
             self.device_move_to_angle(DeviceIndex.aQWP.value, self.a_qwp_offset)
@@ -740,10 +753,9 @@ class ElliptecRotatorDevice(QubitDevice):
 
         all_ops = operations + rotations if rotations else operations
 
-        # # TODO: more generic management of device operations
-        dev_list = [self.dev_a_hwp, self.dev_a_qwp, self.dev_b_qwp, self.dev_b_hwp]
         for i, op in enumerate(all_ops):
             angle = op.parameters[0] * 360 / (2 * np.pi)
+            device_index = self.waveplate_order[i]
 
             if op.name == "HWPRotStage" or (
                 op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.HWP
@@ -751,9 +763,9 @@ class ElliptecRotatorDevice(QubitDevice):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
-                    i,
-                    dev_list[i],
-                    ((angle % 90) + float(self.wp_details[i]["angle_offset"])) % 360,
+                    device_index.value,
+                    device_index.value,
+                    ((angle % 90) + float(self.wp_details[device_index.value]["angle_offset"])) % 360,
                 )
             elif op.name == "QWPRotStage" or (
                 op.name == "VariableWPRotStage" and op.hyperparameters["wp_type"] == WaveplateTypes.QWP
@@ -761,9 +773,9 @@ class ElliptecRotatorDevice(QubitDevice):
                 self.time_rotation(
                     self.device_move_to_angle,
                     self.active_times,
-                    i,
-                    dev_list[i],
-                    ((angle % 180) + float(self.wp_details[i]["angle_offset"])) % 360,
+                    device_index.value,
+                    device_index.value,
+                    ((angle % 180) + float(self.wp_details[device_index.value]["angle_offset"])) % 360,
                 )
             else:
                 print("Operation : ", op.name, ", is not supported")
