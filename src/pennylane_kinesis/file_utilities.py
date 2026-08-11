@@ -5,9 +5,7 @@ import re
 from pathlib import Path
 import sys
 
-DEFAULT_CONF = (
-    "/home/timur/Documents/research/pennylane-kinesis-plugin/src/pennylane_kinesis/2026_06_08_timur_elliptec_config.txt"
-)
+DEFAULT_CONF = str(Path(__file__).parent / "2026_06_08_timur_elliptec_config.txt")
 
 
 def winapi_path(dos_path, encoding=None):
