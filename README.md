@@ -1,5 +1,9 @@
 # Pennylane-Kinesis Plugin
-A PennyLane device plugin for controlling rotational stages using Thorlabs Kinesis Software.
+A PennyLane device plugin for controlling Thorlabs Elliptec and Kinesis rotational stages for variational optimization.
+
+This is part of the software stack that is used as part of our work "Variational Quantum Optimization of Noisy Polarization Qubit Experiments", currently found on the [arxiv]() TODO: ADD ARXIV LINK.
+
+The main PennyLane/Thorlabs Elliptec integration can be found in `src`, and the scripts used to set up various protocols and experiments are in `src/script_utilities.py` and `script`.
 
 ## Requirements
 
@@ -7,38 +11,20 @@ If using a Swabian timetagger, please install the software package provided [her
 
 ## Development Environment
 
-This project uses the [Anaconda](https://docs.conda.io/projects/conda/en/latest/glossary.html#anaconda-glossary) distribution of Python to ensure a consistent development environment.
-Follow the [Anaconda installation instructions](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#installation) to set up the `conda` command line tool.
-For more details, see the [managing environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) page in the `conda` documentation.
+This project uses [uv](https://docs.astral.sh/uv/) for dependency and project management. We recommend using following the [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/) to set up the command line tool. 
 
-To create the dev environment, navigate to the root directory of the ``pennylane-kinesis`` repository and follow these steps:
+You can create the environment, install the dependencies, and install the project by running `uv sync` in the directory.
 
-1. Create the `pennylane-kinesis-dev` conda environment.
-
+You can then use `uv run /path/to/script`
+or
 ```
-(base) $ conda env create -f environment.yml
+$ source .venv/bin/activate
+(pennylane-kinesis) $ python /path/to/script
 ```
-
-2. Activate the `pennylane-kinesis-dev` conda environment.
-
-```
-(base) $ conda activate pennylane-kinesis-dev
-```
-
-3. Install pennylane-kinesis plugin in editable mode.
-
-```
-(pennylane-kinesis-dev) $ pip install -e .
-```
+to run various scripts using the library.
 
 ## Running Tests
-
-```
-(pennylane-kinesis-dev) $ python -m pytest
-```
+You can run the testing for this library by running `uv run pytest`.
 
 ## Code Formatting
-
-```
-(pennylane-kinesis-dev) $ black -l 100 test src
-```
+You can format the code in the codebase by running `uv format`.
