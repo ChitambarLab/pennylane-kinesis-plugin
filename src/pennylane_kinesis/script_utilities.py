@@ -234,7 +234,7 @@ def two_state_discrimination(
 def qubit_dimensionality_witnessing(
     filepath,
     shots=10000,
-    shot_rate=3000000,
+    shot_rate=[300000, 400000],
     background_counts=[300, 100],
     three_wp=False,
     numerics=False,

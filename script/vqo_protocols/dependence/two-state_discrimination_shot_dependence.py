@@ -90,9 +90,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--background_counts",
-        default=5,
+        default=[300, 100],
+        nargs="+",
         type=int,
-        help="Background counts for the experiment.",
+        help="Background counts for the experiment, one per channel.",
     )
     args = parser.parse_args()
 

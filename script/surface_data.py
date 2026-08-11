@@ -33,7 +33,7 @@ json_2 = "./data/state_discrimination/new_hardware_step_size_dependence/paramete
 numerics = False
 # device = KinesisSimulatorDevice(wires=4,shots=10000,background_counts=400,seed=1234)
 shots = 10000
-background_counts = 400
+background_counts = [400, 100]
 qwp_period = np.pi
 hwp_period = np.pi / 2
 test_mode = False

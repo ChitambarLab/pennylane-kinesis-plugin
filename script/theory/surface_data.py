@@ -37,7 +37,7 @@ json_2 = "./data/two-state_discrimination/optimization_2024-11-16T00-40-18Z.json
 numerics = True
 # device = KinesisSimulatorDevice(wires=4,shots=10000,background_counts=400,seed=1234)
 shots = 10000
-background_counts = 400
+background_counts = [400, 100]
 qwp_period = np.pi
 hwp_period = np.pi / 2
 test_mode = False

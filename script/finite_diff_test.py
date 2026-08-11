@@ -77,7 +77,7 @@ if __name__ == "__main__":
     state_disc_opt_dict = pk.two_state_discrimination(
         filepath="./data/two-state_discrimination/",
         shots=10000,
-        shot_rate=3000000,
+        shot_rate=[300000, 300000],
         two_wp=args.two_wp,
         numerics=args.numerics,
         step_size=args.step_size,

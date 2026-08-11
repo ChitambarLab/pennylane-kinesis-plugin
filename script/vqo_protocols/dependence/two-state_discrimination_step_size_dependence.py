@@ -97,9 +97,10 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--background_counts",
-        default=400,
+        default=[300, 100],
+        nargs="+",
         type=int,
-        help="Background count rate for the experiment (for numerics)",
+        help="Background count rate for the experiment (for numerics), one per channel",
     )
 
     parser.add_argument(

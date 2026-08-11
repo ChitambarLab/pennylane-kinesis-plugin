@@ -110,7 +110,13 @@ if __name__ == "__main__":
 
     parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
-    parser.add_argument("--background", default=300, help="Number of background counts.")
+    parser.add_argument(
+        "--background",
+        default=[300, 100],
+        nargs="+",
+        type=int,
+        help="Number of background counts, one per channel.",
+    )
 
     parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
 
@@ -145,8 +151,8 @@ if __name__ == "__main__":
         state_disc_opt_dict = pk.two_state_discrimination(
             filepath="./data/two-state_discrimination/",
             shots=10000,
-            shot_rate=3000000,
-            background_counts=int(args.background),
+            shot_rate=[300000, 300000],
+            background_counts=args.background,
             two_wp=args.two_wp,
             numerics=args.numerics,
             step_size=float(args.step_size),

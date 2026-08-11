@@ -221,7 +221,13 @@ if __name__ == "__main__":
 
     parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
-    parser.add_argument("--background", default=400, type=int, help="Number of background counts.")
+    parser.add_argument(
+        "--background",
+        default=[300, 100],
+        nargs="+",
+        type=int,
+        help="Number of background counts, one per channel.",
+    )
 
     parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
 
@@ -397,7 +403,7 @@ if __name__ == "__main__":
             step_size=float(args.step_size),
             num_steps=int(args.num_steps),
             diff_method=args.diff,
-            background_counts=int(args.background),
+            background_counts=args.background,
             optimizer=args.optimizer,
             filepath=data_path,
             filename="optimization_" + datetime_str,
