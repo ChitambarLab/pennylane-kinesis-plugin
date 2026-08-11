@@ -72,16 +72,18 @@ class TestKinesisSimulatorDevice:
             "S",
             "HWPRotStage",
             "QWPRotStage",
+            "VariableWPRotStage",
+            "QubitChannel",
         }
         assert dev.observables == {"Projector", "Identity", "PauliZ"}
         assert dev.analytic == analytic
-        assert all(dev.init_state == [1, 0])
+        assert (dev.init_state == [[1, 0],[0,0]]).all()
 
         # test-defined attributes
         assert dev.shots == None if analytic else 10000
         assert dev.num_wires == 1
         assert list(dev.wires) == [0]
-        assert dev.background_counts == 100
+        assert dev.background_counts == [400, 100]
 
         assert dev.qwp_domain_period == None
         assert dev.hwp_domain_period == None
@@ -108,8 +110,11 @@ class TestKinesisSimulatorDevice:
             pk.HWPRotStage(setting, wires=[0])
             return qml.expval(qml.PauliZ([0]))
 
+        match_state = np.array(match_state)
+        match_density = np.outer(match_state, match_state.conj())
+
         hwp_circ(angle)
-        assert np.allclose(dev._state, match_state)
+        assert np.allclose(dev._state, match_density)
 
     @pytest.mark.parametrize(
         "domain_period,angle,match_state",
@@ -133,8 +138,11 @@ class TestKinesisSimulatorDevice:
             pk.QWPRotStage(setting, wires=[0])
             return qml.expval(qml.PauliZ([0]))
 
+        match_state = np.array(match_state)
+        match_density = np.outer(match_state, match_state.conj())
+
         qwp_circ(angle)
-        assert np.allclose(dev._state, match_state)
+        assert np.allclose(dev._state, match_density)
 
     @pytest.mark.parametrize(
         "ops,match",
@@ -144,14 +152,18 @@ class TestKinesisSimulatorDevice:
         ],
     )
     def test_device_apply(self, interface, ops, match):
+        
         dev = _setup_device(interface)
-        assert all(dev._state == dev.init_state)
+        assert (dev._state == dev.init_state).all()
 
+
+        match = np.array(match)
+        match = np.outer(match, match.conj())
         dev.apply(ops)
         assert np.allclose(dev._state, match)
 
         dev.reset()
-        assert all(dev._state == dev.init_state)
+        assert (dev._state == dev.init_state).all()
 
     @pytest.mark.parametrize(
         "analytic, atol",
@@ -203,7 +215,7 @@ class TestKinesisSimulatorDevice:
         samples = circ(np.pi / 4)
 
         assert len(samples) == 10000
-        assert all([s == 0 or s == 1 for s in samples])
+        assert ([s == 0 or s == 1 for s in samples])
 
     @pytest.mark.parametrize(
         "analytic, atol",

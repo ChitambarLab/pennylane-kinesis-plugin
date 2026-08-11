@@ -34,7 +34,7 @@ dependencies = [
   "qnetvo==0.4.3",
   "elliptec==0.0.5",
   "autoray==0.7.2",
-  "setuptools",
+  "setuptools<81",  # qnetvo==0.4.3 imports pkg_resources, removed in setuptools 81+
   "thorlabspm100>=1.2.2",
   # You will need to configure the source at tool.uv.sources
   # if you want to use the Swabian timetagger library
