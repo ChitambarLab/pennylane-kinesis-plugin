@@ -39,6 +39,7 @@ dependencies = [
   # You will need to configure the source at tool.uv.sources
   # if you want to use the Swabian timetagger library
   # "timetagger",
+  "tqdm>=4.70.0",
 ]
 
 [project.urls]

@@ -64,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shots_list",
         nargs="+",
+        type=int,
         default=[100, 1000, 10000, 100000],
     )
 
