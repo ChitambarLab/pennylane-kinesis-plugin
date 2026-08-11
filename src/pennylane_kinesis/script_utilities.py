@@ -235,7 +235,7 @@ def qubit_dimensionality_witnessing(
     filepath,
     shots=10000,
     shot_rate=3000000,
-    background_counts=300,
+    background_counts=[300, 100],
     three_wp=False,
     numerics=False,
     step_size=0.02,
