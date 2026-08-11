@@ -1,9 +1,9 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import os
-import pytz
+from zoneinfo import ZoneInfo
 
 from .file_utilities import get_files, read_json, datetime_now_string, get_date_from_filename
 
@@ -325,9 +325,9 @@ def plot_step_size_dependence(
 
     date_path = Path(filepath).name
     date_of_run = (
-        pytz.timezone("UTC")
-        .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
-        .astimezone(pytz.timezone("US/Central"))
+        datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")
+        .replace(tzinfo=timezone.utc)
+        .astimezone(ZoneInfo("US/Central"))
         .strftime("%Y-%m-%d %H:%M:%S")
     )
 
