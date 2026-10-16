@@ -310,6 +310,8 @@ def qubit_dimensionality_witnessing(
             "background_counts": background_counts,
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
+            "h_efficiency": efficiencies[0],
+            "v_efficiency": efficiencies[1],
         }
     else:
         motors = ElliptecMotors(test_mode=test_mode)
@@ -402,6 +404,10 @@ def rac(
 ):
     data_path = make_dir(filepath)
 
+    def arb_unitary(settings, wires):
+        HWPRotStage(settings[0], wires=[wires[0]])
+        QWPRotStage(settings[1], wires=[wires[0]])
+
     def arb_unitary_retardance(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
@@ -419,35 +425,30 @@ def rac(
         VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
 
-    def meas_fn_swapped_order_retardance(settings, wires):
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
-
-    def hwp_only_meas_fn_retardance(settings, wires):
-        VariableWPRotStage(0, wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
 
     if numerics:
-        data_path += "numerics/"
+        data_path = pk.make_dir(filepath + "numerics/")
         dev_name = "kinesis.simulator"
         additional_dev_kwargs = {
-            "shot_rate": shot_rate,
+            "name": dev_name,
             "shots": shots,
-            "background_counts": background_counts,
+            "shot_rate": shot_rate,
             "qwp_domain_period": qwp_period,
             "hwp_domain_period": hwp_period,
+            "background_counts": background_counts,
             "h_efficiency": efficiencies[0],
             "v_efficiency": efficiencies[1],
         }
     else:
-        motors = ElliptecMotors(test_mode=test_mode)
-        data_path += "hardware/"
+        motors = pk.elliptec_rotator_device.ElliptecMotors(test_mode=test_mode)
+        data_path = pk.make_dir(filepath + "hardware/")
         dev_name = "elliptec.rotator"
         additional_dev_kwargs = {
             "motors": motors,
-            "test_mode": test_mode,
+            "name": dev_name,
             "filepath": filepath,
-            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
+            "test_mode": test_mode,
+            "debug": verbose,
         }
 
     pk.make_dir(data_path)
@@ -457,14 +458,13 @@ def rac(
     # network ansatz class manages circuit construction and settings
     if rac_3:
         rac_ansatz = qnetvo.NetworkAnsatz(
-            [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)],
-            # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
+            [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
             [
                 qnetvo.MeasureNode(
                     num_in=3,
                     num_out=2,
                     wires=[0],
-                    ansatz_fn=meas_fn_swapped_order_retardance,
+                    ansatz_fn=meas_fn_swapped_order,
                     num_settings=2,
                 )
             ],
@@ -477,9 +477,8 @@ def rac(
         )
     else:
         rac_ansatz = qnetvo.NetworkAnsatz(
-            [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary_retardance, num_settings=2)],
-            # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
-            [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=meas_fn_swapped_order_retardance, num_settings=2)],
+            [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
+            [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=meas_fn_swapped_order, num_settings=2)],
             dev_kwargs={
                 "name": dev_name,
                 "shot_rate": shot_rate,
@@ -494,16 +493,12 @@ def rac(
     background_rate = device.take_background()
 
     _qnode_kwargs = {"diff_method": diff_method}
-    if diff_method == "finite-diff":
-        _qnode_kwargs["h"] = 1e-3
-        _qnode_kwargs["strategy"] = "center"
-        _qnode_kwargs["approx_order"] = 2
     # construct a linear inequality cost function that
     # corresponds to the minimal qubit random access code.
     if rac_3:
         rac_cost = qnetvo.linear_probs_cost_fn(
             rac_ansatz,
-            qnp.array(
+            np.array(
                 [
                     [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
                     [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
@@ -514,7 +509,7 @@ def rac(
     else:
         rac_cost = qnetvo.linear_probs_cost_fn(
             rac_ansatz,
-            qnp.array(
+            np.array(
                 [
                     [1, 0, 0, 1, 1, 1, 0, 0],
                     [0, 1, 1, 0, 0, 0, 1, 1],
@@ -530,19 +525,17 @@ def rac(
     else:
         domain_periods = [hwp_period, qwp_period] * 4 + [hwp_period, qwp_period] * 2
 
-    rac_opt_dict = optimize(
+    rac_opt_dict = pk.optimize(
         lambda settings: rac_cost(*settings),
-        qnp.array(rac_ansatz.rand_network_settings()),
+        np.array(rac_ansatz.rand_network_settings()),
         background_rate=background_rate,
         shot_rate=shot_rate,
         verbose=verbose,
         behavior_fn=behavior_fn,
-        shots=int(shots),
         numerics=numerics,
-        step_size=float(step_size),
-        num_steps=int(num_steps),
+        step_size=step_size,
+        num_steps=num_steps,
         diff_method=diff_method,
-        background_counts=background_counts,
         optimizer=optimizer,
         filepath=data_path,
         filename="optimization_" + datetime_str,

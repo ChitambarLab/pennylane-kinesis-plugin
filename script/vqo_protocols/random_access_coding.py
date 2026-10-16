@@ -27,8 +27,7 @@ CLASSICAL_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
-
-def plot_data(opt_dict, rac_3, filepath, plot_filename):
+def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
     if rac_3:
         QUANTUM_BOUND = QUANTUM_BOUND_3_BIT
         QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
@@ -45,7 +44,6 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename):
         title = "RAC Optimization (2 bits)"
 
     fig, (ax1, ax2) = plt.subplots(ncols=2)
-    # fig, ax2 = plt.subplots()
 
     fig.suptitle(
         title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
@@ -145,8 +143,13 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename):
     plt.grid()
     # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-    Path.mkdir(Path(filepath + "/runtime_plots/"), exist_ok=True)
-    plt.savefig(Path(filepath + f"/runtime_plots/{plot_filename}"))
+    if datetime is None:
+        datetime_str = pk.datetime_now_string()
+    else:
+        datetime_str = datetime
+    output_file = pk.winapi_path(filepath + datetime_str + plot_filename + ".png")
+
+    plt.savefig(output_file)
     plt.close()
 
 
@@ -192,13 +195,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-2",
-        "--two_wp",
-        default=False,
-        action="store_true",
-        help="If only using two waveplates (fixed measurement waveplates).",
-    )
-    parser.add_argument(
         "-n",
         "--numerics",
         default=False,
@@ -219,7 +215,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
 
-    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
+    parser.add_argument("--num_steps", type=int, default=20, help="Num steps to use per optimization.")
 
     parser.add_argument(
         "--background",
@@ -241,7 +237,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--optimizer",
-        default="gradient-descent",
+        default="adagrad",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
 
@@ -267,6 +263,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     filepath = "./data/random_access_coding/"
+
+    if args.rac_3:
+        filepath += "rac_3/"
+    else:
+        filepath += "rac_2/"
+
     if args.numerics:
         filepath += "numerics/"
     else:
@@ -280,137 +282,35 @@ if __name__ == "__main__":
     filepath += script_start_time + "/"
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-    pk.make_dir(filepath + "runtimes/")
-
-    def noise_fn(settings, wires):
-        kraus_ops = fiber_ops_03_08
-        qml.QubitChannel(kraus_ops, wires=wires[0])
+    filename = "rac"
+    if args.rac_3:
+        filename += "_3"
+    else:
+        filename += "_2"
+    filename += "-" + args.diff
+    filename += "-" + args.optimizer
+    filename += "-" + str(args.num_steps)
+    filename += "-" + str(args.step_size)
+    if args.numerics:
+        filename += "-numerics"
 
     for i in range(num_trials):
-        shot_rate = qnp.array([200000, 200000])
         print_bar(f"Starting trial {i} out of {num_trials}")
         start_time = time.time()
-        if args.numerics:
-            data_path = pk.make_dir(filepath + "numerics/")
-            shots = args.shots
-            dev_name = "kinesis.simulator"
-            additional_dev_kwargs = {
-                "name": dev_name,
-                "shots": shots,
-                "shot_rate": shot_rate,
-                "qwp_domain_period": qwp_period,
-                "hwp_domain_period": hwp_period,
-                "background_counts": args.background,
-            }
-        else:
-            motors = pk.elliptec_rotator_device.ElliptecMotors(test_mode=args.test)
-            data_path = pk.make_dir(filepath + "hardware/")
-            shots = args.shots
-            dev_name = "elliptec.rotator"
-            additional_dev_kwargs = {
-                "motors": motors,
-                "name": dev_name,
-                "filepath": filepath,
-                "test_mode": args.test,
-                "debug": args.verbose,
-            }
-
-        pk.make_dir(data_path)
-
-        datetime_str = pk.datetime_now_string()
-
-        # network ansatz class manages circuit construction and settings
-        if args.rac_3:
-            rac_ansatz = qnetvo.NetworkAnsatz(
-                [qnetvo.PrepareNode(num_in=8, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
-                [
-                    qnetvo.MeasureNode(
-                        num_in=3,
-                        num_out=2,
-                        wires=[0],
-                        ansatz_fn=arb_unitary,
-                        num_settings=2,
-                    )
-                ],
-                dev_kwargs={
-                    "name": dev_name,
-                    "shot_rate": shot_rate,
-                    "shots": shots,
-                    **additional_dev_kwargs,
-                },
-            )
-        else:
-            rac_ansatz = qnetvo.NetworkAnsatz(
-                [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-                [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
-                [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=hwp_unitary, num_settings=1)],
-                dev_kwargs={
-                    "name": dev_name,
-                    "shot_rate": shot_rate,
-                    "shots": shots,
-                    **additional_dev_kwargs,
-                },
-            )
-
-        # Take background and shot_rate data
-        device = qml.device(**rac_ansatz.dev_kwargs)
-        shot_rate = device.shot_rate.tolist()
-        background_rate = device.take_background()
-
-        _qnode_kwargs = {"diff_method": args.diff}
-        # construct a linear inequality cost function that
-        # corresponds to the minimal qubit random access code.
-        if args.rac_3:
-            rac_cost = qnetvo.linear_probs_cost_fn(
-                rac_ansatz,
-                qnp.array(
-                    [
-                        [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
-                    ]
-                ),
-                qnode_kwargs=_qnode_kwargs,
-            )
-        else:
-            rac_cost = qnetvo.linear_probs_cost_fn(
-                rac_ansatz,
-                qnp.array(
-                    [
-                        [1, 0, 0, 1, 1, 1, 0, 0],
-                        [0, 1, 1, 0, 0, 0, 1, 1],
-                    ]
-                ),
-                qnode_kwargs=_qnode_kwargs,
-            )
-
-        behavior_fn = qnetvo.behavior_fn(rac_ansatz, qnode_kwargs=_qnode_kwargs)
-
-        if args.rac_3:
-            domain_periods = [hwp_period, qwp_period] * 11
-        else:
-            domain_periods = [hwp_period, qwp_period] * 4 + [hwp_period] * 2
-
-        rac_opt_dict = pk.optimize(
-            lambda settings: rac_cost(*settings),
-            qnp.array(rac_ansatz.rand_network_settings()),
-            background_rate=background_rate,
-            shot_rate=shot_rate,
-            verbose=args.verbose,
-            behavior_fn=behavior_fn,
-            shots=int(args.shots),
-            numerics=args.numerics,
-            step_size=float(args.step_size),
-            num_steps=int(args.num_steps),
-            diff_method=args.diff,
+        
+        rac_opt_dict = pk.rac(
+            filepath=filepath,
+            shots=args.shots,
+            shot_rate=[300000, 300000],
             background_counts=args.background,
+            rac_3=args.rac_3,
+            numerics=args.numerics,
+            step_size=args.step_size,
+            num_steps=args.num_steps,
             optimizer=args.optimizer,
-            filepath=data_path,
-            filename="optimization_" + datetime_str,
-            domain_periods=domain_periods,
+            diff_method=args.diff,
+            verbose=args.verbose,
         )
-        if not args.numerics:
-            motors.close()
 
         end_time = time.time()
         time_taken = end_time - start_time
@@ -418,27 +318,13 @@ if __name__ == "__main__":
         print_bar(
             f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with {str(args.step_size)}."
         )
-        f = open(filepath + "runtimes/" + datetime_str + "runtime.txt", "a")
-        f.write(str(time_taken))
+        f = open(filepath + datetime_str + "runtime.txt", "a")
+        f.write(str(time_taken)+"\n")
         f.close()
         time_remaining = time_taken * (num_trials - i)
         print_bar(
             f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
 
-        filename = "rac"
-        if args.rac_3:
-            filename += "_3"
-        else:
-            filename += "_2"
-        filename += "-" + args.diff
-        filename += "-" + args.optimizer
-        filename += "-" + str(args.num_steps)
-        filename += "-" + str(args.step_size)
-        if args.numerics:
-            filename += "-numerics"
-        if args.two_wp:
-            filename += "-twowp"
-
-        plot_data(rac_opt_dict, args.rac_3, filepath, datetime_str + filename + ".png")
+        plot_data(rac_opt_dict, args.rac_3, filepath, filename + ".png")
         time.sleep(0.1)
