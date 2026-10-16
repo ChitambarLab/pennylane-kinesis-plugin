@@ -61,8 +61,6 @@ if __name__ == "__main__":
     STATE_DISC = ["state_discrimination_2wp", "state_discrimination_4wp"]
     RAC = ["rac2", "rac3"]
 
-    # GRAD_METHOD = ["parameter-shift", "finite-diff"]
-    # GRAD_METHOD = ["parameter-shift", "finite-diff"]
     GRAD_METHOD = ["parameter-shift", "finite-diff"]
 
     datetime_str = datetime_now_string()
@@ -71,18 +69,13 @@ if __name__ == "__main__":
     measurement_plan_state = list(itertools.product(STATE_DISC, GRAD_METHOD))
     measurement_plan_rac = list(itertools.product(RAC, GRAD_METHOD))
     measurement_plan = [item for pair in zip(measurement_plan_state, measurement_plan_rac) for item in pair]
-    # measurement_plan = measurement_plan_rac
     print("Measurement plan:", measurement_plan)
-    # exit()
-    # measurement_plan = [("rac2","parameter-shift"), ("rac2","finite-diff")]
     j = 0
-    # meas_settings = [[0,np.pi/4], [np.pi/4,0]]
     for i in tqdm(range(NUM_TRIALS)):
         for protocol, grad_method in tqdm(measurement_plan, leave=False):
             print(f"Running trial number {i} optimization for measurement: {protocol},{grad_method}")
             print(protocol)
             print(data_path)
-            # filepath = data_path + protocol+ "/"+grad_method +"/" + f"{meas_settings[j][0]:.3f}_{meas_settings[j][1]:.3f}/"
             filepath = data_path + protocol + "/" + grad_method + "/"
             prof = cProfile.Profile()
             print("Starting Profiler")
@@ -107,9 +100,7 @@ if __name__ == "__main__":
                     verbose=False,
                     optimizer="adagrad",
                     diff_method=grad_method,
-                    # fixed_meas_settings= meas_settings[j]
                 )
-                # j = (j+1) % 2
 
                 end_time = time.time()
 

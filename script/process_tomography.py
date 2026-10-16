@@ -9,7 +9,6 @@ import pickle
 from tqdm import tqdm
 from pathlib import Path
 
-# ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 ports = [f"/dev/ttyUSB{i}" for i in range(3)]
 
 power_meters = ["P0025560"]  # "P0037258", "P0025560"]  # "P0027639"]  # "P0025560"]
@@ -114,11 +113,6 @@ def parallel_set_angles(rotators, angles, offsets):
 
 if __name__ == "__main__":
     motors = ElliptecMotors()
-
-    # meas_angles = [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4, np.pi]
-
-    # hwp_sweep_angles = np.linspace(0,180,180)
-    # qwp_sweep_angles = np.linspace(0,180,180)
     rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
     background_angles = [motors.wp_details[i]["background_angle"] for i in range(len(rotators))]
     zero_offsets = [motors.wp_details[i]["angle_offset"] for i in range(len(rotators))]
@@ -129,9 +123,6 @@ if __name__ == "__main__":
     parallel_set_angles(rotators, [0, 0, 0, 0], zero_offsets)
 
     print("background angles are", background_angles)
-    # timetagger = swabian.Counter()
-    # timetagger.shots = NUM_SHOTS
-    # timetagger.detector_setup()
 
     start_timedate = datetime_now_string()
 
@@ -152,7 +143,6 @@ if __name__ == "__main__":
         "R": [0, 45],
         "L": [0, 135],
     }
-    # meas_states_dict = {"H": [45,0], "V": [0,0], "D": [67.5,0], "A": [22.5,0], "R": [0,45], "L": [0,135]}
 
     prep_states = [prep_states_dict[state] for state in states_names]
     meas_states = [meas_states_dict[state] for state in states_names]
@@ -160,26 +150,6 @@ if __name__ == "__main__":
     qpt_dict = {}
     qpt_dict["shots"] = NUM_SHOTS
     qpt_dict["num_reps"] = NUM_MEASUREMENTS
-    # timetagger.auto_shot_rate()
-    # shot_rate = timetagger.shot_rate_each.tolist()
-    # qpt_dict["shot_rate"] = shot_rate
-
-    # timetagger.auto_integration_time()
-    # print("Taking background measurement")
-    # parallel_set_angles(rotators, background_angles, np.zeros(4))
-    # old_int_time = timetagger.integration_time
-
-    # qpt_dict["integration_time"] = old_int_time
-    # timetagger.set_integration_time(1)
-    # timetagger.shots = None
-    # background_counts = []
-    # for i in range(NUM_MEASUREMENTS):
-    #    background_counts.append(timetagger.get_counts().tolist())
-    # qpt_dict["background_rate"] = background_counts
-    # timetagger.shots = None
-    # timetagger.set_integration_time(old_int_time)
-    # print("Background counts are", background_counts)
-
     meter = Meter(swabian_mode=False)
 
     aoi = "45"
@@ -197,17 +167,12 @@ if __name__ == "__main__":
 
     try:
         for i in tqdm(range(NUM_MEASUREMENTS), leave=False):
-            # print(f"Collecting data for repetition {i}")
             for prep_state in tqdm(states_names, leave=False):
                 for meas_state in tqdm(states_names, leave=False):
-                    # start_time = time.time()
-                    # print(f"Taking data for {prep_state}{meas_state}")
                     prep_angles = prep_states_dict[prep_state]
                     meas_angles = meas_states_dict[meas_state]
                     angles = prep_angles + meas_angles
-                    # print(angles)
                     measurement = prep_state + meas_state
-                    # print(measurement)
                     if measurement not in qpt_dict:
                         qpt_dict[measurement] = []
 
@@ -215,9 +180,6 @@ if __name__ == "__main__":
 
                     meas_counts = meter.get_counts()
                     qpt_dict[measurement] += [meas_counts]
-                    # end_time = time.time()
-                    # print(f"Took {end_time - start_time} to collect {meas_state}{prep_state}.")
-                    # print(f"Estimated time remaining: {((NUM_MEASUREMENTS - i) * 36) * (end_time - start_time)}")
     except KeyboardInterrupt:
         print("Quitting run and saving data")
         write_json(qpt_dict, str(folder) + "/" + "qpt_data_ABORTED")
