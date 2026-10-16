@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--optimizer",
-        default="gradient-descent",
+        default="adagrad",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    filepath = "./data/state_discrimination"
+    filepath = "./data/two-state_discrimination"
     if args.numerics:
         filepath += "/numerics_meas_setting_dependence/"
     else:

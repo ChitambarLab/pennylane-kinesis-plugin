@@ -9,7 +9,6 @@ import time
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import datetime
-from pennylane_kinesis.tomography_utilities import take_tomography_data
 try:
     # If you're running this on hardware that doesn't have the swabian timetagger library
     # such as when you're doing numerics work, this import will break
@@ -118,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument("--qpt", default=False, action="store_true", help="Run process tomography each trial.")
     args = parser.parse_args()
 
-    filepath = "./data/state_discrimination"
+    filepath = "./data/two-state_discrimination"
     if args.numerics:
         filepath += "/numerics_step_size_dependence/"
     else:
