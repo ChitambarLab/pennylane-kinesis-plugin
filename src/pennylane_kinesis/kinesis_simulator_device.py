@@ -15,7 +15,6 @@ import pennylane as qml
 from .version import __version__
 from enum import Enum
 
-
 class DeviceIndex(Enum):
     aHWP = 0
     aQWP = 1
@@ -81,12 +80,14 @@ class KinesisSimulatorDevice(QubitDevice):
         self._state = self.init_state
         self.retardances = retardances
         self.waveplate_order = waveplate_order
+
+        # Setting up for wedge simulation
         # wp_angles = np.linspace(0,2*np.pi, 3)
         # wedge_interp = np.linspace(0,2*np.pi, 1800)
         # wedge_vals = np.ones(3)
         # wedge_vals[1] = 0.2
-
         # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
+        
         self.shots = shots
 
         self.background_counts = background_counts
@@ -97,9 +98,7 @@ class KinesisSimulatorDevice(QubitDevice):
         self.qwp_domain_period = qwp_domain_period
         self.hwp_domain_period = hwp_domain_period
         self.shot_rate = np.array(shot_rate)
-        # self.noise_percentage = 8e-4
         self.noise_percentage = 0
-        # self.h_efficiency = 1 - 1e-4
         self.h_efficiency = 1
         self.v_efficiency = 1
         # self.shots is None in analytic mode but photon-count sampling still needs a concrete
@@ -107,7 +106,6 @@ class KinesisSimulatorDevice(QubitDevice):
         integration_shots = self.shots if self.shots is not None else 10000
         self.integration_time = integration_shots / np.sum(self.shot_rate)
         self.crosstalk = np.eye(2)
-        # self.crosstalk = np.array([[1, 1e-2], [1e-1, 1]])
 
     def reset(self):
         super().reset()
