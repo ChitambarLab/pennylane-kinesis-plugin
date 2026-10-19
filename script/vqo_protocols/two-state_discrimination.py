@@ -4,7 +4,7 @@ import qnetvo
 from matplotlib import pyplot as plt
 import sys
 import argparse
-
+import time
 import pennylane_kinesis as pk
 import cProfile
 from pstats import SortKey
@@ -22,8 +22,18 @@ $ python script/two-state_discrimination.py numerics
 ```
 """
 
+def print_bar(msg):
+    bar_length = len(msg) + 15  # Set the bar length to match the message length
+    bar = "#" * bar_length  # Generate the bar dynamically
+    padding = (len(bar) - len(msg)) // 2
 
-def plot_state_discrimination(state_disc_opt_dict, args, datetime=None):
+    formatted_msg = f"{'#' * padding}{msg}{'#' * (len(bar) - len(msg) - padding)}"
+
+    print(bar)
+    print(formatted_msg)
+    print(bar)
+
+def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, suffix):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle("VQO of Two-State Discrimination")
@@ -55,31 +65,16 @@ def plot_state_discrimination(state_disc_opt_dict, args, datetime=None):
 
     plt.tight_layout()
 
-    filepath = "./data/two-state_discrimination/"
-    if args.numerics:
-        filepath += "numerics/"
-    else:
-        filepath += "hardware/"
-
-    if args.two_wp:
-        filepath += "two_wp/"
-    else:
-        filepath += "four_wp/"
-
-    filename = "two-state-discrimination"
+    filename = datetime+"two-state-discrimination"
     filename += "-" + str(args.step_size)
     if args.numerics:
         filename += "-numerics"
     if args.two_wp:
         filename += "-twowp"
 
-    if datetime is None:
-        datetime_str = pk.datetime_now_string()
-    else:
-        datetime_str = datetime
-
-    output_file = pk.winapi_path(filepath + datetime_str + filename + ".png")
+    output_file = pk.winapi_path(folder + filename + suffix + ".png")
     plt.savefig(output_file)
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -106,8 +101,6 @@ if __name__ == "__main__":
 
     parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
 
-    parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
-
     parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
 
     parser.add_argument(
@@ -130,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--optimizer",
-        default="gradient-descent",
+        default="adagrad",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
 
@@ -141,15 +134,38 @@ if __name__ == "__main__":
         help="Number of shots to take.",
     )
 
+    parser.add_argument("--num_trials", default=40, help="number of trials to run.")
+
     args = parser.parse_args()
 
-    if not args.plot:
-        if args.profile:
-            prof = cProfile.Profile()
-            print("Starting Profiler")
-            prof.enable()
+    filepath = "./data/two-state_discrimination/"
+
+    if args.numerics:
+        filepath += "numerics/"
+    else:
+        filepath += "hardware/"
+
+    if args.two_wp:
+        filepath += "two_wp/"
+    else:
+        filepath += "four_wp/"
+
+    datetime = pk.datetime_now_string()
+    filepath += datetime + "/"
+
+    if args.profile:
+        prof = cProfile.Profile()
+        print("Starting Profiler")
+        prof.enable()
+
+    for i in range(args.num_trials):
+        print_bar(f"Starting trial {i} out of {args.num_trials}")
+
+        datetime = pk.datetime_now_string()
+
+        start_time = time.time()
         state_disc_opt_dict = pk.two_state_discrimination(
-            filepath="./data/two-state_discrimination/",
+            filepath=filepath,
             shots=10000,
             shot_rate=[300000, 300000],
             background_counts=args.background,
@@ -159,17 +175,16 @@ if __name__ == "__main__":
             num_steps=int(args.num_steps),
             verbose=args.verbose,
         )
-        if args.profile:
-            prof.disable()
-            prof.print_stats()
-        plot_state_discrimination(state_disc_opt_dict, args)
-    else:
-        print(args.plot)
-        datetime_str = args.plot.split("\\")[-1].split("_")[1].split(".")[0]
-        print(datetime_str)
-        opt_dict = pk.read_json(pk.winapi_path(args.plot))
-        plot_state_discrimination(opt_dict, args, datetime_str)
 
-    """
-    Plotting
-    """
+        end_time = time.time()
+        time_taken = end_time - start_time
+
+        print_bar(
+            f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
+        )
+        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i))
+
+
+    if args.profile:
+        prof.disable()
+        prof.print_stats()
