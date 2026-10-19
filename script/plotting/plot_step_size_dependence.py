@@ -60,10 +60,7 @@ if __name__ == "__main__":
         exit()
 
     date_after = datetime.strptime("2024-06-27T00-35-01Z", "%Y-%m-%dT%H-%M-%SZ").replace(tzinfo=timezone.utc)
-    # if not args.two_wp:
-    #     args.subtitle.replace("two_wp", "four_wp")
 
-    # print(args.title)
     pk.plot_step_size_dependence(
         args.filepath,
         args.step_size_list,
@@ -71,7 +68,6 @@ if __name__ == "__main__":
         date_after=date_after,
         numerics=args.numerics,
         two_wp=args.two_wp,
-        # add_background=True,
         background=args.background,
         shot_rate=250000,
         title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",

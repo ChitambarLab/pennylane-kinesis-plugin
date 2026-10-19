@@ -124,7 +124,6 @@ if __name__ == "__main__":
     datetime_str = datetime_now_string()
 
     fig, (ax1, ax2) = plt.subplots(ncols=2)
-    # fig, ax2 = plt.subplots()
 
     fig.suptitle(
         title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
@@ -163,7 +162,6 @@ if __name__ == "__main__":
     std_err_cost = []
     std_min_cost = []
 
-    print(aggregate_data)
     for i in range(len(aggregate_data)):
         mean_cost_vals += [np.mean(aggregate_data[i])]
         std_err_cost += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
@@ -174,20 +172,13 @@ if __name__ == "__main__":
     std_min_cost = np.array(std_min_cost)
     best_cost_val = np.max(aggregate_data)
 
-    print(np.mean(background_rates))
-    print(np.mean(shot_rates))
     num_steps = len(mean_cost_vals)
 
-    print(mean_cost_vals)
     print("Max val: ", best_cost_val)
     print("Final Average value:", mean_cost_vals[len(aggregate_data) - 1])
-    # print(std_err_cost)
-    # print(background_rates)
-
     ax1.plot(
         range(num_steps),
         mean_cost_vals,
-        # label=f"Average Optimization Trajectory ({len(opt_dicts)} trials)",
     )
     ax1.plot(
         range(num_steps),
@@ -207,29 +198,8 @@ if __name__ == "__main__":
         (mean_cost_vals + std_err_cost),
         alpha=1 / 4,
         color="C1",
-        # label="Standard Error",
     )
 
-    # ax1.plot(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - (np.mean(background_rates) / np.mean(shot_rates)) * BACKGROUND_MULTIPLIER]
-    #     * num_steps,
-    #     "k--",
-    # )
-
-    # ax1.set_yticks([0, 5, 10, 15, 20] if args.rac_3 else [0, 1, 2, 3, 4, 5, 6,7])
-
-    print(np.mean(background_rates) / np.mean(shot_rates) * BACKGROUND_MULTIPLIER)
-    # print(np.mean(background_rates)/np.mean(shot_rates)*(1+np.sqrt(2)/4))
-    # print(np.mean(background_rates)/np.mean(shot_rates)*(np.sqrt(2)/4))
-
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
-    #     alpha=3 / 4,
-    #     label="Best Cost",
-    #     color="blue",
-    # )
     best_cost_vals = np.max(aggregate_data, axis=1)
     aggregate_data = np.array(aggregate_data)
 
@@ -239,7 +209,6 @@ if __name__ == "__main__":
     ax2.semilogy(
         range(num_steps),
         [QUANTUM_BOUND]*num_steps - best_single_opt_cost_vals,
-        # label=f"Best Cost at Step (out of {len(opt_dicts)} trials)",
         label=f"Lowest-cost optimization \n(out of {len(opt_dicts)} trials)",
         color="blue",
     )
@@ -253,14 +222,8 @@ if __name__ == "__main__":
         range(num_steps),
         [QUANTUM_BOUND - CLASSICAL_BOUND] * num_steps,
         color="orange",
-        # label="Classical Limit",
     )
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [(np.mean(background_rates)/np.mean(shot_rates))]*num_steps,
-    #     "k--",
-    #     label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
-    # )
+
     ax2.semilogy(
         range(num_steps),
         [(np.mean(background_rates) / np.mean(shot_rates)) * BACKGROUND_MULTIPLIER] * num_steps,
@@ -288,36 +251,7 @@ if __name__ == "__main__":
     fig.tight_layout()
 
     plt.grid()
-    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
         plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{datetime_str}"))
-
-    # ax.semilogy(
-    #     range(len(mean_cost_vals)),
-    #     best_cost_val*np.ones(len(mean_cost_vals)),
-    #     alpha=3 / 4,
-    #     label="Best Cost",
-    # )
-    # ax.semilogy(
-    #     range(len(std_mean_cost_vals)),
-    #     std_mean_cost_vals,
-    #     alpha=3 / 4,
-    #     linestyle="--",
-    # )
-    #     # ax.plot(
-    #     #     range(len(std_mean_cost_vals)),
-    #     #     std_mean_cost_vals,
-    #     #     alpha=3 / 4,
-    #     #     label="step_size = " + str(step_size),
-    #     #     color=_COLORS[c_id],
-    #     #     linestyle="--",
-    #     # )
-    # ax.fill_between(
-    #     range(len(std_mean_cost_vals)),
-    #     std_np_mean - std_np_std_err,
-    #     std_np_mean + std_np_std_err,
-    #     alpha=1 / 4,
-    #     color=_COLORS[c_id],
-    # )

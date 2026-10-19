@@ -11,9 +11,6 @@ if __name__ == "__main__":
     data = []
     with open(data_file, "rb") as file:
         data = pickle.load(file)
-        # for line in file:
-        #     datum = np.array([int(line.split(",")[0]), int(line.split(",")[1])])
-        #     data.append(datum)
 
     data = np.array(data)
     print(data.shape)
@@ -43,7 +40,6 @@ if __name__ == "__main__":
         color="blue",
         label="V",
     )
-    # ax.plot(np.sum(data, axis=1), color="purple", label="Total")
     ax1.legend()
     ax2.legend()
     ax1.set_title("Detector Counts (H)")
@@ -53,7 +49,6 @@ if __name__ == "__main__":
     ax1.set_ylabel("Counts")
     ax1.grid()
     ax2.grid()
-    # ax1.set_yticks(np.linspace(0, 18, 18))
     ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
     filename = data_file.split("/")[3].split(".")[0] + "2.png"
 
@@ -99,7 +94,6 @@ if __name__ == "__main__":
     photon_energy = 2.452e-19
     data_power = data * photon_energy
     data_total_power = np.sum(data_power, axis=1)
-    print(data_power)
     ax.plot(data_power[:, 1], color="red", label="H")
     ax.plot(data_power[:, 2], color="blue", label="V")
     ax.plot(data_total_power, color="purple", label="Total")

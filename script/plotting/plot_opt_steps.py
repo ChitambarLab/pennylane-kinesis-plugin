@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
 
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
     )

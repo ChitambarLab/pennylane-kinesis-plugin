@@ -54,7 +54,6 @@ if __name__ == "__main__":
         action="store_true",
     )
     args = parser.parse_args()
-    # title=f"Step Size Dependence \n(adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'}, fiber)",
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
@@ -80,7 +79,6 @@ if __name__ == "__main__":
             filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
         )
 
-        # data naming is inconsistent between numerics and hardware.
         filenames = get_files(step_size_filepath, r"optimization_.*\.json")
 
         for f in filenames:
@@ -96,9 +94,6 @@ if __name__ == "__main__":
                     aggregate_behavior_mats += [[]]
 
                 aggregate_data[i] += [opt_dict["cost_vals"][i] + 2]
-                # print(opt_dict["behavior_mat"][i])
-                # print(i)
-                # print(len(opt_dict["cost_vals"]))
                 if i == len(opt_dict["cost_vals"]) - 1:
                     aggregate_behavior_mats[i] += [[[0, 0], [0, 0]]]
                 else:
@@ -115,9 +110,6 @@ if __name__ == "__main__":
 
             shot_rates += [np.sum(opt_dict["shot_rate"])]
 
-        # print(aggregate_data)
-        # print(len(aggregate_data))
-
         mean_cost_vals = []
         std_err_cost_vals = []
         min_cost_vals = []
@@ -132,32 +124,12 @@ if __name__ == "__main__":
         np_std_err = np.array(std_err_cost_vals)
         best_cost_val = np.min(aggregate_data)
         aggregate_data = np.array(aggregate_data)
-        # print(aggregate_behavior_mats)
         aggregate_behavior_mats = np.array(aggregate_behavior_mats)
-        # print(aggregate_behavior_mats.shape)
         best_final_cost_val = np.min(aggregate_data[:, -1])
-        # print(best_final_cost_val)
-        # print(aggregate_data.shape)
         run_with_best_final_cost = np.argmin(aggregate_data[-1, :])
-        # print(run_with_best_final_cost)
-        # print(aggregate_data[-1,run_with_best_final_cost])
         behavior_mats_best_final = aggregate_behavior_mats[:, run_with_best_final_cost]
-        # print(behavior_mats_best_final)
-        print(np.max(aggregate_data[-1, :]))
-        print(best_final_cost_val)
-        # print(len(aggregate_behavior_mats))
-        # print(run_with_best_final_cost)
-        # print(aggregate_behavior_mats[run_with_best_final_cost])
-        # behavior_mats_best_final = aggregate_behavior_mats[run_with_best_final_cost]
-
         runs_with_worst_cost = np.argmax(aggregate_data[-1, :])
         behavior_mats_worst = aggregate_behavior_mats[:, runs_with_worst_cost]
-
-        # print(behavior_mats_worst)
-
-        # print(behavior_mats_worst)
-        # print(behavior_mats_best_final)
-        # print(len(behavior_mats_best_final))
 
         behavior_mats_best_final = np.array(behavior_mats_best_final)
         print(behavior_mats_best_final[:, 0, 0])
@@ -168,9 +140,7 @@ if __name__ == "__main__":
             color=_COLORS[c_id],
         )
         c_id += 1
-        # ax.semilogy(range(len(behavior_mats_best_final)-1), behavior_mats_best_final[:-1, 0, 1], label="P(0,1)", color=_COLORS[c_id])
         c_id += 1
-        # ax.semilogy(range(len(behavior_mats_best_final)-1), behavior_mats_best_final[:-1, 1, 0], label="P(1,0)", color=_COLORS[c_id])
         c_id += 1
         ax.semilogy(
             range(len(behavior_mats_best_final) - 1),
@@ -178,49 +148,6 @@ if __name__ == "__main__":
             label="1-P(1,1)",
             color=_COLORS[c_id],
         )
-
-        # behavior_mats_worst = np.array(behavior_mats_worst)
-        # print(behavior_mats_worst[:, 0, 0])
-        # ax.semilogy(range(len(behavior_mats_worst)-1), 1-behavior_mats_worst[:-1, 0, 0], label="1-P(0|0)", color=_COLORS[c_id])
-        # c_id +=1
-        # # ax.semilogy(range(len(behavior_mats_worst)-1), behavior_mats_worst[:-1, 0, 1], label="P(0|1)", color=_COLORS[c_id])
-        # c_id +=1
-        # # ax.semilogy(range(len(behavior_mats_worst)-1), behavior_mats_worst[:-1, 1, 0], label="P(1|0)", color=_COLORS[c_id])
-        # c_id +=1
-        # ax.semilogy(range(len(behavior_mats_worst)-1), 1-behavior_mats_worst[:-1, 1, 1], label="1-P(1|1)", color=_COLORS[c_id])
-
-        # ax.semilogy(
-        #     range(len(mean_cost_vals)),
-        #     best_cost_val*np.ones(len(mean_cost_vals)),
-        #     alpha=3 / 4,
-        #     label="Best Cost",
-        #     color=_COLORS[c_id],
-        # )
-        # ax.semilogy(
-        #     range(len(mean_cost_vals)),
-        #     mean_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="--",
-        # )
-        # ax.plot(
-        #     range(len(std_mean_cost_vals)),
-        #     std_mean_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="--",
-        # )
-        # ax.fill_between(
-        #     range(len(mean_cost_vals)),
-        #     std_np_mean - std_np_std_err,
-        #     std_np_mean + std_np_std_err,
-        #     alpha=1 / 4,
-        #     color=_COLORS[c_id],
-        # )
-
-        # c_id += 1
 
     if background:
         shot_rates = np.array(shot_rates)
@@ -230,10 +157,8 @@ if __name__ == "__main__":
         background_rate = np.array(background_rate)
         background_std_dev = np.std(background_rate)
         background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
-        # print(f"bakcgorund rate: {background_rate}")
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
-        # print(f"Background rate: {background_rate}")
         print(f"Background std dev: {background_std_dev}")
         print(f"background mean: {np.mean(background_rate)}")
         print(f"sqrt(n):", np.sqrt(len(background_rate)))

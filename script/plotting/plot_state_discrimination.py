@@ -13,23 +13,6 @@ import matplotlib.pyplot as plt
 
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
-MAXIMUM_BOUND_3_BIT = 24
-QUANTUM_COST_BOUND_3_BIT = 12 + 12 / np.sqrt(3)
-CLASSICAL_COST_BOUND_3_BIT = 18
-
-QUANTUM_BOUND_3_BIT = QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
-CLASSICAL_BOUND_3_BIT = CLASSICAL_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
-
-MAXIMUM_BOUND_2_BIT = 8
-QUANTUM_COST_BOUND_2_BIT = 4 + 2 * np.sqrt(2)
-CLASSICAL_COST_BOUND_2_BIT = 6
-
-QUANTUM_BOUND_2_BIT = QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
-CLASSICAL_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
-
-BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
-BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="State Discrimination",
@@ -94,47 +77,33 @@ if __name__ == "__main__":
         exit()
 
     import matplotlib
-    # matplotlib.rcParams['mathtext.fontset'] = 'custom'
-    # matplotlib.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
-    # matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
-    # matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
     matplotlib.rcParams['mathtext.fontset'] = 'cm'
 
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
     plt.rc("font", family="sans-serif",size=12)
-    plt.rc('text', usetex=True)
-    plt.rcParams['text.latex.preamble'] = r'\centering'
-    title = r'{' + args.title + r'}'
+    title = args.title
     if args.numerics:
         title += " (numerics)"
 
-    
-        # title += ""
 
     if args.two_wp:
         filepath_type += "two_wp/"
-        # title += '\n\\selectfont{}{bQWP: $0^\circ$, bHWP: $45^\circ$}'
     else:
         filepath_type += "four_wp/"
     
     if Path(args.filepath).stem == "parameter-shift":
-        title += '\n{parameter-shift'
+        title += '\nparameter-shift'
     else:
-        title += "\n{finite-diff"
-    title += ', adagrad, $\eta_0 = 0.2$}'
+        title += "\nfinite-diff"
+    title += ', adagrad, $\eta_0 = 0.2$'
     datetime_str = datetime_now_string()
 
     fig = plt.figure(figsize=(7,5))
     ax1 = fig.subplots()
-    # fig, ax2 = plt.subplots()
     
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
-        # fontweight="bold",
-        # fontsize=12,
+        title,
     )
-
-        # title += "\n(measurement WPs fixed at $(0^\circ,0^\circ)$)"
 
     opt_files = get_files(Path(args.filepath + filepath_type), r"optimization_.*\.json")
     for file in opt_files:
@@ -167,7 +136,6 @@ if __name__ == "__main__":
     std_err_cost = []
     std_min_cost = []
 
-    # print(aggregate_data)
     for i in range(len(aggregate_data)):
         mean_cost_vals += [np.mean(aggregate_data[i])]
         std_err_cost += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
@@ -185,7 +153,6 @@ if __name__ == "__main__":
     print(np.mean(shot_rates))
     num_steps = len(mean_cost_vals)
 
-    # print(mean_cost_vals)
     print("Max val: ", best_cost_val)
     print("Final Average value:", mean_cost_vals[len(aggregate_data) - 1])
     print(f"Mean background:{np.mean(background_rates)/np.mean(shot_rates)}")
@@ -194,11 +161,6 @@ if __name__ == "__main__":
     best_single_opt_cost_vals = aggregate_data[:,np.unravel_index(np.argmin(aggregate_data),aggregate_data.shape)[1]]
     print(np.unravel_index(np.argmin(aggregate_data),aggregate_data.shape))
     print(best_single_opt_cost_vals)
-    # exit()
-    
-    # exit()
-    # print(std_err_cost)
-    # print(background_rates)
 
     ax1.semilogy(
         range(num_steps),
@@ -207,12 +169,6 @@ if __name__ == "__main__":
         color=_COLORS[0],
     )
 
-    # ax1.semilogy(
-    #     range(num_steps),
-    #     best_cost_vals,
-    #     label=f"Best Cost at Step (out of {len(opt_dicts)} trials)",
-    #     color=_COLORS[1],
-    # )
 
     ax1.semilogy(
         range(num_steps),
@@ -220,17 +176,6 @@ if __name__ == "__main__":
         label=f"Lowest Cost Optimization",
         color=_COLORS[3],
     )
-    # ax1.plot(
-    #     range(num_steps),
-    #     [CLASSICAL_BOUND] * num_steps,
-    #     label="Classical Bound",
-    # )
-
-    # ax1.plot(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND] * num_steps,
-    #     label="Quantum Bound",
-    # )
 
     ax1.fill_between(
         range(num_steps),
@@ -238,110 +183,29 @@ if __name__ == "__main__":
         (mean_cost_vals + std_err_cost),
         alpha=1 / 4,
         color=_COLORS[0],
-        # label="Standard Error",
     )
 
-    ax1.plot(
-        range(num_steps),
-        [(np.mean(background_rates) / np.mean(shot_rates))]
-        * num_steps,
-        "k--",
-        label=f"Background Limit (average {int(np.mean(background_rates))} cps)"
-    )
+    if args.background:
+        ax1.plot(
+            range(num_steps),
+            [(np.mean(background_rates) / np.mean(shot_rates))]
+            * num_steps,
+            "k--",
+            label=f"Background Limit (average {int(np.mean(background_rates))} cps)"
+        )
 
     from matplotlib.ticker import MaxNLocator, FormatStrFormatter
     ax1.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=7))
-    ax1.set_xlim(0,60)
     ax1.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-
-    # ax1.set_yticks([0, 5, 10, 15, 20] if args.rac_3 else [0, 1, 2, 3, 4, 5, 6,7])
-
-    # print(np.mean(background_rates) / np.mean(shot_rates) * BACKGROUND_MULTIPLIER)
-    # print(np.mean(background_rates)/np.mean(shot_rates)*(1+np.sqrt(2)/4))
-    # print(np.mean(background_rates)/np.mean(shot_rates)*(np.sqrt(2)/4))
-
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
-    #     alpha=3 / 4,
-    #     label="Best Cost",
-    #     color="blue",
-    # )
-
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND] * num_steps - mean_cost_vals,
-    #     label=f"Average Trajectory \n({len(opt_dicts)} trials)",
-    # )
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - CLASSICAL_BOUND] * num_steps,
-    #     color="orange",
-    #     # label="Classical Limit",
-    # )
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [(np.mean(background_rates)/np.mean(shot_rates))]*num_steps,
-    #     "k--",
-    #     label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
-    # )
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [(np.mean(background_rates) / np.mean(shot_rates)) * BACKGROUND_MULTIPLIER] * num_steps,
-    #     "k--",
-    #     label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
-    # )
-    # ax2.fill_between(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals - std_err_cost),
-    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals + std_err_cost),
-    #     alpha=1 / 4,
-    #     label="Standard Error",
-    #     color="C1",
-    # )
-
-    # ax2.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     ax1.set_ylabel("Probability of Undiscriminated States")
     ax1.set_xlabel("Optimization Iteration")
-
-    # ax2.set_ylabel("Distance to Quantum Bound")
-    # ax2.set_xlabel("Optimization Iteration")
 
     fig.legend(loc="upper right", bbox_to_anchor=(0.975, 0.85))
     fig.tight_layout()
 
     plt.grid()
-    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
         plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{datetime_str}"))
-
-    # ax.semilogy(
-    #     range(len(mean_cost_vals)),
-    #     best_cost_val*np.ones(len(mean_cost_vals)),
-    #     alpha=3 / 4,
-    #     label="Best Cost",
-    # )
-    # ax.semilogy(
-    #     range(len(std_mean_cost_vals)),
-    #     std_mean_cost_vals,
-    #     alpha=3 / 4,
-    #     linestyle="--",
-    # )
-    #     # ax.plot(
-    #     #     range(len(std_mean_cost_vals)),
-    #     #     std_mean_cost_vals,
-    #     #     alpha=3 / 4,
-    #     #     label="step_size = " + str(step_size),
-    #     #     color=_COLORS[c_id],
-    #     #     linestyle="--",
-    #     # )
-    # ax.fill_between(
-    #     range(len(std_mean_cost_vals)),
-    #     std_np_mean - std_np_std_err,
-    #     std_np_mean + std_np_std_err,
-    #     alpha=1 / 4,
-    #     color=_COLORS[c_id],
-    # )

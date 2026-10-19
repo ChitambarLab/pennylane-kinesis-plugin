@@ -100,7 +100,7 @@ if __name__ == "__main__":
     else:
         fig, ax = plt.subplots()
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
     )
@@ -119,10 +119,7 @@ if __name__ == "__main__":
         step_size_filepath = Path(filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp)
         
 
-        # data naming is inconsistent between numerics and hardware.
-        std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
-        if len(std_filenames) == 0:
-            std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+        std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
         
         for f in std_filenames:
             print(f"Using {f}")
@@ -168,14 +165,6 @@ if __name__ == "__main__":
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
-        # print(final_cost_vals)
-        # if args.min_cost:
-        #     curr_ax.set_xlabel("Min cost value")
-        # else:
-        #     curr_ax.set_xlabel("Final cost value")
-        # curr_ax.set_ylabel("Number of trials")
-
-        # binned = np.digitize(max_cost_vals if args.min_cost else final_cost_vals, bins=np.logspace(-3, 0, 30))
         if not args.total:
             curr_ax = ax.flat[plot_num]
             counts, bins = np.histogram(max_cost_vals if args.min_cost else final_cost_vals, bins=np.logspace(-3, 0, 30))
@@ -183,48 +172,17 @@ if __name__ == "__main__":
             max_binned = max(max_binned, np.max(counts))
             curr_ax.hist(
                 max_cost_vals if args.min_cost else final_cost_vals,
-                # bins=20,
                 bins=np.logspace(-3, 0, 30),
                 alpha=3 / 4,
-                # log=True,
                 label=str(step_size),
                 color=_COLORS[c_id],
                 stacked=True,
                 histtype="barstacked",
-                # linestyle="--",
             )
             c_id +=1
             curr_ax.set_xscale("log")
             curr_ax.grid()
             plot_num +=1
-
-        # ax.semilogy(
-        #     range(len(std_mean_cost_vals)),
-        #     std_mean_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="--",
-        # )
-        # ax.plot(
-        #     range(len(std_mean_cost_vals)),
-        #     std_mean_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="--",
-        # )
-        # ax.fill_between(
-        #     range(len(std_mean_cost_vals)),
-        #     std_np_mean - std_np_std_err,
-        #     std_np_mean + std_np_std_err,
-        #     alpha=1 / 4,
-        #     color=_COLORS[c_id],
-        # )
-
-        
-
-        # c_id += 1
 
     if args.background:
         shot_rates = np.array(shot_rates)
@@ -234,45 +192,36 @@ if __name__ == "__main__":
         background_rate = np.array(background_rate)
         background_std_dev = np.std(background_rate)
         background_std_err = np.std(background_rate)/np.sqrt(len(background_rate))
-        # print(f"bakcgorund rate: {background_rate}")
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
-        # print(f"Background rate: {background_rate}")
         print(f"Background std dev: {background_std_dev}")
         print(f"background mean: {np.mean(background_rate)}")
         print(f"sqrt(n):", np.sqrt(len(background_rate)))
         print(f"Background std err: {background_std_err}")
         background_mean = np.mean(background_rate)
-        #     ax.plot(
-        #         range(len(std_np_mean)),
-        #         [background_mean/ np.mean(shot_rates)] * len(std_np_mean),
-        #         "k--",
-        #         label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
-        #     )
-        #     ax.fill_between(
-        #         range(len(std_np_mean)),
-        #         ([(background_mean-background_std_err)/ np.mean(shot_rates) ] * len(std_np_mean)),
-        #         ([(background_mean + background_std_err)/ np.mean(shot_rates)] * len(std_np_mean)),
-        #         alpha=1 / 4,
-        #         color="black",
-        #         linestyle="--",
-        #     )
+        ax.plot(
+            range(len(std_np_mean)),
+            [background_mean/ np.mean(shot_rates)] * len(std_np_mean),
+            "k--",
+            label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
+        )
+        ax.fill_between(
+            range(len(std_np_mean)),
+            ([(background_mean-background_std_err)/ np.mean(shot_rates) ] * len(std_np_mean)),
+            ([(background_mean + background_std_err)/ np.mean(shot_rates)] * len(std_np_mean)),
+            alpha=1 / 4,
+            color="black",
+            linestyle="--",
+        )
 
-    # ax.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
     if args.total:
         ax.hist(
             all_max_cost_vals if args.min_cost else all_final_cost_vals,
-            # bins=20,
             bins=np.logspace(-3, 0, 30),
             alpha=3 / 4,
-            # log=True,
-            # label="step_size = " + str(step_size),
             color=_COLORS[c_id],
             stacked=False,
             histtype="bar",
-            # cumulative=True,
-            # linestyle="--",
-
         )
         ax.axvline(x=background_mean/np.mean(shot_rates), color="black", linestyle="--", label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)")
         plt.xscale("log")
@@ -281,7 +230,6 @@ if __name__ == "__main__":
             a.set_ylim(0, max_binned+0.5)
             a.axvline(x=background_mean/np.mean(shot_rates), color="black", linestyle="--", label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)")
         bigplot = fig.add_subplot(111, frameon=False)
-        # bigplot.set_xlabel("Final cost value")
         bigplot.set_ylabel("Number of trials")
         bigplot.spines["top"].set_color("none")
         bigplot.spines["bottom"].set_color("none")
@@ -297,26 +245,8 @@ if __name__ == "__main__":
             bigplot.set_xlabel("Final cost value")
 
         plt.draw()
-    # ax.hist(
-    #     all_final_cost_vals,
-    #     # bins=20,
-    #     bins=np.logspace(-3, 0, 30),
-    #     alpha=3 / 4,
-    #     # log=True,
-    #     label="step_size = " + str(step_size),
-    #     color=_COLORS[c_id],
-    #     stacked=False,
-    #     histtype="bar",
-    #     # cumulative=True,
-    #     # linestyle="--",
-    # )
-    # print(len(all_max_cost_vals))
-    # print(binned)
-    # print(all_max_cost_vals)
-        
-    # plt.xscale("log")
+  
     fig.legend(loc='center right', bbox_to_anchor=(1, 0.8))
-    for a in ax.flat:
 
     Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)

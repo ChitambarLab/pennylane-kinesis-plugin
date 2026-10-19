@@ -32,10 +32,6 @@ class Meter:
             self.counter = swabian.Counter(shots=None, integration_time=1)
             self.counter.detector_setup()
         else:
-            # rm = pyvisa.ResourceManager()
-
-            # resources = rm.list_resources()
-            # print(resources)
             list_check = [0, 1] if HV_meter else [0]
             insts = [USBTMC(device=f"/dev/usbtmc{x}") for x in list_check]
             for inst in insts:
@@ -45,24 +41,6 @@ class Meter:
                 elif get_serial_no(inst) == power_meters[1]:
                     V_meter = ThorlabsPM100(inst=inst)
 
-            # H_resource = [x for x in resources if 'P0027252' in x][0]
-
-            # Change serial number here if you use a different meter
-            # H_resource = [x for x in resources if power_meters[0] in x][0]
-
-            # print(resources)
-            # inst_H = rm.open_resource(H_resource, timeout=1)
-            # H_meter = ThorlabsPM100(inst=inst_H)
-            # H_meter.configure.scalar.power()
-
-            # V_meter = None
-            # If using two different power meters
-            # if HV_meter:
-            # Change serial number here if you use a different meter
-            #    V_resource = [x for x in resources if power_meters[1] in x][0]
-            #    inst_V = rm.open_resource(V_resource, timeout=1)
-            #    V_meter = ThorlabsPM100(inst=inst_V)
-            #    V_meter.configure.scalar.power()
             self.H_meter = H_meter
             self.V_meter = V_meter
 
