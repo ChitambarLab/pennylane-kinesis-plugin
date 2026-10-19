@@ -44,13 +44,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-2",
-        "--two_wp",
-        default=False,
-        action="store_true",
-        help="If only using two waveplates (fixed measurement waveplates).",
-    )
-    parser.add_argument(
         "-n",
         "--numerics",
         default=False,
@@ -145,7 +138,7 @@ if __name__ == "__main__":
     step_size = 0.2
 
     print_bar(
-        f"Taking {'two_wp' if args.two_wp else 'four_wp'} data for two-state discrimination with {args.optimizer} and {args.diff}."
+        f"Taking two_wp' data for two-state discrimination with {args.optimizer} and {args.diff}."
     )
     print("Meas_settings_list", meas_settings_list)
     print("Number of trials: ", args.num_trials)
@@ -189,7 +182,7 @@ if __name__ == "__main__":
                     filepath=meas_setting_filepath,
                     shots=int(args.shots),
                     shot_rate=args.shot_rate,
-                    two_wp=args.two_wp,
+                    two_wp=True,
                     numerics=args.numerics,
                     step_size=float(step_size),
                     num_steps=args.num_steps,
@@ -280,8 +273,7 @@ if __name__ == "__main__":
                 filename += "-" + str(meas_setting).replace("[", "").replace("]", "").replace(",", "_")
                 if args.numerics:
                     filename += "-numerics"
-                if args.two_wp:
-                    filename += "-twowp"
+                filename += "-twowp"
 
                 output_file = pk.winapi_path(meas_setting_filepath + datetime_str + filename + ".png")
                 plt.savefig(output_file)
