@@ -1,5 +1,6 @@
 import pennylane_kinesis as pk
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import argparse
 from pathlib import Path
 from pennylane_kinesis.file_utilities import (
@@ -10,7 +11,6 @@ from pennylane_kinesis.file_utilities import (
 )
 import numpy as np
 import matplotlib.pyplot as plt
-import pytz
 import os
 
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] * 3
@@ -86,64 +86,35 @@ if __name__ == "__main__":
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
 
     plt.rc("font", family="sans-serif",size=12)
-    plt.rc('text', usetex=True)
-    plt.rcParams['text.latex.preamble'] = r'\centering'
-    title = r'{' + args.title
-    # if Path(args.filepath).stem == "parameter-shift":
-    title += '{parameter-shift'
-    # else:
-        # title += "\\fontsize{12pt}{3em}\\selectfont{}{finite-diff"
+    title = args.title
+    title += ' parameter-shift'
     title += ', adagrad, $\eta_0 = 0.2$'
     datetime_str = datetime_now_string()
 
     date_path = Path(args.filepath).name
     date_of_run = (
-        pytz.timezone("UTC")
-        .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
-        .astimezone(pytz.timezone("US/Central"))
+        datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")
+        .replace(tzinfo=timezone.utc)
+        .astimezone(ZoneInfo("America/Chicago"))
         .strftime("%Y-%m-%d %H:%M:%S")
     )
 
-    # meas_settings_HWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
-    # meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
-    # meas_names_HWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
-    # meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$", r"$\frac{3\pi}{4}$", r"$\pi$"]
-
     meas_settings_HWP = [str(PI_4)]
-    meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
     meas_names_HWP = [r"$\frac{\pi}{4}$"]
-    meas_names_QWP = [
-        str(0),
-        r"$\frac{\pi}{4}$",
-        r"$\frac{\pi}{2}$",
-        r"$\frac{3\pi}{4}$",
-        r"$\pi$",
-    ]
 
-    # setting =
 
-    meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4), str(PI)]
     meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4)]
     meas_names_QWP = [
         str(0),
         r"$\frac{\pi}{4}$",
         r"$\frac{\pi}{2}$",
         r"$\frac{3\pi}{4}$",
-        # r"$\pi$",
     ]
-    # meas_names_QWP = [str(0), r"$\frac{\pi}{4}$", r"$\frac{\pi}{2}$"]
     meas_settings_HWP = [meas_settings_QWP[0]]
     meas_names_HWP = [meas_names_QWP[0]]
-    # meas_settings = [str(0), str(PI_4), str(PI_3_4)]
-    # meas_names = [str(0), r"$\frac{\pi}{4}$", r"$\frac{3\pi}{4}$"]
     all_meas_names = []
     folder_names = []
-    # for i in range(len(meas_settings)):
-    #     # for j in range(len(meas_settings)):
-    #     folder_names.append(f"meas_setting{meas_settings[i]}_ 0")
-    #     all_meas_names.append(f"{meas_names[i]} x {0}")
 
-    # all_meas_settings = zip(meas_settings, meas_settings)
     for i in range(len(meas_settings_HWP)):
         for j in range(len(meas_settings_QWP)):
             folder_names.append(f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}")
@@ -152,23 +123,17 @@ if __name__ == "__main__":
     two_wp = "/two_wp/"
 
     N = len(meas_names_HWP)
-    print(N)
-    # plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.viridis(np.linspace(0,1,N)))
 
     fig, ax = plt.subplots(figsize=(7, 5))
-    # fig, ax2 = plt.subplots()
 
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
     )
 
     c_id = 0
     for k, meas_setting in enumerate(folder_names):
-        # if k%5 == 0:
-        # if all_meas_settings[k][0] == 0
-        #     continue
         opt_files = get_files(
             Path(pk.winapi_path(args.filepath + meas_setting + filepath_type + two_wp)),
             r"optimization_.*\.json",
@@ -176,9 +141,9 @@ if __name__ == "__main__":
 
         date_path = Path(args.filepath).name
         date_of_run = (
-            pytz.timezone("UTC")
-            .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
-            .astimezone(pytz.timezone("US/Central"))
+            datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")
+            .replace(tzinfo=timezone.utc)
+            .astimezone(ZoneInfo("America/Chicago"))
             .strftime("%Y-%m-%d %H:%M:%S")
         )
 
@@ -198,13 +163,6 @@ if __name__ == "__main__":
 
                 aggregate_data[i] += [opt_dict["cost_vals"][i] / 2 + 1]
             if args.background:
-                # if np.sum(opt_dict["background_rate"]) > 1000:
-                # print("Background rate too high!")
-                # print(f"Background rate: {np.sum(opt_dict['background_rate'])}")
-                # print(f"std_opt_dict['background_rate']: {opt_dict['background_rate']}")
-                # print(f"filename: {opt_files[j]}")
-                # input()
-                # else:
                 background_rates += [np.sum(opt_dict["background_rate"])]
 
             shot_rates += [np.sum(opt_dict["shot_rate"])]
@@ -245,7 +203,6 @@ if __name__ == "__main__":
             std_np_mean - std_np_std_err,
             std_np_mean + std_np_std_err,
             alpha=0.1,
-            # color=_COLORS[c_id],
         )
 
         c_id += 1
@@ -258,10 +215,8 @@ if __name__ == "__main__":
         background_rate = np.array(background_rates)
         background_std_dev = np.std(background_rate)
         background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
-        # print(f"bakcgorund rate: {background_rate}")
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
-        # print(f"Background rate: {background_rate}")
         print(f"Background std dev: {background_std_dev}")
         print(f"background mean: {np.mean(background_rate)}")
         print(f"sqrt(n):", np.sqrt(len(background_rate)))
@@ -282,21 +237,11 @@ if __name__ == "__main__":
             linestyle="--",
         )
 
-    # plt.figtext(0.55, 0, date_of_run, fontsize=10, ha='center')
     ax.set_xlabel("Optimization Iteration")
     ax.set_ylabel("Probability of Undiscriminated States")
     from matplotlib.ticker import MaxNLocator, FormatStrFormatter
     ax.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=7))
-    ax.set_xlim(0,60)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-    # labels = ax.get_xticklabels()
-    # new_labels = []
-    # for label in labels:
-    #     label.set_text(str(int(float(label.get_text()))))
-    #     new_labels.append(label)
-    # # new_labels = [str(int(label)) for label in labels]
-    # ax.set_xticklabels(new_labels)
-
 
     fig.legend(
         loc="upper right",
@@ -304,7 +249,6 @@ if __name__ == "__main__":
         ncol=2,
         title="bQWP x bHWP Measurement Settings",
     )
-    # plt.figtext(0.97, 0.01, date_of_run, fontsize=10, ha="right")
     fig.tight_layout()
 
     plt.grid()

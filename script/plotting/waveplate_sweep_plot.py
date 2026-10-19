@@ -5,7 +5,8 @@ from pathlib import Path
 import numpy as np
 import pickle
 import pytz
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import matplotlib.pyplot as plt
@@ -75,9 +76,9 @@ if __name__ == "__main__":
 
         date_path = Path(data_folder).name
         date_of_run = (
-            pytz.timezone("UTC")
-            .localize(datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ"))
-            .astimezone(pytz.timezone("US/Central"))
+            datetime.strptime(date_path, "%Y-%m-%dT%H-%M-%SZ")
+            .replace(tzinfo=timezone.utc)
+            .astimezone(ZoneInfo("America/Chicago"))
             .strftime("%Y-%m-%d %H:%M:%S")
         )
         opt_dicts = [read_json(file) for file in opt_files]
@@ -100,8 +101,6 @@ if __name__ == "__main__":
             std_std_err_cost_vals += [np.std(aggregate_data[i]) / np.sqrt(len(aggregate_data[i]))]
             std_min_cost_vals += [np.min(aggregate_data[i])]
 
-        # print(np.array(aggregate_data).shape)
-        # exit()
         aggregate_data = np.array(aggregate_data)
         aggregate_data_settings = np.array(aggregate_data_settings)
         print(aggregate_data.shape)
@@ -133,42 +132,7 @@ if __name__ == "__main__":
         worst_all_cost_vals.append(all_worst_costs[worst_opt])
 
         print(f"Best cost mean for {meas_setting}: {np.mean(all_best_costs)}")
-        # print(best_opt)
-
-        # all_best_costs = aggregate_data[:,best_opt]
-        # print(aggregate_data.shape)
-        # print(best_opt.shape)
-        # print(all_best_costs.shape)
-        # print(all_best_costs)
-        # best_run = np.argmin(all_best_costs)
-        # print(best_run)
-        # all_best_settings = aggregate_data_settings[:,best_opt]
-    #
-    # all_worst_costs = aggregate_data[:,worst_opt]
-    # print(all_worst_costs.shape)
-    # worst_run = np.argmax(all_worst_costs)
-
-    # print(worst_run)
-    # all_worst_settings = aggregate_data_settings[:,worst_opt]
-    # print(all_best_costs)
-    # exit()
-    # print(best_opt)
-    # worst_opt = np.argmax(np.array(aggregate_data),axis=1)
-
-    # print("worst", np.max(aggregate_data))
-    # std_np_mean = np.array(std_mean_cost_vals)
-    # std_np_std_err = np.array(std_std_err_cost_vals)
-
-    # best_opt_cost_vals = aggregate_data[best_opt]
-    # print(aggregate_data[best_opt][-1])
-    # best_opt_settings = aggregate_data_settings[best_opt]
-
-    # best_all_settings.append(best_opt_settings)
-    # best_all_cost_vals.append(best_opt_cost_vals)
-
-    # worst_all_settings.append(aggregate_data_settings[worst_opt])
-    # worst_all_cost_vals.append(aggregate_data[worst_opt])
-    # print(opt_files[best_opt])
+ 
     count_arrs = []
     hwp_sweep_angles = np.linspace(0, 180, 180)
     qwp_sweep_angles = np.linspace(0, 180, 180)
@@ -211,7 +175,6 @@ if __name__ == "__main__":
 
         count_cax = count_divider.append_axes("right", size="5%", pad=0.05)
         std_cax = std_divider.append_axes("right", size="5%", pad=0.05)
-        # plt.contourf(hwp_sweep_angles, qwp_sweep_angles, counts[:,:,0].T, levels=50)
 
         opt_settings = np.array(best_all_settings[i])
         opt_settings *= 180 / np.pi
@@ -226,16 +189,6 @@ if __name__ == "__main__":
         worst_opt_settings[:, 1] = worst_opt_settings[:, 1] % 180
         worst_opt_settings[:, 2] = worst_opt_settings[:, 2] % 180
         worst_opt_settings[:, 3] = worst_opt_settings[:, 3] % 180
-
-        # plt.text(opt_settings[-1,0], opt_settings[-1,1], f"{counts[int(opt_settings[-1,0]/2), int(opt_settings[-1,1]/2),0]}")
-
-        # count_ax.plot(worst_opt_settings[:,0], worst_opt_settings[:,1], color="purple")
-        # count_ax.scatter(worst_opt_settings[-1,0], worst_opt_settings[-1,1],label="Worst run final point (0 encoding)", color="purple")
-        # count_ax.plot(worst_opt_settings[:,2], worst_opt_settings[:,3], color="red")
-        # count_ax.scatter(worst_opt_settings[-1,2], worst_opt_settings[-1,3], label="Worst run final point (1 encoding)", color="red")
-
-        # count_ax.text(worst_opt_settings[-1,0], worst_opt_settings[-1,1], f"{mean_counts[int(worst_opt_settings[-1,0]), int(worst_opt_settings[-1,1])]:.4f}")
-        # count_ax.text(worst_opt_settings[-1,2], worst_opt_settings[-1,3], f"{mean_counts[int(worst_opt_settings[-1,2]), int(worst_opt_settings[-1,3])]:.4f}")
 
         count_ax.plot(opt_settings[:, 0], opt_settings[:, 1], color="purple")
         count_ax.scatter(
@@ -257,17 +210,6 @@ if __name__ == "__main__":
             f"{mean_counts[int(opt_settings[-1, 2]), int(opt_settings[-1, 3])]:.4f}",
         )
 
-        # plt.plot(worst_opt_settings[:,0], worst_opt_settings[:,1],color="orange")
-        # plt.scatter(worst_opt_settings[-1,0], worst_opt_settings[-1,1],label="Worst run final point (0 encoding)", color="orange")
-        # plt.plot(worst_opt_settings[:,2], worst_opt_settings[:,3], color="purple")
-        # plt.scatter(worst_opt_settings[-1,2], worst_opt_settings[-1,3], label="Worst run final point (1 encoding)", color="purple")
-
-        # plt.text(opt_settings[-1,0], opt_settings[-1,1], f"{counts[int(opt_settings[-1,0]/2), int(opt_settings[-1,1]/2),0]}")
-        # plt.text(opt_settings[-1,2], opt_settings[-1,3], f"{counts[int(opt_settings[-1,2]/2), int(opt_settings[-1,3]/2),0]}")
-
-        # plt.text(worst_opt_settings[-1,0], worst_opt_settings[-1,1], f"{counts[int(worst_opt_settings[-1,0]/2), int(worst_opt_settings[-1,1]/2),0]}")
-        # plt.text(worst_opt_settings[-1,2], worst_opt_settings[-1,3], f"{counts[int(worst_opt_settings[-1,2]/2), int(worst_opt_settings[-1,3]/2),0]}")
-        # plt.plot()
         count_ax.scatter(hwp_sweep_angles[max_point[0]], qwp_sweep_angles[max_point[1]], label="Global maximum point")
         count_ax.text(
             hwp_sweep_angles[max_point[0]],
@@ -300,7 +242,6 @@ if __name__ == "__main__":
         std_ax.set_xlabel("Half-Waveplate angle (degrees)")
         count_ax.set_xlabel("Half-Waveplate angle (degrees)")
         count_ax.set_ylabel("Quarter-Waveplate angle (degrees)")
-        # std_ax.set_ylabel("Quarter-Waveplate angle (degrees)")
 
         fig.colorbar(count_contour, cax=count_cax)
         fig.colorbar(std_contour, cax=std_cax)
