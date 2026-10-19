@@ -247,6 +247,7 @@ def qubit_dimensionality_witnessing(
     qwp_period=QWP_PERIOD,
     test_mode=False,
     diff_method="parameter-shift",
+    efficiencies=[1, 1],
 ):
     """
     Performs a hardware-compatible optimization of a quantum violation of the simplest qubit
