@@ -50,14 +50,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-n",
-        "--numerics",
-        default=False,
-        action="store_true",
-        help="If using the simulator backend.",
-    )
-
-    parser.add_argument(
         "-b",
         "--background",
         action="store_true",
@@ -86,12 +78,6 @@ if __name__ == "__main__":
         help="Title for the plot.",
     )
 
-    parser.add_argument(
-        "--param_shift",
-        default=False,
-        action="store_true"
-    )
-
     args = parser.parse_args()
 
     if args.filepath is None:
@@ -112,21 +98,21 @@ if __name__ == "__main__":
         BACKGROUND_MULTIPLIER = BACKGROUND_2_BIT_MULTIPLIER
         MAXIMUM_BOUND = MAXIMUM_BOUND_2_BIT
 
-    filepath_type = "/numerics/" if args.numerics else "/hardware/"
+    filepath_type = "/numerics/" if "numerics" in args.filepath else "/hardware/"
 
     title = args.title
-    if args.param_shift:
+    if "parameter-shift" in args.filepath:
         title+= ", parameter shift"
     else:
         title+= ", finite difference"
-    if args.numerics:
+    if "numerics" in args.filepath:
         title += " (numerics)"
     datetime_str = datetime_now_string()
 
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
     )

@@ -34,27 +34,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-n",
-        "--numerics",
-        default=False,
-        action="store_true",
-        help="If using the simulator backend.",
-    )
-
-    parser.add_argument(
         "-b",
         "--background",
         action="store_true",
         default=False,
         help="Plot background count line.",
-    )
-
-    parser.add_argument(
-        "-2",
-        "--two_wp",
-        default=False,
-        action="store_true",
-        help="If using only 2 waveplates.",
     )
 
     parser.add_argument(
@@ -79,19 +63,19 @@ if __name__ == "__main__":
     import matplotlib
     matplotlib.rcParams['mathtext.fontset'] = 'cm'
 
-    filepath_type = "/numerics/" if args.numerics else "/hardware/"
+    filepath_type = "/numerics/" if "numerics" in args.filepath else "/hardware/"
     plt.rc("font", family="sans-serif",size=12)
     title = args.title
-    if args.numerics:
+    if "numerics" in args.filepath:
         title += " (numerics)"
 
 
-    if args.two_wp:
+    if "two_wp" in args.filepath:
         filepath_type += "two_wp/"
     else:
         filepath_type += "four_wp/"
     
-    if Path(args.filepath).stem == "parameter-shift":
+    if "parameter-shift" in args.filepath:
         title += '\nparameter-shift'
     else:
         title += "\nfinite-diff"

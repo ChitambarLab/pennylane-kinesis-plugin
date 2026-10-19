@@ -46,7 +46,7 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
     )
@@ -58,7 +58,6 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
     ax1.plot(
         range(num_steps),
         prob_success,
-        # label=f"Average Optimization Trajectory ({len(opt_dicts)} trials)",
     )
     ax1.plot(
         range(num_steps),
@@ -72,33 +71,8 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
         label="Quantum Bound",
     )
 
-    # ax1.fill_between(
-    #     range(num_steps),
-    #     (mean_cost_vals - std_err_cost),
-    #     (mean_cost_vals + std_err_cost),
-    #     alpha=1 / 4,
-    #     color="C1",
-    #     # label="Standard Error",
-    # )
-
-    # ax1.plot(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - (background_rate / shot_rate) * BACKGROUND_MULTIPLIER]
-    #     * num_steps,
-    #     "k--",
-    # )
-
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND - best_cost_val] * num_steps,
-    #     alpha=3 / 4,
-    #     label="Best Cost",
-    #     color="blue",
-    # )
-
     ax2.semilogy(
         range(num_steps),
-        # [QUANTUM_BOUND] * num_steps - mean_cost_vals,
         [QUANTUM_BOUND] * num_steps - prob_success,
         label=f"Optimization Trajectory",
     )
@@ -106,29 +80,13 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
         range(num_steps),
         [QUANTUM_BOUND - CLASSICAL_BOUND] * num_steps,
         color="orange",
-        # label="Classical Limit",
     )
-    # ax2.semilogy(
-    #     range(num_steps),
-    #     [(np.mean(background_rates)/np.mean(shot_rates))]*num_steps,
-    #     "k--",
-    #     label=f"Background Limit \n(Average {np.mean(background_rates):.2f} cps)",
-    # )
     ax2.semilogy(
         range(num_steps),
         [(background_rate / shot_rate) * BACKGROUND_MULTIPLIER] * num_steps,
         "k--",
         label=f"Background Limit \n(Average {background_rate} cps)",
     )
-    # ax2.fill_between(
-    #     range(num_steps),
-    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals - std_err_cost),
-    #     [QUANTUM_BOUND] * num_steps - (mean_cost_vals + std_err_cost),
-    #     alpha=1 / 4,
-    #     label="Standard Error",
-    #     color="C1",
-    # )
-
     ax2.set_yticks([1e-3, 1e-2, 1e-1, 1e-0])
 
     ax1.set_ylabel("Success Probability")
@@ -141,8 +99,6 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
     fig.tight_layout()
 
     plt.grid()
-    # plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-
     if datetime is None:
         datetime_str = pk.datetime_now_string()
     else:
@@ -211,11 +167,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--num_trials", default=40, help="number of trials to run.")
 
-    parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
+    parser.add_argument("-s", "--step_size", default=0.2, help="Step size to use.")
 
     parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
 
-    parser.add_argument("--num_steps", type=int, default=20, help="Num steps to use per optimization.")
+    parser.add_argument("--num_steps", type=int, default=60, help="Num steps to use per optimization.")
 
     parser.add_argument(
         "--background",

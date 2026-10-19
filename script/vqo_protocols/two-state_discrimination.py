@@ -99,9 +99,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
-    parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
+    parser.add_argument("-s", "--step_size", default=0.2, help="Step size to use.")
 
-    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
+    parser.add_argument("--num_steps", default=60, help="Num steps to use per optimization.")
 
     parser.add_argument(
         "--background",
@@ -174,6 +174,8 @@ if __name__ == "__main__":
             step_size=float(args.step_size),
             num_steps=int(args.num_steps),
             verbose=args.verbose,
+            optimizer=args.optimizer,
+            diff_method=args.diff
         )
 
         end_time = time.time()
