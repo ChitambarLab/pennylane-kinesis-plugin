@@ -1,15 +1,17 @@
 import numpy as np
 
+
 def HWP(theta):
-    return np.exp(-1.j*np.pi/2)*np.array(
+    return np.exp(-1.0j * np.pi / 2) * np.array(
         [
             [np.cos(theta) ** 2 - np.sin(theta) ** 2, 2 * np.cos(theta) * np.sin(theta)],
             [2 * np.cos(theta) * np.sin(theta), np.sin(theta) ** 2 - np.cos(theta) ** 2],
         ]
     )
 
+
 def QWP(theta):
-    return np.exp(-1.j*np.pi/4)*np.array(
+    return np.exp(-1.0j * np.pi / 4) * np.array(
         [
             [
                 np.cos(theta) ** 2 + 1j * np.sin(theta) ** 2,
@@ -22,7 +24,9 @@ def QWP(theta):
         ]
     )
 
+
 # Note that operators are applied from right to left, so the order of the operators in the return statement is reversed.
+
 
 # Quarter Waveplate then Half Waveplate (Typical state preparation order for QST)
 # Angle 1 is the angle of the HWP, Angle 2 is the angle of the QWP
@@ -42,8 +46,8 @@ def hwp_qwp(theta1, theta2):
 
 
 # Defining polarization states and density matrices
-H = np.array([1, 0],dtype=complex)
-V = np.array([0, 1],dtype=complex)
+H = np.array([1, 0], dtype=complex)
+V = np.array([0, 1], dtype=complex)
 D = 1 / np.sqrt(2) * (H + V)
 A = 1 / np.sqrt(2) * (H - V)
 R = 1 / np.sqrt(2) * (H + 1.0j * V)
@@ -69,16 +73,14 @@ for i in range(len(names)):
     for angle1 in np.arange(-360, 360, 22.5):
         for angle2 in np.arange(-360, 360, 22.5):
             # Prepare the state (assuming horizontally polarized input H_rho)
-            prepared_state = (
-                hwp_qwp(angle1, angle2)@H
-            )
+            prepared_state = hwp_qwp(angle1, angle2) @ H
             prepared_state = np.outer(prepared_state, prepared_state.conj())
             prepared_state /= np.trace(prepared_state)
 
             expected_value = state_vecs[i].conj().T @ prepared_state @ state_vecs[i]
             # Check if the prepared state matches the state we are looking for
             if np.isclose(expected_value, 1):
-                print(f"HWP: {angle1%90}, QWP: {angle2%180}")
+                print(f"HWP: {angle1 % 90}, QWP: {angle2 % 180}")
                 found_angles = True
                 prep_angles.append((angle1 % 90, angle2 % 180))
                 break
@@ -95,17 +97,14 @@ for i in range(len(names)):
     for angle1 in np.arange(0, 360, 22.5):
         for angle2 in np.arange(0, 360, 22.5):
             # Prepare the state (assuming horizontally polarized input H_rho)
-            prepared_state = (
-                qwp_hwp(angle1, angle2)@state_vecs[i]
-            )
+            prepared_state = qwp_hwp(angle1, angle2) @ state_vecs[i]
             prepared_state = np.outer(prepared_state, prepared_state.conj())
             prepared_state /= np.trace(prepared_state)
-            
+
             expected_value = state_vecs[0].conj().T @ prepared_state @ state_vecs[0]
             # Check if the prepared state matches the state we are looking for
             if np.isclose(expected_value, 1):
-
-                print(f"HWP: {angle1%90}, QWP: {angle2%180}")
+                print(f"HWP: {angle1 % 90}, QWP: {angle2 % 180}")
                 found_angles = True
                 meas_angles.append((angle1 % 90, angle2 % 180))
                 break

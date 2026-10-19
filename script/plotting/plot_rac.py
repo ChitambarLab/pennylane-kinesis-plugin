@@ -102,9 +102,9 @@ if __name__ == "__main__":
 
     title = args.title
     if "parameter-shift" in args.filepath:
-        title+= ", parameter shift"
+        title += ", parameter shift"
     else:
-        title+= ", finite difference"
+        title += ", finite difference"
     if "numerics" in args.filepath:
         title += " (numerics)"
     datetime_str = datetime_now_string()
@@ -189,12 +189,11 @@ if __name__ == "__main__":
     best_cost_vals = np.max(aggregate_data, axis=1)
     aggregate_data = np.array(aggregate_data)
 
-    best_single_opt_cost_vals = aggregate_data[:,np.unravel_index(np.argmax(aggregate_data),aggregate_data.shape)[1]]
-
+    best_single_opt_cost_vals = aggregate_data[:, np.unravel_index(np.argmax(aggregate_data), aggregate_data.shape)[1]]
 
     ax2.semilogy(
         range(num_steps),
-        [QUANTUM_BOUND]*num_steps - best_single_opt_cost_vals,
+        [QUANTUM_BOUND] * num_steps - best_single_opt_cost_vals,
         label=f"Lowest-cost optimization \n(out of {len(opt_dicts)} trials)",
         color="blue",
     )
@@ -233,7 +232,7 @@ if __name__ == "__main__":
     ax2.set_ylabel("Distance to Quantum Bound")
     ax2.set_xlabel("Optimization Iteration")
 
-    fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15),fontsize=10)
+    fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15), fontsize=10)
     fig.tight_layout()
 
     plt.grid()

@@ -157,7 +157,6 @@ def optimize(
             behavior_mat = behavior_fn(settings)
             opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
-
         # We previously tried to iterate over the periodicity of our waveplates after an optimization
         # to obtain a better cost function evaluation. In larger parameter spaces, this took prohibitively longer.
         # setting_iterations = []

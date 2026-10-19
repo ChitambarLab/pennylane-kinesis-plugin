@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from pennylane_kinesis.file_utilities import get_files, get_date_from_filename, datetime_now_string, read_json
 from pathlib import Path
 import numpy as np
+
 _COLORS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
 """This script generates a plot showing the optimization precision as
@@ -56,29 +57,14 @@ if __name__ == "__main__":
         help="If only using two waveplates (fixed measurement waveplates).",
     )
 
+    parser.add_argument("-b", "--background", default=None, help="Plot background count line.")
     parser.add_argument(
-        "-b",
-        "--background",
-        default=None,
-        help="Plot background count line."
+        "--min_cost", default=False, action="store_true", help="Plot min cost value instead of the last cost value."
     )
-    parser.add_argument(
-        "--min_cost",
-        default=False,
-        action="store_true",
-        help="Plot min cost value instead of the last cost value."
-    )
-    parser.add_argument(
-        "--diff",
-        default="parameter-shift",
-        help="Differentiation method used in the optimization."
-    )
+    parser.add_argument("--diff", default="parameter-shift", help="Differentiation method used in the optimization.")
 
     parser.add_argument(
-        "--total",
-        default=False,
-        action="store_true",
-        help="Plot total convergence instead of divided by step-size."
+        "--total", default=False, action="store_true", help="Plot total convergence instead of divided by step-size."
     )
 
     args = parser.parse_args()
@@ -86,8 +72,8 @@ if __name__ == "__main__":
     if args.filepath is None:
         print("Please provide a filepath to the data folder. (-f)")
         exit()
-    
-    title=f"Min cost values" if args.min_cost else "Final cost values"
+
+    title = f"Min cost values" if args.min_cost else "Final cost values"
     title += f"\n(adagrad, {args.diff}, {'two_wp' if args.two_wp else 'four_wp'}, fiber)"
 
     datetime_str = datetime_now_string()
@@ -104,7 +90,7 @@ if __name__ == "__main__":
         fontweight="bold",
         fontsize=14,
     )
-    
+
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
     filepath_wp = "two_wp/" if args.two_wp else "four_wp/"
 
@@ -114,13 +100,14 @@ if __name__ == "__main__":
     all_max_cost_vals = []
     c_id = 0
     plot_num = 0
-    max_binned = 0 
+    max_binned = 0
     for step_size in args.step_size_list:
-        step_size_filepath = Path(filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp)
-        
+        step_size_filepath = Path(
+            filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
+        )
 
         std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
-        
+
         for f in std_filenames:
             print(f"Using {f}")
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
@@ -128,8 +115,8 @@ if __name__ == "__main__":
         std_aggregate_data = []
         final_cost_vals = []
         max_cost_vals = []
-        for j,std_opt_dict in enumerate(std_opt_dicts):
-            cost_vals = np.array(std_opt_dict["cost_vals"]) + np.ones(len(std_opt_dict["cost_vals"]))*2
+        for j, std_opt_dict in enumerate(std_opt_dicts):
+            cost_vals = np.array(std_opt_dict["cost_vals"]) + np.ones(len(std_opt_dict["cost_vals"])) * 2
             max_cost_vals.append(np.min(cost_vals))
             final_cost_vals.append(cost_vals[-1])
             all_final_cost_vals.append(cost_vals[-1])
@@ -148,8 +135,7 @@ if __name__ == "__main__":
                     input()
                 else:
                     background_rate += [np.sum(std_opt_dict["background_rate"])]
-                
-                                                              
+
             shot_rates += [np.sum(std_opt_dict["shot_rate"])]
 
         std_mean_cost_vals = []
@@ -157,9 +143,7 @@ if __name__ == "__main__":
         std_min_cost_vals = []
         for i in range(len(std_aggregate_data)):
             std_mean_cost_vals += [np.mean(std_aggregate_data[i])]
-            std_std_err_cost_vals += [
-                np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))
-            ]
+            std_std_err_cost_vals += [np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))]
             std_min_cost_vals += [np.min(std_aggregate_data[i])]
 
         std_np_mean = np.array(std_mean_cost_vals)
@@ -167,7 +151,9 @@ if __name__ == "__main__":
 
         if not args.total:
             curr_ax = ax.flat[plot_num]
-            counts, bins = np.histogram(max_cost_vals if args.min_cost else final_cost_vals, bins=np.logspace(-3, 0, 30))
+            counts, bins = np.histogram(
+                max_cost_vals if args.min_cost else final_cost_vals, bins=np.logspace(-3, 0, 30)
+            )
             print(counts)
             max_binned = max(max_binned, np.max(counts))
             curr_ax.hist(
@@ -179,10 +165,10 @@ if __name__ == "__main__":
                 stacked=True,
                 histtype="barstacked",
             )
-            c_id +=1
+            c_id += 1
             curr_ax.set_xscale("log")
             curr_ax.grid()
-            plot_num +=1
+            plot_num += 1
 
     if args.background:
         shot_rates = np.array(shot_rates)
@@ -191,7 +177,7 @@ if __name__ == "__main__":
         print(f"Shot rate std err: {shot_rate_std_err}")
         background_rate = np.array(background_rate)
         background_std_dev = np.std(background_rate)
-        background_std_err = np.std(background_rate)/np.sqrt(len(background_rate))
+        background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
         print(f"Background std dev: {background_std_dev}")
@@ -201,14 +187,14 @@ if __name__ == "__main__":
         background_mean = np.mean(background_rate)
         ax.plot(
             range(len(std_np_mean)),
-            [background_mean/ np.mean(shot_rates)] * len(std_np_mean),
+            [background_mean / np.mean(shot_rates)] * len(std_np_mean),
             "k--",
             label="Background (" + str(np.mean(background_rate).round(1)) + " cps)",
         )
         ax.fill_between(
             range(len(std_np_mean)),
-            ([(background_mean-background_std_err)/ np.mean(shot_rates) ] * len(std_np_mean)),
-            ([(background_mean + background_std_err)/ np.mean(shot_rates)] * len(std_np_mean)),
+            ([(background_mean - background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
+            ([(background_mean + background_std_err) / np.mean(shot_rates)] * len(std_np_mean)),
             alpha=1 / 4,
             color="black",
             linestyle="--",
@@ -223,12 +209,22 @@ if __name__ == "__main__":
             stacked=False,
             histtype="bar",
         )
-        ax.axvline(x=background_mean/np.mean(shot_rates), color="black", linestyle="--", label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)")
+        ax.axvline(
+            x=background_mean / np.mean(shot_rates),
+            color="black",
+            linestyle="--",
+            label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)",
+        )
         plt.xscale("log")
     else:
         for a in ax.flat:
-            a.set_ylim(0, max_binned+0.5)
-            a.axvline(x=background_mean/np.mean(shot_rates), color="black", linestyle="--", label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)")
+            a.set_ylim(0, max_binned + 0.5)
+            a.axvline(
+                x=background_mean / np.mean(shot_rates),
+                color="black",
+                linestyle="--",
+                label="Background \n(" + str(np.mean(background_rate).round(1)) + " cps)",
+            )
         bigplot = fig.add_subplot(111, frameon=False)
         bigplot.set_ylabel("Number of trials")
         bigplot.spines["top"].set_color("none")
@@ -245,8 +241,8 @@ if __name__ == "__main__":
             bigplot.set_xlabel("Final cost value")
 
         plt.draw()
-  
-    fig.legend(loc='center right', bbox_to_anchor=(1, 0.8))
+
+    fig.legend(loc="center right", bbox_to_anchor=(1, 0.8))
 
     Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
     plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)

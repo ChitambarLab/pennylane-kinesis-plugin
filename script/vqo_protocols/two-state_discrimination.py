@@ -22,6 +22,7 @@ $ python script/two-state_discrimination.py numerics
 ```
 """
 
+
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length
     bar = "#" * bar_length  # Generate the bar dynamically
@@ -32,6 +33,7 @@ def print_bar(msg):
     print(bar)
     print(formatted_msg)
     print(bar)
+
 
 def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, suffix):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
@@ -65,7 +67,7 @@ def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, suffi
 
     plt.tight_layout()
 
-    filename = datetime+"two-state-discrimination"
+    filename = datetime + "two-state-discrimination"
     filename += "-" + str(args.step_size)
     if args.numerics:
         filename += "-numerics"
@@ -175,7 +177,7 @@ if __name__ == "__main__":
             num_steps=int(args.num_steps),
             verbose=args.verbose,
             optimizer=args.optimizer,
-            diff_method=args.diff
+            diff_method=args.diff,
         )
 
         end_time = time.time()
@@ -185,7 +187,6 @@ if __name__ == "__main__":
             f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
         )
         plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i))
-
 
     if args.profile:
         prof.disable()

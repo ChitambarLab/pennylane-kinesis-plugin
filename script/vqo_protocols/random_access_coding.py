@@ -27,7 +27,8 @@ CLASSICAL_BOUND_2_BIT = CLASSICAL_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2_BIT
 BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
-def plot_data(opt_dict, rac_3, filepath, plot_filename,datetime=None):
+
+def plot_data(opt_dict, rac_3, filepath, plot_filename, datetime=None):
     if rac_3:
         QUANTUM_BOUND = QUANTUM_BOUND_3_BIT
         QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
@@ -253,7 +254,7 @@ if __name__ == "__main__":
     for i in range(num_trials):
         print_bar(f"Starting trial {i} out of {num_trials}")
         start_time = time.time()
-        
+
         rac_opt_dict = pk.rac(
             filepath=filepath,
             shots=args.shots,
@@ -275,7 +276,7 @@ if __name__ == "__main__":
             f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with {str(args.step_size)}."
         )
         f = open(filepath + datetime_str + "runtime.txt", "a")
-        f.write(str(time_taken)+"\n")
+        f.write(str(time_taken) + "\n")
         f.close()
         time_remaining = time_taken * (num_trials - i)
         print_bar(

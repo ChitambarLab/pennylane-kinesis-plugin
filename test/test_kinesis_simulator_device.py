@@ -32,9 +32,7 @@ def _setup_device(interface, analytic=False, domain_period=False):
             hwp_domain_period=hwp_domain_period,
         )
     else:
-        raise ValueError(
-            "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
-        )
+        raise ValueError("interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'.")
 
     return dev
 
@@ -77,7 +75,7 @@ class TestKinesisSimulatorDevice:
         }
         assert dev.observables == {"Projector", "Identity", "PauliZ"}
         assert dev.analytic == analytic
-        assert (dev.init_state == [[1, 0],[0,0]]).all()
+        assert (dev.init_state == [[1, 0], [0, 0]]).all()
 
         # test-defined attributes
         assert dev.shots == None if analytic else 10000
@@ -152,10 +150,9 @@ class TestKinesisSimulatorDevice:
         ],
     )
     def test_device_apply(self, interface, ops, match):
-        
+
         dev = _setup_device(interface)
         assert (dev._state == dev.init_state).all()
-
 
         match = np.array(match)
         match = np.outer(match, match.conj())
@@ -215,7 +212,7 @@ class TestKinesisSimulatorDevice:
         samples = circ(np.pi / 4)
 
         assert len(samples) == 10000
-        assert ([s == 0 or s == 1 for s in samples])
+        assert [s == 0 or s == 1 for s in samples]
 
     @pytest.mark.parametrize(
         "analytic, atol",

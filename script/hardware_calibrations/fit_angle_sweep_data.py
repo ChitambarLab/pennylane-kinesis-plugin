@@ -6,8 +6,10 @@ import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+
 def param_sin(x, offset, amplitude, phase, freq):
     return amplitude * np.sin(phase + freq * x) + offset
+
 
 def fit_sin(tt, yy):
     '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
@@ -65,26 +67,12 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-p",
-        "--plot",
-        default=False,
-        action="store_true",
-        help="Plot the data from the file (no fitting)."
+        "-p", "--plot", default=False, action="store_true", help="Plot the data from the file (no fitting)."
     )
 
-    parser.add_argument(
-        "-n",
-        "--name",
-        default="None",
-        help="Name of the waveplate (for the plot)."
-    )
+    parser.add_argument("-n", "--name", default="None", help="Name of the waveplate (for the plot).")
 
-    parser.add_argument(
-        "--power_meter",
-        default=False,
-        action="store_true",
-        help="if using power meter data instead"
-    )
+    parser.add_argument("--power_meter", default=False, action="store_true", help="if using power meter data instead")
 
     args = parser.parse_args()
     path = Path(args.file)
@@ -161,7 +149,7 @@ if __name__ == "__main__":
             datetime = get_date_from_filename(path.name)
             save_path = Path(
                 str(save_location)
-                +"power_vs_angle_auto_"
+                + "power_vs_angle_auto_"
                 + args.name
                 + "_"
                 + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -170,7 +158,7 @@ if __name__ == "__main__":
             plt.savefig(save_path)
         exit()
 
-     # Fit existing data
+    # Fit existing data
     else:
         if args.file == None:
             print("Need to specify a file to use for fitting!")
@@ -216,12 +204,7 @@ if __name__ == "__main__":
                 # print(args.file.split('.'))
                 save_location = path.parents[0]
                 datetime = get_date_from_filename(path.name)
-                save_path = Path(
-                    str(save_location)
-                    +"/"
-                    + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
-                    + "_fit.png"
-                )
+                save_path = Path(str(save_location) + "/" + datetime.strftime("%Y-%m-%dT%H-%M-%SZ") + "_fit.png")
                 plt.savefig(save_path)
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))
@@ -233,12 +216,12 @@ if __name__ == "__main__":
 
         else:
             with open(args.file, "rb") as f:
-                angle_cutoffs = [0,360]
+                angle_cutoffs = [0, 360]
                 # (angles, powers_h, powers_v) = pickle.load(f)
                 counts = pickle.load(f)
                 counts = np.array(counts)
                 if not args.power_meter:
-                    norm = counts[:,:,0] + counts[:,:,1]
+                    norm = counts[:, :, 0] + counts[:, :, 1]
                 # norm_counts = counts
                 # norm_counts[:,:,0] /= norm
                 # norm_counts[:,:,1] /= norm
@@ -247,11 +230,11 @@ if __name__ == "__main__":
                 print(mean_data)
                 # std_data = np.std(norm_counts,axis=0)
 
-                mean_data = mean_data[angle_cutoffs[0]:angle_cutoffs[1]]
+                mean_data = mean_data[angle_cutoffs[0] : angle_cutoffs[1]]
 
-                mean_data_h = mean_data[:,0]
-                mean_data_v = mean_data[:,1]
-                angles = np.linspace(angle_cutoffs[0],angle_cutoffs[1],angle_cutoffs[1]-angle_cutoffs[0])
+                mean_data_h = mean_data[:, 0]
+                mean_data_v = mean_data[:, 1]
+                angles = np.linspace(angle_cutoffs[0], angle_cutoffs[1], angle_cutoffs[1] - angle_cutoffs[0])
                 # powers_h = (powers_h - np.min(powers_h)) / (np.max(powers_h) - np.min(powers_h))
                 # powers_v = (powers_v - np.min(powers_v)) / (np.max(powers_v) - np.min(powers_v))
 
@@ -259,11 +242,11 @@ if __name__ == "__main__":
                 # angles = angles[45:130]
                 # powers_h = powers_h[45:130]
                 # powers_v = powers_v[45:130]
-                x_data = np.linspace(angle_cutoffs[0],angle_cutoffs[1],1000)
+                x_data = np.linspace(angle_cutoffs[0], angle_cutoffs[1], 1000)
 
                 fit_dict_h = fit_sin(angles, mean_data_h)
                 func_h = fit_dict_h["fitfunc"]
-                
+
                 ax = fig.add_subplot(1, 1, 1)
                 ax.scatter(angles, mean_data_h, color="red", label="P(H)")
                 ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
@@ -277,7 +260,6 @@ if __name__ == "__main__":
                         color="lightblue",
                         label="Sinusoidal fit (V)",
                     )
-
 
                 ax.xaxis.set_ticks(np.arange(angle_cutoffs[0], angle_cutoffs[1], 10))
                 labels = ax.xaxis.get_majorticklabels()
@@ -298,12 +280,7 @@ if __name__ == "__main__":
                 ax.grid()
                 save_location = path.parents[0]
                 datetime = get_date_from_filename(path.name)
-                save_path = Path(
-                    str(save_location)
-                    +"/"
-                    + datetime.strftime("%Y-%m-%dT%H-%M-%SZ")
-                    + "_fit.png"
-                )
+                save_path = Path(str(save_location) + "/" + datetime.strftime("%Y-%m-%dT%H-%M-%SZ") + "_fit.png")
                 plt.savefig(save_path)
 
                 print("zero angle v is", 90 - fit_dict_h["phase"] * (180 / (np.pi)))

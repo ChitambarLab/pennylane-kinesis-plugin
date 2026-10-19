@@ -2,16 +2,18 @@ import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 
+
 def HWP(theta):
-    return np.exp(-1.j*np.pi/2)*np.array(
+    return np.exp(-1.0j * np.pi / 2) * np.array(
         [
             [np.cos(theta) ** 2 - np.sin(theta) ** 2, 2 * np.cos(theta) * np.sin(theta)],
             [2 * np.cos(theta) * np.sin(theta), np.sin(theta) ** 2 - np.cos(theta) ** 2],
         ]
     )
 
+
 def QWP(theta):
-    return np.exp(-1.j*np.pi/4)*np.array(
+    return np.exp(-1.0j * np.pi / 4) * np.array(
         [
             [
                 np.cos(theta) ** 2 + 1j * np.sin(theta) ** 2,
@@ -24,7 +26,9 @@ def QWP(theta):
         ]
     )
 
+
 # Note that operators are applied from right to left, so the order of the operators in the return statement is reversed.
+
 
 # Quarter Waveplate then Half Waveplate (Typical state preparation order for QST)
 # Angle 1 is the angle of the HWP, Angle 2 is the angle of the QWP
@@ -42,9 +46,10 @@ def hwp_qwp(theta1, theta2):
     angle2 = (theta2 % 180) * np.pi / 180
     return QWP(angle2) @ HWP(angle1)
 
+
 # Defining polarization states and density matrices
-H = np.array([1, 0],dtype=complex)
-V = np.array([0, 1],dtype=complex)
+H = np.array([1, 0], dtype=complex)
+V = np.array([0, 1], dtype=complex)
 D = 1 / np.sqrt(2) * (H + V)
 A = 1 / np.sqrt(2) * (H - V)
 R = 1 / np.sqrt(2) * (H + 1.0j * V)
@@ -63,22 +68,30 @@ names = ["H", "V", "D", "A", "R", "L"]
 
 
 def system(theta1, theta2, theta3, theta4):
-    return qwp_hwp(theta3, theta4)@hwp_qwp(theta1, theta2)@H_rho@hwp_qwp(theta1,theta2).conj().T@qwp_hwp(theta3,theta4).conj().T
+    return (
+        qwp_hwp(theta3, theta4)
+        @ hwp_qwp(theta1, theta2)
+        @ H_rho
+        @ hwp_qwp(theta1, theta2).conj().T
+        @ qwp_hwp(theta3, theta4).conj().T
+    )
+
 
 def measurement(state, projector):
-    return projector.conj().T@state@projector
+    return projector.conj().T @ state @ projector
+
 
 if __name__ == "__main__":
     folder = "./data/theory/zero_angle/"
     Path(folder).mkdir(parents=True, exist_ok=True)
 
-    angles = np.linspace(0,360,180)
+    angles = np.linspace(0, 360, 180)
     measurements = []
     for angle in angles:
-        measurements.append(measurement(system(0,angle,0,135),H))
+        measurements.append(measurement(system(0, angle, 0, 135), H))
 
     plt.plot(angles, measurements)
     plt.xlabel("Angles (degrees)")
     plt.ylabel("P(H)")
     plt.title("Theoretical angle sweep (measure L, aQWP)")
-    plt.savefig(folder+"aQWP_L.png")
+    plt.savefig(folder + "aQWP_L.png")

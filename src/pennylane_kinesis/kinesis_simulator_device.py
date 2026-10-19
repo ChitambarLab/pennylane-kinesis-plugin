@@ -15,6 +15,7 @@ import pennylane as qml
 from .version import __version__
 from enum import Enum
 
+
 class DeviceIndex(Enum):
     aHWP = 0
     aQWP = 1
@@ -87,7 +88,7 @@ class KinesisSimulatorDevice(QubitDevice):
         # wedge_vals = np.ones(3)
         # wedge_vals[1] = 0.2
         # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
-        
+
         self.shots = shots
 
         self.background_counts = background_counts
@@ -128,7 +129,7 @@ class KinesisSimulatorDevice(QubitDevice):
         angles = []
         # need to keep track of waveplate index separately for applying
         # imperfect-retardance waveplates
-        wp_index = 0 
+        wp_index = 0
         for operation in all_ops:
             if operation.name in ("HWPRotStage", "QWPRotStage", "VariableWPRotStage"):
                 device_index = self.waveplate_order[wp_index]
@@ -151,7 +152,7 @@ class KinesisSimulatorDevice(QubitDevice):
                 angles.append(angle * 180 / np.pi)
             elif operation.name == "VariableWPRotStage":
                 angle = operation.parameters[0]
-                if (device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value):
+                if device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value:
                     domain_period = self.qwp_domain_period
                 else:
                     domain_period = self.hwp_domain_period

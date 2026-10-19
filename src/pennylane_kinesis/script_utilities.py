@@ -426,7 +426,6 @@ def rac(
         VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
         VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
 
-
     if numerics:
         data_path = pk.make_dir(filepath + "numerics/")
         dev_name = "kinesis.simulator"

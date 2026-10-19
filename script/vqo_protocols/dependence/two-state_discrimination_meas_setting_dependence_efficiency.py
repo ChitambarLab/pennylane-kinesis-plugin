@@ -10,6 +10,7 @@ import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import datetime
+
 try:
     # If you're running this on hardware that doesn't have the swabian timetagger library
     # such as when you're doing numerics work, this import will break
@@ -137,9 +138,7 @@ if __name__ == "__main__":
 
     step_size = 0.2
 
-    print_bar(
-        f"Taking two_wp' data for two-state discrimination with {args.optimizer} and {args.diff}."
-    )
+    print_bar(f"Taking two_wp' data for two-state discrimination with {args.optimizer} and {args.diff}.")
     print("Meas_settings_list", meas_settings_list)
     print("Number of trials: ", args.num_trials)
     meas_settings_list = meas_settings_list * args.num_trials

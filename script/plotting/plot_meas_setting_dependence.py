@@ -85,10 +85,10 @@ if __name__ == "__main__":
 
     filepath_type = "/numerics/" if args.numerics else "/hardware/"
 
-    plt.rc("font", family="sans-serif",size=12)
+    plt.rc("font", family="sans-serif", size=12)
     title = args.title
-    title += ' parameter-shift'
-    title += ', adagrad, $\eta_0 = 0.2$'
+    title += " parameter-shift"
+    title += ", adagrad, $\eta_0 = 0.2$"
     datetime_str = datetime_now_string()
 
     date_path = Path(args.filepath).name
@@ -101,7 +101,6 @@ if __name__ == "__main__":
 
     meas_settings_HWP = [str(PI_4)]
     meas_names_HWP = [r"$\frac{\pi}{4}$"]
-
 
     meas_settings_QWP = [str(0), str(PI_4), str(PI_2), str(PI_3_4)]
     meas_names_QWP = [
@@ -118,7 +117,9 @@ if __name__ == "__main__":
     for i in range(len(meas_settings_HWP)):
         for j in range(len(meas_settings_QWP)):
             folder_names.append(f"meas_setting{meas_settings_HWP[i]}_ {meas_settings_QWP[j]}")
-            all_meas_names.append(f"${float(meas_settings_QWP[j])*180/np.pi:.0f}^\circ$ x ${float(meas_settings_HWP[i])*180/np.pi:.0f}^\circ$ ")
+            all_meas_names.append(
+                f"${float(meas_settings_QWP[j]) * 180 / np.pi:.0f}^\circ$ x ${float(meas_settings_HWP[i]) * 180 / np.pi:.0f}^\circ$ "
+            )
 
     two_wp = "/two_wp/"
 
@@ -240,8 +241,9 @@ if __name__ == "__main__":
     ax.set_xlabel("Optimization Iteration")
     ax.set_ylabel("Probability of Undiscriminated States")
     from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+
     ax.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=7))
-    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
 
     fig.legend(
         loc="upper right",

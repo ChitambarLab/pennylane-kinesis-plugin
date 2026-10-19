@@ -65,4 +65,3 @@ if __name__ == "__main__":
         print(f"Set velocity of motor {args.mount} is {set_velocity(str(args.velocity), device)}")
     else:
         print("Need to specify either set or get velocity")
-

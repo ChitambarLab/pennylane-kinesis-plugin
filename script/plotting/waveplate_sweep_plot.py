@@ -132,7 +132,7 @@ if __name__ == "__main__":
         worst_all_cost_vals.append(all_worst_costs[worst_opt])
 
         print(f"Best cost mean for {meas_setting}: {np.mean(all_best_costs)}")
- 
+
     count_arrs = []
     hwp_sweep_angles = np.linspace(0, 180, 180)
     qwp_sweep_angles = np.linspace(0, 180, 180)

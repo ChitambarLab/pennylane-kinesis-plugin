@@ -193,7 +193,7 @@ if __name__ == "__main__":
                 )
                 ax1.plot(
                     range(num_steps),
-                    np.array(state_disc_opt_dict["cost_vals"])*-1/MAXIMUM_BOUND,
+                    np.array(state_disc_opt_dict["cost_vals"]) * -1 / MAXIMUM_BOUND,
                     label="Optimization Trajectory",
                 )
 
@@ -222,7 +222,7 @@ if __name__ == "__main__":
                 ax2.set_ylabel("Distance to Quantum Bound")
                 ax2.set_xlabel("Optimization Iteration")
 
-                fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15),fontsize=10)
+                fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15), fontsize=10)
                 fig.tight_layout()
 
                 plt.grid()
@@ -232,10 +232,10 @@ if __name__ == "__main__":
                     -1 * qnp.array(state_disc_opt_dict["cost_vals"]),
                     label="Optimization Trajectory",
                 )
-                
+
                 ax1.plot(
                     range(len(state_disc_opt_dict["cost_vals"])),
-                    [2]*len(state_disc_opt_dict["cost_vals"]),
+                    [2] * len(state_disc_opt_dict["cost_vals"]),
                     label="Bound",
                 )
 
@@ -257,9 +257,8 @@ if __name__ == "__main__":
                 ax2.set_ylabel("Distance to Optimal State Discrimination Score")
                 ax2.set_xlabel("Optimization Iteration")
 
-
                 plt.grid()
-                fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15),fontsize=10)
+                fig.legend(loc="lower center", bbox_to_anchor=(0.32, 0.15), fontsize=10)
 
                 plt.tight_layout()
 

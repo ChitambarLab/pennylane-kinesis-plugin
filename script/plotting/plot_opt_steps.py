@@ -24,18 +24,9 @@ if __name__ == "__main__":
         help="Path to the data folder.",
     )
 
-    parser.add_argument(
-        "--rac",
-        default=False,
-        action='store_true'
-    )
-    
-    parser.add_argument(
-        "-2",
-        "--two",
-        default=False,
-        action='store_true'
-    )
+    parser.add_argument("--rac", default=False, action="store_true")
+
+    parser.add_argument("-2", "--two", default=False, action="store_true")
     parser.add_argument(
         "-p",
         "--plot_filename",
@@ -55,7 +46,6 @@ if __name__ == "__main__":
         default=None,
     )
 
-
     args = parser.parse_args()
 
     if args.filepath_param_shift is None or args.filepath_finite_diff is None or args.save_path is None:
@@ -67,22 +57,20 @@ if __name__ == "__main__":
     filepath_type = "/hardware/"
 
     if args.two and not args.rac:
-        filepath_type+= "two_wp/"
+        filepath_type += "two_wp/"
         title += "\n State-discrimination (two waveplate)"
     elif not args.rac:
         filepath_type += "four_wp/"
         title += "\n State-discrimination (four waveplate)"
-    
+
     if args.rac and args.two:
         title += "\n Random Access Coding (2 bits)"
     if args.rac and not args.two:
         title += "\n Random Access Coding (3 bits)"
-    
 
     datetime_str = datetime_now_string()
 
     fig, ax1 = plt.subplots()
-
 
     fig.suptitle(
         title,
@@ -112,16 +100,26 @@ if __name__ == "__main__":
     std_param_shift = np.std(aggregate_param_shift)
     std_finite_diff = np.std(aggregate_finite_diff)
 
-    ax1.bar(["Parameter Shift", "Finite Difference"], [average_param_shift_time, average_finite_diff_time], yerr=[std_param_shift, std_finite_diff],capsize=8)
+    ax1.bar(
+        ["Parameter Shift", "Finite Difference"],
+        [average_param_shift_time, average_finite_diff_time],
+        yerr=[std_param_shift, std_finite_diff],
+        capsize=8,
+    )
     ax1.set_ylabel("Average time per step (s)")
 
-    average_fraction = (average_finite_diff_time)/average_param_shift_time
+    average_fraction = (average_finite_diff_time) / average_param_shift_time
 
     print(f"Average finite_diff: {average_finite_diff_time}")
     print(f"Average finite_diff: {average_param_shift_time}")
 
     fig.tight_layout()
-    ax1.text(0.6, 0.6, f"Finite-difference time is {(average_fraction)*100:.1f}%\n of Parameter-shift time.",transform=ax1.transAxes)
+    ax1.text(
+        0.6,
+        0.6,
+        f"Finite-difference time is {(average_fraction) * 100:.1f}%\n of Parameter-shift time.",
+        transform=ax1.transAxes,
+    )
 
     Path.mkdir(Path(args.save_path + "/plots/"), exist_ok=True)
     plt.savefig(Path(args.save_path + f"/plots/{args.plot_filename}_{datetime_str}"))

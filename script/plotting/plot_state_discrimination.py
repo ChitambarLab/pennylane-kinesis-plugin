@@ -61,30 +61,30 @@ if __name__ == "__main__":
         exit()
 
     import matplotlib
-    matplotlib.rcParams['mathtext.fontset'] = 'cm'
+
+    matplotlib.rcParams["mathtext.fontset"] = "cm"
 
     filepath_type = "/numerics/" if "numerics" in args.filepath else "/hardware/"
-    plt.rc("font", family="sans-serif",size=12)
+    plt.rc("font", family="sans-serif", size=12)
     title = args.title
     if "numerics" in args.filepath:
         title += " (numerics)"
-
 
     if "two_wp" in args.filepath:
         filepath_type += "two_wp/"
     else:
         filepath_type += "four_wp/"
-    
+
     if "parameter-shift" in args.filepath:
-        title += '\nparameter-shift'
+        title += "\nparameter-shift"
     else:
         title += "\nfinite-diff"
-    title += ', adagrad, $\eta_0 = 0.2$'
+    title += ", adagrad, $\eta_0 = 0.2$"
     datetime_str = datetime_now_string()
 
-    fig = plt.figure(figsize=(7,5))
+    fig = plt.figure(figsize=(7, 5))
     ax1 = fig.subplots()
-    
+
     fig.suptitle(
         title,
     )
@@ -103,7 +103,7 @@ if __name__ == "__main__":
             if len(aggregate_data) <= i:
                 aggregate_data += [[]]
 
-            aggregate_data[i] += [opt_dict["cost_vals"][i]/2 + 1]
+            aggregate_data[i] += [opt_dict["cost_vals"][i] / 2 + 1]
         if args.background:
             if np.sum(opt_dict["background_rate"]) > 1000:
                 print("Background rate too high!")
@@ -139,11 +139,11 @@ if __name__ == "__main__":
 
     print("Max val: ", best_cost_val)
     print("Final Average value:", mean_cost_vals[len(aggregate_data) - 1])
-    print(f"Mean background:{np.mean(background_rates)/np.mean(shot_rates)}")
+    print(f"Mean background:{np.mean(background_rates) / np.mean(shot_rates)}")
 
-    aggregate_data= np.array(aggregate_data)
-    best_single_opt_cost_vals = aggregate_data[:,np.unravel_index(np.argmin(aggregate_data),aggregate_data.shape)[1]]
-    print(np.unravel_index(np.argmin(aggregate_data),aggregate_data.shape))
+    aggregate_data = np.array(aggregate_data)
+    best_single_opt_cost_vals = aggregate_data[:, np.unravel_index(np.argmin(aggregate_data), aggregate_data.shape)[1]]
+    print(np.unravel_index(np.argmin(aggregate_data), aggregate_data.shape))
     print(best_single_opt_cost_vals)
 
     ax1.semilogy(
@@ -152,7 +152,6 @@ if __name__ == "__main__":
         label=f"Average Cost (over {len(opt_dicts)} trials)",
         color=_COLORS[0],
     )
-
 
     ax1.semilogy(
         range(num_steps),
@@ -172,15 +171,15 @@ if __name__ == "__main__":
     if args.background:
         ax1.plot(
             range(num_steps),
-            [(np.mean(background_rates) / np.mean(shot_rates))]
-            * num_steps,
+            [(np.mean(background_rates) / np.mean(shot_rates))] * num_steps,
             "k--",
-            label=f"Background Limit (average {int(np.mean(background_rates))} cps)"
+            label=f"Background Limit (average {int(np.mean(background_rates))} cps)",
         )
 
     from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+
     ax1.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=7))
-    ax1.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    ax1.xaxis.set_major_formatter(FormatStrFormatter("%.0f"))
 
     ax1.set_ylabel("Probability of Undiscriminated States")
     ax1.set_xlabel("Optimization Iteration")
