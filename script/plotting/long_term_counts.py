@@ -101,3 +101,4 @@ if __name__ == "__main__":
     ax.set_ylabel("Power (W)")
     ax.set_title("Laser Power over 0.5 hours")
     plt.savefig("./data/long_counts/power_" + filename)
+    print(f"Plot saved to {'./data/long_counts/power_' + filename}")

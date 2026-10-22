@@ -157,23 +157,6 @@ def optimize(
             behavior_mat = behavior_fn(settings)
             opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
-        # We previously tried to iterate over the periodicity of our waveplates after an optimization
-        # to obtain a better cost function evaluation. In larger parameter spaces, this took prohibitively longer.
-        # setting_iterations = []
-        # for i, setting in enumerate(settings):
-        #     setting_iterations.append([setting, setting+domain_periods[i]])
-
-        # all_settings = list(zip(*(x.flat for x in np.meshgrid(*setting_iterations))))
-
-        # opt_dict["periodic_cost_vals"] = []
-        # opt_dict["periodic_settings"] = []
-        # for setting in all_settings:
-        #     cost_val = [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
-        #     if cost_val[0] < np.min(opt_dict["cost_vals"]):
-        #         print(f"better periodic cost found: {cost_val[0]} at {setting}")
-        #     opt_dict["periodic_cost_vals"] += [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
-        #     opt_dict["periodic_settings"] += [setting]
-
     except BaseException as err:
         msg_template = "An exception of type {0} occurred during optimization step {1}. Arguments:\n{2!r}"
         message = msg_template.format(type(err).__name__, str(i), err.args)

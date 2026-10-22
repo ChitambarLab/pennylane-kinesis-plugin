@@ -131,7 +131,6 @@ def take_tomography_data(
         "R": [0, 135],
         "L": [0, 45],
     }
-    # meas_states_dict = {"H": [45,0], "V": [0,0], "D": [67.5,0], "A": [22.5,0], "R": [0,45], "L": [0,135]}
 
     prep_states = [prep_states_dict[state] for state in ["H", "V", "D", "A", "R", "L"]]
     meas_states = [meas_states_dict[state] for state in ["H", "V", "D", "A", "R", "L"]]

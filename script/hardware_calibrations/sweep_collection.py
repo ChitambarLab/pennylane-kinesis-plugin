@@ -18,10 +18,15 @@ from pathlib import Path
 import re
 from tqdm import tqdm
 
-# ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 ports = [f"/dev/ttyUSB{i}" for i in range(3)]
 
-power_meters = ["P0025560"]  # "P0037258", "P0025560"]  # "P0027639"]  # "P0025560"]
+# These are serial numbers for other power meter consoles in the lab:
+# "P0037258"
+# "P0027639"
+
+# Currently used power meters for collection
+# If you use two meters (HV_meter = True), then this should have two meters
+power_meters = ["P0025560"]
 
 
 def get_serial_no(usbtmc_device):
@@ -38,10 +43,6 @@ class Meter:
             self.counter = swabian.Counter(shots=None, integration_time=1)
             self.counter.detector_setup()
         else:
-            # rm = pyvisa.ResourceManager()
-
-            # resources = rm.list_resources()
-            # print(resources)
             list_check = [0, 1] if HV_meter else [0]
             insts = [USBTMC(device=f"/dev/usbtmc{x}") for x in list_check]
             for inst in insts:
@@ -51,24 +52,6 @@ class Meter:
                 elif get_serial_no(inst) == power_meters[1]:
                     V_meter = ThorlabsPM100(inst=inst)
 
-            # H_resource = [x for x in resources if 'P0027252' in x][0]
-
-            # Change serial number here if you use a different meter
-            # H_resource = [x for x in resources if power_meters[0] in x][0]
-
-            # print(resources)
-            # inst_H = rm.open_resource(H_resource, timeout=1)
-            # H_meter = ThorlabsPM100(inst=inst_H)
-            # H_meter.configure.scalar.power()
-
-            # V_meter = None
-            # If using two different power meters
-            # if HV_meter:
-            # Change serial number here if you use a different meter
-            #    V_resource = [x for x in resources if power_meters[1] in x][0]
-            #    inst_V = rm.open_resource(V_resource, timeout=1)
-            #    V_meter = ThorlabsPM100(inst=inst_V)
-            #    V_meter.configure.scalar.power()
             self.H_meter = H_meter
             self.V_meter = V_meter
 
@@ -149,13 +132,6 @@ if __name__ == "__main__":
 
     meter = Meter(False, HV_meter=False)
     meter.get_counts()
-
-    # inst = USBTMC()
-
-    # power_meter = ThorlabsPM100(inst=inst)
-    # print(power_meter)
-    # power_meter.configure.scalar.power()
-    # print(power_meter.read)
     motors = ElliptecMotors()
     sweep_angles = np.linspace(0, 360, args.num_points)
 
@@ -172,14 +148,10 @@ if __name__ == "__main__":
     move_to_angle(rotator, 0, wp_details["angle_offset"])
 
     print("background angles are", background_angle)
-    # timetagger = swabian.Counter()
-    # timetagger.shots = args.num_shots
-    # timetagger.detector_setup()
 
     num_sweeps = 1
     start_timedate = datetime_now_string()
     counts = np.zeros((args.num_measurements, sweep_angles.shape[0], 2))
-    # counts = np.zeros((num_sweeps, args.num_measurements, sweep_angles.shape[0], 2))
 
     print(f"Taking data for Mount {args.mount} ({wp_details['device']})")
     print(f"Taking data for {wp_details['device']}")
@@ -189,7 +161,6 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    # for j in range(num_sweeps):
     for i, angle in tqdm(enumerate(sweep_angles)):
         move_to_angle(rotator, angle, 0)
         for k in range(args.num_measurements):
@@ -197,7 +168,6 @@ if __name__ == "__main__":
                 move_to_angle(rotator, (angle + 180), wp_details["angle_offset"])
                 move_to_angle(rotator, angle, wp_details["angle_offset"])
             counts[k, i] = np.array(meter.get_counts())
-            # counts[j, k, i] = np.array(meter.get_counts())
 
     end_time = time.time()
 
@@ -212,14 +182,6 @@ if __name__ == "__main__":
 
     write_json(metadata, filepath)
 
-    # meas = np.loadtxt("data/wp_sweeps/single_sweeps/bQWP/DATA03.CSV",delimiter="	")
-
-    # print(meas)
-    # counts = np.array(meas)[:,0]
-    # sweep_angles = np.linspace(0,360,248)
-    # mean_vals = counts
-    # exit()
-
     mean_vals = np.mean(counts, axis=0)
     std_vals = np.std(counts, axis=0)
 
@@ -231,7 +193,6 @@ if __name__ == "__main__":
         (mean_vals + std_vals)[:, 0],
         alpha=1 / 4,
         color="r",
-        # label="Standard Error",
     )
     plt.fill_between(
         sweep_angles,
@@ -239,12 +200,10 @@ if __name__ == "__main__":
         (mean_vals + std_vals)[:, 1],
         alpha=1 / 4,
         color="b",
-        # label="Standard Error",
     )
     plt.title(f"Angle Sweep for {args.name}\n")
     plt.ylabel("Photon Counts")
     plt.xlabel("Angle of rotation ($^\circ$)")
     plt.grid()
-    # plt.legend()
     plt.tight_layout()
     plt.savefig(filepath + ".png")

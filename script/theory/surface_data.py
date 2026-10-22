@@ -35,7 +35,6 @@ json_file = "./data/two-state_discrimination/optimization_2024-11-15T21-26-24Z.j
 json_2 = "./data/two-state_discrimination/optimization_2024-11-16T00-40-18Z.json"
 
 numerics = True
-# device = KinesisSimulatorDevice(wires=4,shots=10000,background_counts=400,seed=1234)
 shots = 10000
 background_counts = [400, 100]
 qwp_period = np.pi
@@ -98,7 +97,6 @@ if numerics:
     data_path += "numerics/"
     dev_name = "kinesis.simulator"
     additional_dev_kwargs = {
-        # "shot_rate": shot_rate,
         "shots": shots,
         "background_counts": background_counts,
         "qwp_domain_period": qwp_period,
@@ -138,11 +136,9 @@ datetime_str = datetime_now_string()
 # network ansatz class manages circuit construction and settings
 state_disc_ansatz = qnetvo.NetworkAnsatz(
     [qnetvo.PrepareNode(num_in=2, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-    # [qnetvo.NoiseNode(wires=[0], ansatz_fn=noise_fn)],
     [meas_node],
     dev_kwargs={
         "name": dev_name,
-        # "shot_rate": shot_rate,
         "shots": shots,
         **additional_dev_kwargs,
     },
@@ -162,8 +158,6 @@ if diff_method == "finite-diff":
     qnode_kwargs["approx_order"] = 2
 state_disc_cost = qnetvo.linear_probs_cost_fn(state_disc_ansatz, np.eye(2), qnode_kwargs=qnode_kwargs)
 
-# loss = lambda settings: state_disc_cost(*settings)
-
 eval_num = 0
 
 
@@ -171,58 +165,6 @@ def loss(settings):
     global eval_num
     eval_num += 1
     return state_disc_cost(*settings)
-
-
-# print(np.array(state_disc_ansatz.rand_network_settings()))
-# def loss(x):
-#     # put your loss function here
-#     a_hwp, a_qwp, b_hwp, b_qwp = x
-#     aHWP_op.parameters = [a_hwp]
-#     aQWP_op.parameters = [a_qwp]
-#     bHWP_op.parameters = [b_hwp]
-#     bQWP_op.parameters = [b_qwp]
-#     device.apply([aHWP_op, aQWP_op, bHWP_op, bQWP_op])
-#     h_counts = device.shots - np.sum(device.generate_samples())
-#     return h_counts/device.shots
-
-# def loss2(x):
-#     return 1-loss(x)
-
-
-# eval_num = 0
-# def loss_6(x):
-#     global eval_num
-#     eval_num += 1
-#     device.reset()
-#     a_0hwp, a_0qwp, a_1hwp, a_1qwp, b_hwp, b_qwp = x
-#     aHWP_op.parameters = [a_0hwp]
-#     aQWP_op.parameters = [a_0qwp]
-#     bHWP_op.parameters = [b_hwp]
-#     bQWP_op.parameters = [b_qwp]
-#     device.apply([aHWP_op, aQWP_op, bHWP_op, bQWP_op])
-#     v_counts = np.sum(device.generate_samples())
-#     h_counts = device.shots - v_counts
-#     device.reset()
-
-#     # print(v_counts, h_counts)
-#     row_0 = np.array([h_counts, v_counts])/device.shots
-
-#     aHWP_op.parameters = [a_1hwp]
-#     aQWP_op.parameters = [a_1qwp]
-#     device.apply([aHWP_op, aQWP_op, bHWP_op, bQWP_op])
-#     v_counts = np.sum(device.generate_samples())
-#     h_counts = device.shots - v_counts
-#     # print(v_counts, h_counts)
-
-#     row_1 = np.array([h_counts, v_counts])/device.shots
-
-#     behavior_matrix = np.vstack([row_0, row_1])
-
-#     game = np.eye(2)
-#     score = 0
-#     for i in range(game.shape[0]):
-#         score += np.sum(game[:, i] * behavior_matrix[i])
-#     return -score
 
 
 def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
@@ -246,7 +188,6 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
     for i, _x in enumerate(x):
         for j, _y in enumerate(y):
             xy = np.array([_x, _y])
-            # print(mean+Q@xy*scale)
             ll[i, j] = loss(mean + Q @ xy * scale)
 
     params_x = []
@@ -272,7 +213,6 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
     print(np.unravel_index(ll.argmin(), ll.shape))
     argmin_idx = np.unravel_index(ll.argmin(), ll.shape)
     argmin = [np.array(x[argmin_idx[0]]), np.array(y[argmin_idx[1]])]
-    # argmin = [np.array(x[8]), np.array(y[3])]
     print(ll.min())
     global_min = mean + Q @ argmin * scale
     print("Loss at global min:", loss(global_min))
@@ -292,16 +232,8 @@ def plot_loss_landscape(loss, directions, steps, res=25, scale=None):
         "loss at optimization min:",
         loss(mean + Q @ [params_x[-1], params_y[-1]] * scale),
     )
-    # print(params_z[-1])
-    # print(mean+Q@[params_x[-1],params_y[-1]]*scale, loss(mean+Q@[params_x[-1],params_y[-1]]*scale))
-    # final_params = mean+Q@[params_x[-1],params_y[-1]]*scale
-    # print(loss(final_params))
-    # print(loss2(final_params))
-    # print(-2*(loss(final_params)+loss2(final_params)))
-    # print(params_z[-1])
 
 
-# get rid of this junk
 alpha = np.linspace(0, 1, 1001)[:-1]
 
 finish = np.zeros(10)
@@ -315,19 +247,8 @@ settings = np.array(data["settings_history"])
 
 last_settings = settings[-1]
 
-# print(settings.shape)
-# settings = np.hstack([settings[:,0:2],settings[:,4:6]])
-# print(settings)
-# print(settings.shape)
-
-# param_history should be the history of your parameter data during training of size (N, D)
-# where N is the size of your training history and D is the dimensionality of your optimization problem
-# row i should contain parameter data at training iteration i
-# param_history = start.reshape(1, -1) * (1-alpha[:, None]) + finish.reshape(1, -1) * alpha[:, None]
-# print(param_history.shape)
-
 param_history = settings
-# # # PCA on training history
+# PCA on training history
 X = param_history - np.mean(param_history, axis=0)
 U, S, Vt = la.svd(X, full_matrices=False)
 plot_loss_landscape(loss, Vt[:2], param_history, res=50)

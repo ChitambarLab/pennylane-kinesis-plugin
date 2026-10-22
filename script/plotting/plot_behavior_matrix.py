@@ -79,7 +79,7 @@ if __name__ == "__main__":
             filepath + "step_size_" + str(step_size).replace(".", "_") + filepath_type + filepath_wp
         )
 
-        filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+        filenames = get_files(step_size_filepath, r"[0-9]*_optimization_.*\.json")
 
         for f in filenames:
             print(f"Using {f}")
@@ -185,4 +185,6 @@ if __name__ == "__main__":
     plt.legend(ncols=2)
     if not args.no_plot:
         Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
-        plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+        plot_filepath = args.filepath + f"/plots/{args.plot_filename}_{datetime_str}"
+        plt.savefig(Path(plot_filepath))
+        print(f"Plot saved at {plot_filepath}")

@@ -164,14 +164,6 @@ if __name__ == "__main__":
                 )
                 print(meas_setting_filepath)
 
-                # if args.qpt:
-                #     print("Taking tomography data...")
-                #     start_time = time.time()
-                #     take_tomography_data(meas_setting_filepath, None, 1, 5, False)
-                #     end_time = time.time()
-                #     time_taken = end_time - start_time
-                #     print(f"Took {time_taken} seconds to run process tomography.")
-
                 print(
                     f"Running optimization for meas_setting {meas_setting} and efficiencies [{efficiency, efficiency_2}]"
                 )

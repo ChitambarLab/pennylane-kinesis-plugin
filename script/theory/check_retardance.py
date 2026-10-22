@@ -17,13 +17,9 @@ def bloch_to_coords(rho: np.array):
 
 
 def qwp_mat(theta, retardance=np.pi / 2):
-    # off_retardance = retardance * np.pi / 2
-
     c = np.cos(theta)
     s = np.sin(theta)
     e = np.exp(-1.0j * retardance / 2)
-
-    # If anything is not tensorflow, it has to be casted and then
 
     mat = [
         [c**2 + e * s**2, (1 - e) * c * s],
@@ -36,8 +32,6 @@ def hwp_mat(theta, retardance=np.pi):
     c = np.cos(theta)
     s = np.sin(theta)
     e = np.exp(-1.0j * retardance / 2)
-
-    # If anything is not tensorflow, it has to be casted and then
 
     mat = [
         [c**2 + e * s**2, (1 - e) * c * s],
@@ -92,7 +86,6 @@ def make_bloch_animation(retardance=1.0051):
         sphere.vector_color = ["r"]
         sphere.add_points(np.array(vectors).T, meth="l", alpha=0.8)
         sphere.add_points(np.array(vectors_1).T, meth="l", colors="r", alpha=0.75)
-        # sphere.add_vectors(vectors[i])
         sphere.make_sphere()
         plt.savefig(f"{folder_path}/{i}.png")
         plt.close()
@@ -117,9 +110,7 @@ def check_density_matrix(retardance=1.0052):
 
     output_state_1 = qwp_1 @ input_rho @ qwp_1.conj().T
 
-    print(output_state_1)
     output_state = qwp @ input_rho @ qwp.conj().T
-    print(output_state)
 
     expected_0_counts_1 = np.real(np.trace(input_rho @ output_state_1))
     expected_0_counts = np.real(np.trace(input_rho @ output_state))
@@ -159,10 +150,8 @@ def check_density_matrix(retardance=1.0052):
 
 
 def simulate_angle_sweep(retardance=1, phase=0):
-    # angles = np.linspace(211*np.pi/180, np.pi+211*np.pi/180, 180)
     angles = np.linspace(0, np.pi, 180)
     input_state = np.array([1, 0])
-    # input_state = 1/np.sqrt(2)*np.array([1,1])
     input_rho = np.outer(input_state, input_state.conj().T)
     counts = []
     for i, angle in enumerate(angles):
@@ -213,11 +202,8 @@ def plot_angle_sweep(retardance=1):
             zero_counts = np.real(np.trace(input_rho @ output_state))
             one_counts = 1 - zero_counts
             counts.append([zero_counts, one_counts])
-        # counts = np.array(counts)
 
         counts = np.array(counts)
-        # return angles, counts
-
         fig, ax = plt.subplots()
 
         ax.plot(angles, counts[:, 0], label="H counts")
@@ -242,8 +228,4 @@ def plot_angle_sweep(retardance=1):
 
 
 if __name__ == "__main__":
-    # qwp = VariableQWPRotStage(45, None, retardance=np.pi / 2)
-    # make_bloch_animation()
-    # check_density_matrix()
-    # simulate_angle_sweep()
     plot_angle_sweep()

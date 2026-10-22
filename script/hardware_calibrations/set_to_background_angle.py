@@ -10,8 +10,6 @@ import time
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
 
-# controllers = [elliptec.Controller(ports[i], timeout=3, write_timeout=3) for i in range(len(ports))]
-
 
 def move_to_angle(device, angle, offset_angle=0):
     angle_ret = None
@@ -40,8 +38,6 @@ def get_mount(mount_num):
         # one device when scanned
         if len(scanned) > 0:
             device_serial = scanned[0]["info"]["Serial No."]
-            print(device_serial)
-            print(wp_details[mount_num]["serial_number"])
             if device_serial == wp_details[mount_num]["serial_number"]:
                 print(f"Found device with serial {device_serial}")
                 return elliptec.Rotator(control, address="0", debug=False)
@@ -65,10 +61,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.all:
-        # rotators = [get_mount(args.mount)]
-        # print(rotators)
-        # rotator = rotators[0]
-        # rotator.home()
         motors = ElliptecMotors()
         rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
         rotator = rotators[args.mount]
@@ -81,14 +73,8 @@ if __name__ == "__main__":
 
     wp_details = read_config()
 
-    # wp_details = motors.wp_details[args.mount]
-    print(wp_details[args.mount])
-    print(rotator.info["Serial No."])
-
-    # move_to_angle(rotator, 0, wp_details["angle_offset"])
     conf = read_config()
     rotator.home()
-    print(wp_details[args.mount]["serial_number"])
     if args.all:
         if args.background:
             for i, rotator in enumerate(rotators):
@@ -139,6 +125,3 @@ def serial_ports():
         except (OSError, serial.SerialException):
             pass
     return result
-
-
-print(serial_ports())

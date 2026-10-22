@@ -82,13 +82,6 @@ class KinesisSimulatorDevice(QubitDevice):
         self.retardances = retardances
         self.waveplate_order = waveplate_order
 
-        # Setting up for wedge simulation
-        # wp_angles = np.linspace(0,2*np.pi, 3)
-        # wedge_interp = np.linspace(0,2*np.pi, 1800)
-        # wedge_vals = np.ones(3)
-        # wedge_vals[1] = 0.2
-        # self.aqwp_wedge = np.interp(wedge_interp, wp_angles, wedge_vals)
-
         self.shots = shots
 
         self.background_counts = background_counts
@@ -195,11 +188,6 @@ class KinesisSimulatorDevice(QubitDevice):
         p0 = np.clip(np.trace(self._state @ zero_state).real, a_min=1e-16, a_max=None)
         p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16, a_max=None)
 
-        # Trying to simulate wedged waveplates
-        # p0 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[0].value])]
-        # p1 *= self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])]
-        # print(self.aqwp_wedge[int(self.angles[self.waveplate_order[1].value])])
-
         # Poisson(background counts /s) * background_ratio
         zero_background_counts = int((np.random.poisson(self.background_counts[0]) * self.integration_time))
         one_background_counts = int((np.random.poisson(self.background_counts[1]) * self.integration_time))
@@ -216,6 +204,7 @@ class KinesisSimulatorDevice(QubitDevice):
         noise_counts_zero = int(np.random.poisson(zero_incident_rate * self.noise_percentage) * self.integration_time)
         noise_counts_one = int(np.random.poisson(one_incident_rate * self.noise_percentage) * self.integration_time)
 
+        # The counts are calculated as:
         # Poisson(rate at input of PBS * prob of measurement) * measurement time (= num_shots/shot_rate) + background + noise_counts
         zero_counts = (
             int((np.random.poisson(zero_incident_rate) * self.h_efficiency * self.integration_time))

@@ -8,13 +8,9 @@ from script.theory.check_retardance import simulate_angle_sweep, simulate_angle_
 
 
 def qwp_mat(theta, retardance=np.pi / 2):
-    # off_retardance = retardance * np.pi / 2
-
     c = np.cos(theta)
     s = np.sin(theta)
     e = np.exp(1.0j * retardance)
-
-    # If anything is not tensorflow, it has to be casted and then
 
     mat = np.exp(-1.0j * retardance / 2) * np.array(
         [
@@ -29,8 +25,6 @@ def hwp_mat(theta, retardance=np.pi):
     c = np.cos(theta)
     s = np.sin(theta)
     e = np.exp(1.0j * retardance)
-
-    # If anything is not tensorflow, it has to be casted and then
 
     mat = np.exp(-1.0j * retardance / 2) * np.array(
         [
@@ -89,10 +83,7 @@ def fit(x, retardance, amp, offset, meas_density, input_density):
     out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_input_rho, np.transpose(mats.conj(), (1, 0, 2)))
     out_counts_2 = np.einsum("ijk,jlk->ilk", mats, out_counts_2)
     out_counts_2 = np.einsum("ijk,jlk->ilk", repeated_meas_rho, out_counts_2)
-    out_counts_2 = (
-        # np.trace(out_counts_2, axis1=0, axis2=1).real * amp + np.ones(360) * offset
-        np.trace(out_counts_2, axis1=0, axis2=1).real
-    )
+    out_counts_2 = np.trace(out_counts_2, axis1=0, axis2=1).real
     return out_counts_2
 
 
@@ -101,23 +92,13 @@ def cost_fun(x, orig_h_counts, orig_v_counts):
     zero_angle = int(zero_angle)
     angles = np.linspace(0, np.pi * 2, 360)
     h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
-    # h_counts = h_counts[0:45]
     v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
-    # v_counts = v_counts[0:45]
 
     amp_h = 1
     amp_v = 1
-    # off_h = 0
-    # off_v = 0
-    # amp_v = amp_h
-    # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
     sim_counts_h = fit_h(angles, ret, amp_h, off_h, meas_v=False)
-    # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
     sim_counts_v = fit_h(angles, ret, amp_v, off_v, meas_v=True)
-
-    # sim_counts_h = sim_counts_h/amp_h - off_h
-    # sim_counts_v = sim_counts_v/amp_v - off_v
 
     return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
@@ -145,24 +126,10 @@ def cost_fun_2(x, orig_h_counts, orig_v_counts):
     zero_angle = int(zero_angle)
     angles = np.linspace(0, np.pi * 2, 360)
     h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
-    # h_counts = h_counts[0:45]
     v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
-    # v_counts = v_counts[0:45]
-
-    # amp_h = 1
-    # amp_v = 1
-    # off_h = 0
-    # off_v = 0
-    # amp_v = amp_h
-    # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
     sim_counts_h = fit(angles, ret, amp_h, off_h, meas_h_density, np.array([[1, 0], [0, 0]]))
-    # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
     sim_counts_v = fit(angles, ret, amp_v, off_v, meas_v_density, np.array([[0, 0], [0, 1]]))
-
-    # sim_counts_h = sim_counts_h/amp_h - off_h
-    # sim_counts_v = sim_counts_v/amp_v - off_v
-
     return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
@@ -186,9 +153,7 @@ def cost_fun_3(x, orig_h_counts, orig_v_counts):
     zero_angle = int(zero_angle)
 
     h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
-    # h_counts = h_counts[0:45]
     v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
-    # v_counts = v_counts[0:45]
 
     if bhwp:
         h_counts = h_counts[0:135]
@@ -200,18 +165,9 @@ def cost_fun_3(x, orig_h_counts, orig_v_counts):
     amp_v = 1
     off_h = 0
     off_v = 0
-    # off_h = 300 / 10000
-    # off_v = 200 / 10000
-    # amp_v = amp_h
-    # sim_counts_h = fit_h(angles,ret,amp_h,off_h,a1_i,a2_i,a3_i,a4_i,a1_mh,a2_mh,a3_mh,a4_mh,phase)
 
     sim_counts_h = fit(angles, ret, amp_h, off_h, np.array([[1, 0], [0, 0]]), input_density)
-    # sim_counts_v = fit_h(angles,ret,amp_v,off_v,a1_i,a2_i,a3_i,a4_i,a1_mv,a2_mv,a3_mv,a4_mv,phase)
     sim_counts_v = fit(angles, ret, amp_v, off_v, np.array([[0, 0], [0, 1]]), input_density)
-
-    # sim_counts_h = sim_counts_h/amp_h - off_h
-    # sim_counts_v = sim_counts_v/amp_v - off_v
-
     return np.sum((h_counts - sim_counts_h) ** 2) + np.sum((v_counts - sim_counts_v) ** 2)
 
 
@@ -246,8 +202,6 @@ if __name__ == "__main__":
     orig_v_counts /= total_counts
     angles = np.array(angles, float).squeeze()
     angles *= np.pi / 180
-    print(angles)
-    print(orig_h_counts)
 
     if args.qwp:
         base_retardance = np.pi / 2
@@ -283,24 +237,9 @@ if __name__ == "__main__":
             niter=20,
             disp=True,
             minimizer_kwargs={
-                # "bounds": [
-                #     [0.9 * base_retardance, 1.1 * base_retardance],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                #     [None, None],
-                # ],
-                # "method": "Powell",
                 "method": "SLSQP",
             },
         )
-
-        # ret, amp_h, amp_v, off_h, off_v, zero_angle
 
         fitted_v.x.tolist()
         (
@@ -326,15 +265,6 @@ if __name__ == "__main__":
         a2_is[i] = a2_i
         a3_is[i] = a3_i
         a4_is[i] = a4_i
-
-        # a1_mhs[i] = a1_mh
-        # a2_mhs[i] = a2_mh
-        # a3_mhs[i] = a3_mh
-        # a4_mhs[i] = a4_mh
-        # a1_mvs[i] = a1_mv
-        # a2_mvs[i] = a2_mv
-        # a3_mvs[i] = a3_mv
-        # a4_mvs[i] = a4_mv
 
         zero_angles[i] = zero_angle
 
@@ -381,8 +311,6 @@ if __name__ == "__main__":
         amp_v = 1
         off_h = 0
         off_v = 0
-        # off_h = 300 / 10000
-        # off_v = 200 / 10000
         input_density = arb_mixed_state(a1_i, a2_i, a3_i, a4_i)
         input_density = np.array([[1, 0], [0, 0]])
         off_h = 0
@@ -390,12 +318,10 @@ if __name__ == "__main__":
         yy_h = fit(xx, ret, amp_h, off_h, np.array([[1, 0], [0, 0]]), input_density)
         yy_v = fit(xx, ret, amp_v, off_v, np.array([[0, 0], [0, 1]]), input_density)
         h_counts = np.array(orig_h_counts[zero_angle:]).tolist() + np.array(orig_h_counts[:zero_angle]).tolist()
-        # h_counts = h_counts[0:45]
         v_counts = np.array(orig_v_counts[zero_angle:]).tolist() + np.array(orig_v_counts[:zero_angle]).tolist()
         if bhwp:
             h_counts = h_counts[0:135]
             v_counts = v_counts[0:135]
-        # v_counts = v_counts[0:45]
         axis.plot(xx, h_counts, label="H Counts")
         axis.plot(xx, v_counts, label="V counts")
         axis.plot(xx, yy_h, label="Fit func (H)")

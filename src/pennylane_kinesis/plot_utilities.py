@@ -117,6 +117,7 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
     plt.tight_layout()
 
     plt.savefig(filename)
+    print(f"Plot saved at {filename}")
 
 
 def plot_shot_dependence_comparison(hardware_filepath, numerics_filepath, shots_list, plot_filename):
@@ -136,7 +137,7 @@ def plot_shot_dependence_comparison(hardware_filepath, numerics_filepath, shots_
         hardware_shots_filepath = hardware_filepath + "shots_" + str(shots) + "/"
         numerics_shots_filepath = numerics_filepath + "shots_" + str(shots) + "/"
 
-        hardware_filenames = get_files(hardware_shots_filepath, r"optimization_.*\.json")
+        hardware_filenames = get_files(hardware_shots_filepath, r"[0-9]*_optimization_.*\.json")
         numeric_filenames = get_files(numerics_shots_filepath, r"background_noise_optimization_.*\.json")
 
         hardware_opt_dicts = [read_json(filename) for filename in hardware_filenames]
@@ -209,6 +210,7 @@ def plot_shot_dependence_comparison(hardware_filepath, numerics_filepath, shots_
     plt.legend()
     plt.tight_layout()
     plt.savefig(plot_filename + "_" + datetime_str)
+    print("Plot saved at" + plot_filename + "_" + datetime_str)
 
 
 def plot_shot_dependence(
@@ -237,7 +239,7 @@ def plot_shot_dependence(
     color_id = 0
     for shots in shots_list:
         shots_filepath = filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
-        filenames = get_files(shots_filepath, r"optimization_.*\.json")
+        filenames = get_files(shots_filepath, r"[0-9]*_optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
 
         aggregate_data = []
@@ -283,13 +285,6 @@ def plot_shot_dependence(
             alpha=1 / 4,
             color=color,
         )
-        # ax.semilogy(
-        #     range(len(min_cost_vals)),
-        #     min_cost_vals,
-        #     linestyle="-",
-        #     color=color,
-        # )
-
         color_id += 1
 
     if background:
@@ -304,8 +299,11 @@ def plot_shot_dependence(
     plt.grid()
     plt.legend(ncols=2)
     plt.tight_layout()
-    Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
-    plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+
+    Path(filepath + "plots/").mkdir(exist_ok=True)
+    plot_filepath = filepath + "plots/" + plot_filename + "_" + datetime_str
+    plt.savefig(plot_filepath)
+    print(f"Plot saved at {plot_filepath}")
 
 
 def plot_step_size_dependence(
@@ -335,16 +333,12 @@ def plot_step_size_dependence(
     plt.rcParams.update({"axes.titlepad": 22, "axes.titlesize": 16})
 
     ax.set_title(
-        title,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
+        title,
         fontweight="bold",
         fontsize=14,
         pad=10,
     )
-    # fig.suptitle(
-    #     title + "\n"+ date_of_run,  # \n (Dashed) Mean Adam GD vs. (Solid) Mean Standard GD",
-    #     fontweight="bold",
-    #     fontsize=14,
-    # )
+
     ax.set_xlabel("Gradient Descent Step", fontdict={"fontsize": 12})
     ax.set_ylabel("Probability of undiscriminated photons (Cost)", fontdict={"fontsize": 12})
 
@@ -362,7 +356,7 @@ def plot_step_size_dependence(
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
         if len(std_filenames) == 0:
-            std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+            std_filenames = get_files(step_size_filepath, r"[0-9]*_optimization_.*\.json")
 
         adam_filenames = get_files(step_size_filepath, r"adam_optimization_.*\.json")
 
@@ -431,14 +425,6 @@ def plot_step_size_dependence(
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
 
-        # ax.loglog(
-        #     range(len(std_min_cost_vals)),
-        #     std_min_cost_vals,
-        #     alpha=3 / 4,
-        #     label="step_size = " + str(step_size),
-        #     color=_COLORS[c_id],
-        #     linestyle="-"
-        # )
         num_trials = len(std_filenames)
 
         ax.semilogy(
@@ -447,7 +433,6 @@ def plot_step_size_dependence(
             alpha=3 / 4,
             label=f"Best Cost Achieved",
             color=_COLORS[c_id],
-            # linestyle="--",
         )
 
         ax.semilogy(
@@ -496,10 +481,8 @@ def plot_step_size_dependence(
         background_rate = np.array(background_rate)
         background_std_dev = np.std(background_rate)
         background_std_err = np.std(background_rate) / np.sqrt(len(background_rate))
-        # print(f"bakcgorund rate: {background_rate}")
         print(f"max background rate: {np.max(background_rate)}")
         print(f"min background rate: {np.min(background_rate)}")
-        # print(f"Background rate: {background_rate}")
         print(f"Background std dev: {background_std_dev}")
         print(f"background mean: {np.mean(background_rate)}")
         print(f"sqrt(n):", np.sqrt(len(background_rate)))
@@ -525,8 +508,10 @@ def plot_step_size_dependence(
     plt.grid()
     plt.legend(ncols=2, loc="upper right")
 
-    Path.mkdir(Path(filepath + "plots/"), exist_ok=True)
-    plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+    Path(filepath + "plots/").mkdir(exist_ok=True)
+    plot_filepath = filepath + "plots/" + plot_filename + "_" + datetime_str
+    plt.savefig(plot_filepath)
+    print(f"Plot saved at {plot_filepath}")
 
 
 def plot_step_size_dependence_convergence(
@@ -562,7 +547,7 @@ def plot_step_size_dependence_convergence(
         # data naming is inconsistent between numerics and hardware.
         std_filenames = get_files(step_size_filepath, r"standard_optimization_.*\.json")
         if len(std_filenames) == 0:
-            std_filenames = get_files(step_size_filepath, r"optimization_.*\.json")
+            std_filenames = get_files(step_size_filepath, r"[0-9]*_optimization_.*\.json")
 
         adam_filenames = get_files(step_size_filepath, r"adam_optimization_.*\.json")
         std_opt_dicts = [read_json(filename) for filename in std_filenames]
@@ -626,4 +611,7 @@ def plot_step_size_dependence_convergence(
     ax_2.set_yscale("log")
     plt.grid()
 
-    plt.savefig(filepath + "plots/" + plot_filename + "_" + datetime_str)
+    Path(filepath + "plots/").mkdir(exist_ok=True)
+    plot_filepath = filepath + "plots/" + plot_filename + "_" + datetime_str
+    plt.savefig(plot_filepath)
+    print(f"Plot saved at {plot_filepath}")

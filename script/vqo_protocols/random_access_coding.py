@@ -28,7 +28,7 @@ BACKGROUND_2_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_2_BIT / MAXIMUM_BOUND_2
 BACKGROUND_3_BIT_MULTIPLIER = 1 / 2 + QUANTUM_COST_BOUND_3_BIT / MAXIMUM_BOUND_3_BIT
 
 
-def plot_data(opt_dict, rac_3, filepath, plot_filename, datetime=None):
+def plot_data(opt_dict, rac_3, filepath, plot_filename, datetime=None, prefix=None):
     if rac_3:
         QUANTUM_BOUND = QUANTUM_BOUND_3_BIT
         QUANTUM_COST_BOUND = QUANTUM_COST_BOUND_3_BIT
@@ -104,7 +104,7 @@ def plot_data(opt_dict, rac_3, filepath, plot_filename, datetime=None):
         datetime_str = pk.datetime_now_string()
     else:
         datetime_str = datetime
-    output_file = pk.winapi_path(filepath + datetime_str + plot_filename + ".png")
+    output_file = pk.winapi_path(filepath + prefix + datetime_str + plot_filename + ".png")
 
     plt.savefig(output_file)
     plt.close()
@@ -166,9 +166,9 @@ if __name__ == "__main__":
         help="More verbose output.",
     )
 
-    parser.add_argument("--num_trials", default=40, help="number of trials to run.")
+    parser.add_argument("--num_trials", default=40, type=int, help="number of trials to run.")
 
-    parser.add_argument("-s", "--step_size", default=0.2, help="Step size to use.")
+    parser.add_argument("-s", "--step_size", default=0.2, type=float, help="Step size to use.")
 
     parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
 
@@ -251,6 +251,7 @@ if __name__ == "__main__":
     if args.numerics:
         filename += "-numerics"
 
+    print(f"Starting random access coding trials. Files will be written to {filepath}")
     for i in range(num_trials):
         print_bar(f"Starting trial {i} out of {num_trials}")
         start_time = time.time()
@@ -267,6 +268,7 @@ if __name__ == "__main__":
             optimizer=args.optimizer,
             diff_method=args.diff,
             verbose=args.verbose,
+            filename_prefix=str(i),
         )
 
         end_time = time.time()
@@ -283,5 +285,7 @@ if __name__ == "__main__":
             f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
 
-        plot_data(rac_opt_dict, args.rac_3, filepath, filename + ".png")
+        plot_data(rac_opt_dict, args.rac_3, filepath, filename + ".png", prefix=str(i)+"_")
         time.sleep(0.1)
+
+    print(f"Finished random access coding trials. Files written to \n{filepath}\nYou can use this path for the plotting script.")

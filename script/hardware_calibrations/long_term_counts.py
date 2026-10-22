@@ -26,15 +26,11 @@ def plot_all_counts(filepath):
 
     total_time = time_xaxis[-1]
     all_counts = counts
-    # all_counts = all_counts[-100:]
-    # time_xaxis = time_xaxis[-100:]
     data_sum = np.sum(all_counts, axis=1)
     data_norm = all_counts / data_sum[:, None]
     fig, axes = plt.subplots(2, 1, figsize=(5, 7), dpi=400)
     counts_ax = axes[0]
     norm_ax = axes[1]
-    # power_ax = axes[2]
-    # time_xaxis = np.arange(all_counts.shape[0])*integration_time
     counts_ax.plot(time_xaxis, all_counts[:, 0], color="red", label="H")
     counts_ax.plot(time_xaxis, all_counts[:, 1], color="blue", label="V")
     counts_ax.plot(time_xaxis, np.sum(all_counts, axis=1), color="purple", label="Total")
@@ -52,12 +48,6 @@ def plot_all_counts(filepath):
     photon_energy = 2.452e-19
     data_power = all_counts * photon_energy
     data_total_power = np.sum(data_power, axis=1)
-    # power_ax.plot(time_xaxis, data_power[:, 0], color="red", label="H")
-    # power_ax.plot(time_xaxis, data_power[:, 1], color="blue", label="V")
-    # power_ax.plot(time_xaxis, data_total_power, color="purple", label="Total")
-    # power_ax.set_xlabel("Time (seconds)")
-    # power_ax.set_ylabel("Power (W)")
-    # power_ax.set_title(f"Laser Power over {total_time / 3600:.3f} hours")
 
     filename = Path(filepath).stem
     plt.legend()
@@ -155,39 +145,3 @@ if __name__ == "__main__":
             pkl.dump(np.array(total_counts), f)
 
         plot_all_counts(filepath)
-        exit()
-
-    # data_sum = np.sum(data, axis=1)
-    # data_norm = data / data_sum[:, None]
-    # fig, ax = plt.subplots()
-    # ax.plot(data[:, 0], color="red", label="H")
-    # ax.plot(data[:, 1], color="blue", label="V")
-    # ax.plot(np.sum(data, axis=1), color="purple", label="Total")
-    # ax.legend()
-    # ax.set_title("Detector Counts")
-    # ax.set_xlabel("Time (seconds)")
-    # ax.set_ylabel("Counts")
-    # filename = data_file.split("/")[3].split(".")[0] + ".png"
-
-    # print("Saving plot to", filename)
-    # plt.savefig("./data/counts/" + filename)
-    # plt.cla()
-    # ax.plot(data_norm[:, 0], color="red", label="H")
-    # ax.plot(data_norm[:, 1], color="blue", label="V")
-    # ax.set_xlabel("Time (seconds)")
-    # ax.set_ylabel("Normalized Counts")
-    # ax.set_title("Normalized Detector Counts over 2 hours")
-    # plt.savefig("./data/counts/normalized_" + filename)
-
-    # plt.cla()
-    # photon_energy = 2.452e-19
-    # data_power = data * photon_energy
-    # data_total_power = np.sum(data_power, axis=1)
-    # print(data_power)
-    # ax.plot(data_power[:, 0], color="red", label="H")
-    # ax.plot(data_power[:, 1], color="blue", label="V")
-    # ax.plot(data_total_power, color="purple", label="Total")
-    # ax.set_xlabel("Time (seconds)")
-    # ax.set_ylabel("Power (W)")
-    # ax.set_title("Laser Power over 2 hours")
-    # plt.savefig("./data/counts/power_" + filename)

@@ -78,8 +78,8 @@ if __name__ == "__main__":
         fontsize=14,
     )
 
-    opt_param_shift_files = get_files(Path(args.filepath_param_shift + filepath_type), r"optimization_.*\.json")
-    opt_finite_diff_files = get_files(Path(args.filepath_finite_diff + filepath_type), r"optimization_.*\.json")
+    opt_param_shift_files = get_files(Path(args.filepath_param_shift + filepath_type), r"[0-9]*_optimization_.*\.json")
+    opt_finite_diff_files = get_files(Path(args.filepath_finite_diff + filepath_type), r"[0-9]*_optimization_.*\.json")
 
     opt_param_shift_dicts = [read_json(file) for file in opt_param_shift_files]
     opt_finite_diff_dicts = [read_json(file) for file in opt_finite_diff_files]
@@ -122,4 +122,6 @@ if __name__ == "__main__":
     )
 
     Path.mkdir(Path(args.save_path + "/plots/"), exist_ok=True)
-    plt.savefig(Path(args.save_path + f"/plots/{args.plot_filename}_{datetime_str}"))
+    plot_filepath = args.save_path + f"/plots/{args.plot_filename}_{datetime_str}"
+    plt.savefig(Path(plot_filepath))
+    print(f"Plot saved at {plot_filepath}")

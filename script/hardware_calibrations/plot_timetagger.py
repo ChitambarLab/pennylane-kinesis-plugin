@@ -73,9 +73,6 @@ if __name__ == "__main__":
 
     try:
         plt.show()
-        # print('Closed Plot')
-        # print('End of', filename)
     except KeyboardInterrupt:
         print("Keyboard interrupt occurred")
         exit()
-        # print('End of', filename)

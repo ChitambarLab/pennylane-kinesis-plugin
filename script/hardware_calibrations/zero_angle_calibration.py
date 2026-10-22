@@ -1,6 +1,5 @@
 import pyvisa
 
-# from ThorlabsPM100 import ThorlabsPM100
 import elliptec
 from pennylane_kinesis.elliptec_rotator_device import ElliptecRotatorDevice
 import argparse
@@ -44,12 +43,9 @@ class Meter:
             rm = pyvisa.ResourceManager()
             resources = rm.list_resources()
 
-            # H_resource = [x for x in resources if 'P0027252' in x][0]
-
             # Change serial number here if you use a different meter
             H_resource = [x for x in resources if "P0027254" in x][0]
 
-            # print(resources)
             inst_H = rm.open_resource(H_resource, timeout=1)
             H_meter = ThorlabsPM100(inst=inst_H)
             H_meter.configure.scalar.power()
@@ -192,7 +188,6 @@ if __name__ == "__main__":
     if args.parallel:
         port = ports[int(args.mount)]
         address = "0"
-    # H_meter, V_meter = connect_power_meter(True)
     if args.meter:
         if args.apds:
             meter = Meter(True)
@@ -233,21 +228,6 @@ if __name__ == "__main__":
             set_ret = set_angle(device, ANGLE)
             print("return is", set_ret)
             print("set angle of ", i, "to", ANGLE)
-            # if i == 1:
-            #     ANGLE = offset
-            #     set_ret = device.set_angle(ANGLE)
-            #     print("return is", set_ret)
-            #     print("set angle of ", i, "to", ANGLE)
-            # elif i == 3:
-            #     ANGLE = offset + 22.5
-            #     set_ret = device.set_angle(ANGLE)
-            #     print("return is", set_ret)
-            #     print("set angle of ", i, "to", ANGLE)
-            # else:
-            #     ANGLE = offset
-            #     set_ret = device.set_angle(ANGLE)
-            #     print("return is", set_ret)
-            #     print("set angle of ", i, "to", ANGLE)
         meter.get_counts()
         exit()
 
@@ -271,8 +251,6 @@ if __name__ == "__main__":
         controller = elliptec.Controller(port, timeout=3, write_timeout=3)
         devices = []
         for i in range(1, 5):
-            # if i == 2:
-            # continue
             print("Connecting to ", i)
             device = elliptec.Rotator(controller, address=str(i))
             device.home()
@@ -390,8 +368,6 @@ if __name__ == "__main__":
             angles.append(angle)
             iter.append(i)
             powers.append(avg_power)
-            # device.jog()
-            # time.sleep(0.1)
 
         with open(
             "./data/calibrations/zero_angle/"
@@ -429,7 +405,6 @@ if __name__ == "__main__":
             angles.append(22.5 * i)
             print("Press enter to take data..")
             input()
-            # time.sleep(3)
             h_counts, v_counts = meter.get_counts()
             powers.append(np.array([h_counts, v_counts]))
             print("Took data for angle", 22.5 * i)

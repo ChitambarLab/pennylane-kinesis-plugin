@@ -201,7 +201,6 @@ if __name__ == "__main__":
                     range(num_steps),
                     [QUANTUM_BOUND - CLASSICAL_BOUND] * num_steps,
                     color="orange",
-                    # label="Classical Limit",
                 )
                 ax2.semilogy(
                     range(num_steps),

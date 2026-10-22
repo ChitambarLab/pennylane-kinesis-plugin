@@ -35,7 +35,7 @@ def print_bar(msg):
     print(bar)
 
 
-def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, suffix):
+def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, prefix):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle("VQO of Two-State Discrimination")
@@ -74,7 +74,7 @@ def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, suffi
     if args.two_wp:
         filename += "-twowp"
 
-    output_file = pk.winapi_path(folder + filename + suffix + ".png")
+    output_file = pk.winapi_path(folder + prefix+filename + ".png")
     plt.savefig(output_file)
     plt.close()
 
@@ -101,9 +101,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
-    parser.add_argument("-s", "--step_size", default=0.2, help="Step size to use.")
+    parser.add_argument("-s", "--step_size", default=0.2, type=float, help="Step size to use.")
 
-    parser.add_argument("--num_steps", default=60, help="Num steps to use per optimization.")
+    parser.add_argument("--num_steps", default=60, type=int, help="Num steps to use per optimization.")
 
     parser.add_argument(
         "--background",
@@ -132,11 +132,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shots",
         default=10000,
-        type=float,
+        type=int,
         help="Number of shots to take.",
     )
 
-    parser.add_argument("--num_trials", default=40, help="number of trials to run.")
+    parser.add_argument("--num_trials", default=40,type=int, help="number of trials to run.")
 
     args = parser.parse_args()
 
@@ -160,6 +160,8 @@ if __name__ == "__main__":
         print("Starting Profiler")
         prof.enable()
 
+    print(f"Starting two-state discrimination trials. Files will be written to {filepath}")
+
     for i in range(args.num_trials):
         print_bar(f"Starting trial {i} out of {args.num_trials}")
 
@@ -178,16 +180,19 @@ if __name__ == "__main__":
             verbose=args.verbose,
             optimizer=args.optimizer,
             diff_method=args.diff,
+            filename_prefix=str(i)
         )
 
         end_time = time.time()
         time_taken = end_time - start_time
 
         print_bar(
-            f"Took {time_taken} seconds to run VQO on RAC with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
+            f"Took {time_taken} seconds to run VQO on two-state discrimination with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
         )
-        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i))
+        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i)+"_")
 
     if args.profile:
         prof.disable()
         prof.print_stats()
+
+    print(f"Finished two-state discrimination trials. Files written to \n{filepath}\nYou can use this path for the plotting script.")

@@ -11,7 +11,13 @@ from pathlib import Path
 
 ports = [f"/dev/ttyUSB{i}" for i in range(3)]
 
-power_meters = ["P0025560"]  # "P0037258", "P0025560"]  # "P0027639"]  # "P0025560"]
+# These are serial numbers for other power meter consoles in the lab:
+# "P0037258"
+# "P0027639"
+
+# Currently used power meters for collection
+# If you use two meters (HV_meter = True), then this should have two meters
+power_meters = ["P0025560"]
 
 
 NUM_SHOTS = 100000

@@ -49,4 +49,4 @@ As an example,
 You can run the testing for this library by running `uv run pytest`.
 
 ## Code Formatting
-You can format the code in the codebase by running `uv format`.
+You can format the code in the codebase by running `uv run ruff format`.

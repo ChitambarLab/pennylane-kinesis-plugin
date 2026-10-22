@@ -137,7 +137,7 @@ if __name__ == "__main__":
     for k, meas_setting in enumerate(folder_names):
         opt_files = get_files(
             Path(pk.winapi_path(args.filepath + meas_setting + filepath_type + two_wp)),
-            r"optimization_.*\.json",
+            r"[0-9]*_optimization_.*\.json",
         )
 
         date_path = Path(args.filepath).name
@@ -263,4 +263,6 @@ if __name__ == "__main__":
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
-        plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"))
+        plot_filepath = args.filepath + f"/plots/{args.plot_filename}_{date_of_run.split(' ')[0]}_{face_id}"
+        plt.savefig(Path(plot_filepath))
+        print(f"Plot saved at {plot_filepath}")

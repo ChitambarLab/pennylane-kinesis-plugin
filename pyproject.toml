@@ -10,7 +10,7 @@ readme = "README.md"
 authors = [
   {name = "Brian Doolittle", email = "brian.d.doolittle@gmail.com"},
   {name = "Michael Vayninger"},
-  {name = "Timur Javid"},
+  {name = "Timur Javid",  email = "tjavid2@illinois.edu"},
   {name = "Colin Lualdi"}
 ]
 maintainers = [

@@ -117,7 +117,7 @@ if __name__ == "__main__":
         fontsize=14,
     )
 
-    opt_files = get_files(Path(args.filepath + filepath_type), r"optimization_.*\.json")
+    opt_files = get_files(Path(args.filepath + filepath_type), r"[0-9]*_optimization_.*\.json")
     for file in opt_files:
         print(f"Using {file}")
 
@@ -239,4 +239,6 @@ if __name__ == "__main__":
 
     if not args.no_plot:
         Path.mkdir(Path(args.filepath + "/plots/"), exist_ok=True)
-        plt.savefig(Path(args.filepath + f"/plots/{args.plot_filename}_{datetime_str}"))
+        plot_filepath = args.filepath + f"/plots/{args.plot_filename}_{datetime_str}"
+        plt.savefig(Path(plot_filepath))
+        print(f"Plot saved at {plot_filepath}")

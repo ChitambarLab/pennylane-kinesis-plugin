@@ -48,7 +48,6 @@ def try_move(device, angle):
 for i in range(2):
     zero_devices(devices, offsets)
     for i, device in enumerate(devices):
-        # idx = 3 -i
         controller.s.flush()
         controller.s.reset_input_buffer()
         controller.s.reset_output_buffer()
@@ -114,7 +113,6 @@ for i in range(4):
 handles, labels = plt.gca().get_legend_handles_labels()
 by_label = dict(zip(labels, handles))
 ax.legend(by_label.values(), by_label.keys())
-# ax.legend()
 ax.set_ylabel("Average Time (s)")
 ax.set_ylim(0, 1.0)
 ax.set_xlabel("Device")

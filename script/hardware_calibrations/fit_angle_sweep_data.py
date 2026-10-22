@@ -89,10 +89,6 @@ if __name__ == "__main__":
 
             zero_angle = wp_details[int(args.apds) - 1]["angle_offset"]
 
-            print(np.array(angles).shape)
-            print(np.array(h_counts).shape)
-            print(np.array(v_counts).shape)
-            # angles = angles[0:72]
             if args.average:
                 mean_h_counts = np.mean(np.array(h_counts), axis=1)
                 mean_v_counts = np.mean(np.array(v_counts), axis=1)
@@ -127,9 +123,6 @@ if __name__ == "__main__":
                 ax.plot(angles, v_counts, color="blue", label="V")
                 ax.axvline(x=zero_angle, color="black", linestyle="--", label="Zero angle")
             ax.xaxis.set_ticks(np.arange(0, 360, 10))
-            # ax.axvline(x=204, color="r", linestyle="--")
-            # ax.axvline(x=294, color="r", linestyle="--")
-            # ax.axvline(x=204 - 180, color="b", linestyle="--")
             labels = ax.xaxis.get_majorticklabels()
             new_labels = []
             for label in labels:
@@ -140,7 +133,6 @@ if __name__ == "__main__":
             ax.xaxis.set_ticklabels(new_labels)
             ax.xaxis.set_tick_params(labelsize=10)
 
-            # ax.set_yscale("log")
             ax.set_xlabel("Angle of rotation (degrees)")
             ax.set_ylabel("Photon Counts")
             ax.set_title("Photon counts vs angle of rotation " + args.name)
@@ -172,7 +164,6 @@ if __name__ == "__main__":
                 powers_h = powers[:, 0]
                 powers_v = powers[:, 1]
 
-                # powers_h = np.array(powers_h)
                 print(len(powers_h))
                 fig = plt.figure()
                 x_data = np.linspace(0, 360, num=1000)
@@ -180,7 +171,6 @@ if __name__ == "__main__":
                 func_h = fit_dict_h["fitfunc"]
                 ax = fig.add_subplot(1, 1, 1)
 
-                # ax.scatter
                 ax.scatter(angles, powers_h, color="red", label="Power data (H)")
                 ax.plot(x_data, func_h(x_data), color="orange", label="Sinusoidal fit (H)")
 
@@ -201,7 +191,6 @@ if __name__ == "__main__":
 
                 ax.legend()
                 ax.grid()
-                # print(args.file.split('.'))
                 save_location = path.parents[0]
                 datetime = get_date_from_filename(path.name)
                 save_path = Path(str(save_location) + "/" + datetime.strftime("%Y-%m-%dT%H-%M-%SZ") + "_fit.png")
@@ -217,31 +206,21 @@ if __name__ == "__main__":
         else:
             with open(args.file, "rb") as f:
                 angle_cutoffs = [0, 360]
-                # (angles, powers_h, powers_v) = pickle.load(f)
                 counts = pickle.load(f)
                 counts = np.array(counts)
                 if not args.power_meter:
                     norm = counts[:, :, 0] + counts[:, :, 1]
-                # norm_counts = counts
-                # norm_counts[:,:,0] /= norm
-                # norm_counts[:,:,1] /= norm
 
                 mean_data = np.mean(counts, axis=0)
                 print(mean_data)
-                # std_data = np.std(norm_counts,axis=0)
 
                 mean_data = mean_data[angle_cutoffs[0] : angle_cutoffs[1]]
 
                 mean_data_h = mean_data[:, 0]
                 mean_data_v = mean_data[:, 1]
                 angles = np.linspace(angle_cutoffs[0], angle_cutoffs[1], angle_cutoffs[1] - angle_cutoffs[0])
-                # powers_h = (powers_h - np.min(powers_h)) / (np.max(powers_h) - np.min(powers_h))
-                # powers_v = (powers_v - np.min(powers_v)) / (np.max(powers_v) - np.min(powers_v))
 
                 fig = plt.figure()
-                # angles = angles[45:130]
-                # powers_h = powers_h[45:130]
-                # powers_v = powers_v[45:130]
                 x_data = np.linspace(angle_cutoffs[0], angle_cutoffs[1], 1000)
 
                 fit_dict_h = fit_sin(angles, mean_data_h)
@@ -287,8 +266,3 @@ if __name__ == "__main__":
 
                 opt = scipy.optimize.fmin(lambda x: -1 * func_h(x), 0, full_output=True)
                 print("max is at", opt[0], "with value", opt[1])
-
-                # opt = scipy.optimize.fmin(lambda x: func_v(x), 0, full_output=True)
-                # print("max is at", opt[0], "with value", opt[1])
-
-                exit()
