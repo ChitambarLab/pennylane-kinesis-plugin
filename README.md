@@ -1,7 +1,7 @@
 # Pennylane-Kinesis Plugin
 A PennyLane device plugin for controlling Thorlabs Elliptec and Kinesis rotational stages for variational optimization. It also provides a simulator device that simulates waveplates and photon detectors.
 
-This is part of the software stack that is used as part of our work "Variational Quantum Optimization of Noisy Polarization Qubit Experiments", currently found on the [arxiv]() TODO: ADD ARXIV LINK. See the pre-print for more information about the protocols being executed here.
+This is part of the software stack that is used as part of our work "Variational Quantum Optimization of Noisy Polarization Qubit Experiments", currently found on the [arxiv]() TODO: ADD ARXIV LINK. See the pre-print for more information about the protocols being executed here. The dataset used for this publication can be found at [10.5281/zenodo.23600877](https://doi.org/10.5281/zenodo.23600877).
 
 The main PennyLane/Thorlabs Elliptec integration can be found in `src/pennylane-kinesis`, and the scripts used to set up various protocols and experiments are in `script/vqo_protocols` which utilizes protocol descriptions in `src/pennylane_kinesis/script_utilities.py`. The rest of the scripts are ones we used for calibrating our hardware and gathering setup-specific data; these may or may not be useful to the average viewer but is included for posterity.
 
