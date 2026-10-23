@@ -3,9 +3,7 @@
 import sys
 import glob
 import serial
-import elliptec
 from pennylane_kinesis import ElliptecMotors
-import numpy as np
 from pennylane_kinesis.file_utilities import read_config
 import argparse
 import time
@@ -28,22 +26,6 @@ def move_to_angle(device, angle, offset_angle=0):
             )
             print("Trying again...")
             time.sleep(0.01)
-
-
-def get_mount(mount_num):
-    print("Scanning devices...")
-    wp_details = read_config()
-
-    for control in controllers:
-        scanned = elliptec.scan_for_devices(control, start_address=0, stop_address=0)
-        # Each motor has it's own controller, so it should ideally only return
-        # one device when scanned
-        if len(scanned) > 0:
-            device_serial = scanned[0]["info"]["Serial No."]
-            if device_serial == wp_details[mount_num]["serial_number"]:
-                print(f"Found device with serial {device_serial}")
-                return elliptec.Rotator(control, address="0", debug=False)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
