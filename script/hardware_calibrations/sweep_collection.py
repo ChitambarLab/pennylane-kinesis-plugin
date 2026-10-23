@@ -1,21 +1,16 @@
-# import pyvisa
+"""Collect rotation angle sweeps for a specific rotation mount."""
+
 from ThorlabsPM100 import ThorlabsPM100, USBTMC
-import elliptec
 from pennylane_kinesis.elliptec_rotator_device import ElliptecMotors
-from pennylane_kinesis.swabian import Counter
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from pennylane_kinesis.file_utilities import datetime_now_string, read_config, write_json
-import scipy as sp
-import numpy
-import scipy
-from scipy.optimize import fmin
+from pennylane_kinesis.file_utilities import datetime_now_string, write_json
+
 from pennylane_kinesis import swabian
 import pickle
 from pathlib import Path
-import re
 from tqdm import tqdm
 
 ports = [f"/dev/ttyUSB{i}" for i in range(3)]

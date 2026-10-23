@@ -1,24 +1,28 @@
-import pyvisa
+"""Collect data for Elliptec mount calibration and characterization."""
 
+from ThorlabsPM100 import ThorlabsPM100, USBTMC
 import elliptec
-from pennylane_kinesis.elliptec_rotator_device import ElliptecRotatorDevice
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 from pennylane_kinesis.file_utilities import datetime_now_string, read_config
-import scipy as sp
-import numpy
-import scipy
-from scipy.optimize import fmin
+
 from pennylane_kinesis import swabian
 import pickle
 from pathlib import Path
-import re
 
 NUM_MEASUREMENTS = 1
 
 ports = [f"/dev/ttyUSB{i}" for i in range(4)]
+
+# Currently used power meters for collection
+# If you use two meters (HV_meter = True), then this should have two meters
+power_meters = ["P0025560"]
+
+
+def get_serial_no(usbtmc_device):
+    return usbtmc_device.query("*IDN?").split(",")[2]
 
 
 def set_angle(device, angle):
@@ -40,24 +44,15 @@ class Meter:
             self.counter = swabian.Counter(shots=None, integration_time=1)
             self.counter.detector_setup()
         else:
-            rm = pyvisa.ResourceManager()
-            resources = rm.list_resources()
+            list_check = [0, 1] if HV_meter else [0]
+            insts = [USBTMC(device=f"/dev/usbtmc{x}") for x in list_check]
+            for inst in insts:
+                print(inst.query("*IDN?"))
+                if get_serial_no(inst) == power_meters[0]:
+                    H_meter = ThorlabsPM100(inst=inst)
+                elif get_serial_no(inst) == power_meters[1]:
+                    V_meter = ThorlabsPM100(inst=inst)
 
-            # Change serial number here if you use a different meter
-            H_resource = [x for x in resources if "P0027254" in x][0]
-
-            inst_H = rm.open_resource(H_resource, timeout=1)
-            H_meter = ThorlabsPM100(inst=inst_H)
-            H_meter.configure.scalar.power()
-
-            V_meter = None
-            # If using two different power meters
-            if HV_meter:
-                # Change serial number here if you use a different meter
-                V_resource = [x for x in resources if "P0027252" in x][0]
-                inst_V = rm.open_resource(V_resource, timeout=1)
-                V_meter = ThorlabsPM100(inst=inst_V)
-                V_meter.configure.scalar.power()
             self.H_meter = H_meter
             self.V_meter = V_meter
 

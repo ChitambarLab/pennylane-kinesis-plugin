@@ -1,6 +1,7 @@
+"""Plot data for long-term count collection."""
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 from matplotlib.ticker import MaxNLocator
 import pickle
 
@@ -82,6 +83,8 @@ if __name__ == "__main__":
     )
     print(f"Means: {np.mean(data[:, 1])},{np.mean(data[:, 2])}")
     print(f"Range: [{np.min(data[:, 1])},{np.max(data[:, 1])}], [{np.min(data[:, 2])},{np.max(data[:, 2])}]")
+
+    fig, ax = fig.subplots()
 
     ax.plot(data_norm[:, 1], color="red", label="H")
     ax.plot(data_norm[:, 2], color="blue", label="V")

@@ -1,3 +1,5 @@
+"""Check functionality of Elliptec mounts."""
+
 import sys
 import glob
 import serial

@@ -1,3 +1,5 @@
+"""Plot behavior matrices from optimizations."""
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -6,7 +8,6 @@ from pennylane_kinesis.file_utilities import (
     get_files,
     read_json,
     datetime_now_string,
-    get_date_from_filename,
 )
 import argparse
 

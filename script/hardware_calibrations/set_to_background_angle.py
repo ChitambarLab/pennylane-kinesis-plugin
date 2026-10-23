@@ -1,3 +1,5 @@
+"""Set the Elliptec mount rotation angles manually."""
+
 import sys
 import glob
 import serial

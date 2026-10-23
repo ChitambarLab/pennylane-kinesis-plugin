@@ -1,3 +1,5 @@
+"""Set the velocity of the Elliptec mounts."""
+
 import sys
 import glob
 import serial

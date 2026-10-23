@@ -1,8 +1,8 @@
-import pennylane_kinesis as pk
-from datetime import datetime, timezone
+"""Plot optimization precision as a function of step-size."""
+
 import argparse
 import matplotlib.pyplot as plt
-from pennylane_kinesis.file_utilities import get_files, get_date_from_filename, datetime_now_string, read_json
+from pennylane_kinesis.file_utilities import get_files, datetime_now_string, read_json
 from pathlib import Path
 import numpy as np
 

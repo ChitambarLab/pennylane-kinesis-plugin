@@ -1,3 +1,5 @@
+"""Take detector count data for a specified amount of time, with periodic file writes."""
+
 import numpy as np
 import pickle as pkl
 import matplotlib.pyplot as plt

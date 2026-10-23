@@ -1,24 +1,16 @@
-import pennylane as qml
+"""Take the data to be used in the paper. It interleaves the protocols and variants
+of differentiation methods to account for drift in lab conditions, so that each set of trials
+for the protocols experiences roughly the same lab conditions."""
+
 from pennylane import numpy as qnp
-import qnetvo
 from matplotlib import pyplot as plt
-import sys
-import os
-import argparse
 import time
 import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import itertools
-import cProfile, pstats
-
-try:
-    # If you're running this on hardware that doesn't have the swabian timetagger library
-    # such as when you're doing numerics work, this import will break
-    from pennylane_kinesis.tomography_utilities import take_tomography_data
-except:
-    pass
-import datetime
+import cProfile
+import pstats
 from pathlib import Path
 from tqdm import tqdm
 

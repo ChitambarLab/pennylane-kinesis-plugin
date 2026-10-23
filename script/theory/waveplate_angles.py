@@ -1,5 +1,6 @@
-import numpy as np
+"""Calculate the required waveplate angles needed to prepare/measure polarization states (for process tomography)."""
 
+import numpy as np
 
 def HWP(theta):
     return np.exp(-1.0j * np.pi / 2) * np.array(

@@ -1,11 +1,11 @@
+"""Fit retardance of waveplates given waveplate sweeps, using different models for the waveplate."""
+
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import pickle
 import argparse
 from pathlib import Path
-from script.theory.check_retardance import simulate_angle_sweep, simulate_angle_sweep_hwp
-
 
 def qwp_mat(theta, retardance=np.pi / 2):
     c = np.cos(theta)

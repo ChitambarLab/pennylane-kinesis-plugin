@@ -1,14 +1,12 @@
-import pennylane as qml
+"""Run VQO on random access coding (2 bit and 3 bit)."""
+
 from pennylane import numpy as qnp
-import qnetvo
 from matplotlib import pyplot as plt
-import sys
 import argparse
 import os
 import pennylane_kinesis as pk
 import time
 import numpy as np
-from pathlib import Path
 
 MAXIMUM_BOUND_3_BIT = 24
 QUANTUM_COST_BOUND_3_BIT = 12 + 12 / np.sqrt(3)

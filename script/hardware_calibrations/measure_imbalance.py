@@ -1,3 +1,5 @@
+"""Measure imbalance in detector ports."""
+
 import numpy as np
 import elliptec
 from pennylane_kinesis import read_config, datetime_now_string, write_json, DEFAULT_CONF
@@ -10,7 +12,7 @@ config_file = DEFAULT_CONF
 
 NUM_REPS = 50
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Measure the imbalance of the interferometer.")
+    parser = argparse.ArgumentParser(description="Measure the imbalance of the PBS.")
     parser.add_argument("-f", "--filepath", default="./data/detector_balance/", help="Path to the data folder.")
     parser.add_argument("-v", "--verbose", default=False)
     args = parser.parse_args()

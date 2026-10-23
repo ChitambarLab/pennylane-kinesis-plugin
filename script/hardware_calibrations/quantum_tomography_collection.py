@@ -1,3 +1,5 @@
+"""Collect data for quantum process tomography."""
+
 from pennylane_kinesis.tomography_utilities import take_tomography_data
 import argparse
 

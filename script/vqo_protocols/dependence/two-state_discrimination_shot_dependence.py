@@ -1,20 +1,19 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import os
-import argparse
-import time
-import pennylane_kinesis as pk
-from pennylane_kinesis.file_utilities import datetime_now_string
-
 """
 Runs multiple two-state discrimination optimizations with different numbers of shots for each
 to determine the dependence of the optimization on the step-size.
 
 By default the script will run on hardware using 4 wave plates.
 """
+
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import os
+import argparse
+import time
+import pennylane_kinesis as pk
+from pennylane_kinesis.file_utilities import datetime_now_string
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

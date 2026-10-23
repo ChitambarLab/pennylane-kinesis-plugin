@@ -1,3 +1,5 @@
+"""Collect counts from APDs using a Swabian timetagger, with option to see how counts change if mounts are repeatedly moved back and forth."""
+
 import numpy as np
 import os
 import argparse

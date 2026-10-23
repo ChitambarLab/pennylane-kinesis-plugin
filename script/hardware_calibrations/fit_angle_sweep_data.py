@@ -1,3 +1,5 @@
+"""Fit a sinusoidal to an angle sweep of waveplates to obtain zero-angle calibrations."""
+
 import scipy
 import numpy as np
 import argparse

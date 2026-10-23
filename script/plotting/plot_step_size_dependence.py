@@ -1,11 +1,11 @@
-import pennylane_kinesis as pk
-from datetime import datetime, timezone
-import argparse
-
 """This script generates a plot showing the optimization precision as
 dependent upon the optimization step size. Data for this plot is obtained
 using the `./script/vqo_protocols/dependence/two-state_discrimination_step_size_dependence.py` script.
 """
+
+import pennylane_kinesis as pk
+from datetime import datetime, timezone
+import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

@@ -1,3 +1,5 @@
+"""Plot the rotation mount timing data to check active rotation stage times."""
+
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,7 +7,7 @@ import os
 import argparse
 import pennylane_kinesis as pk
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 def plot_movements(timing_file):
@@ -248,7 +250,7 @@ if __name__ == "__main__":
         fig, ax = plt.subplots()
 
         if args.shot_dep:
-            labels = num_shots
+            labels = shots_list
         else:
             labels = step_sizes
 

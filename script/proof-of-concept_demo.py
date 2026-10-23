@@ -1,3 +1,5 @@
+"""Proof of concept demo for VQO."""
+
 import pennylane as qml
 from pennylane import numpy as qnp
 

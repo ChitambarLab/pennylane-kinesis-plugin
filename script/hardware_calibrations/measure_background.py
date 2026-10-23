@@ -1,4 +1,5 @@
-import time
+"""Collect detector count data."""
+
 import pennylane_kinesis as pk
 from pennylane_kinesis import swabian
 from pennylane import numpy as qnp

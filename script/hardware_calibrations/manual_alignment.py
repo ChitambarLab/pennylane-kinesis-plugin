@@ -1,12 +1,10 @@
+"""Control Elliptec mounts manually for various alignment tasks in the experiment."""
+
 import argparse
-import os
 from pennylane_kinesis import (
-    KinesisCageRotatorDevice,
     KinesisMotors,
-    TimeTaggerType,
     swabian,
 )
-import time
 from pylablib.devices import Thorlabs
 
 _WIMP_MODE = False

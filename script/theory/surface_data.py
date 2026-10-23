@@ -1,9 +1,9 @@
+"""Obtain data and plot surface of waveplate sweep."""
+
 import numpy as np
 import numpy.linalg as la
 import plotly.graph_objects as go
-from pennylane_kinesis import KinesisSimulatorDevice
 from pennylane_kinesis import (
-    ElliptecRotatorDevice,
     ElliptecMotors,
     make_dir,
     datetime_now_string,

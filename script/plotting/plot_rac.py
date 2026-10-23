@@ -1,12 +1,11 @@
-import pennylane_kinesis as pk
-from datetime import datetime, timezone
+"""Plot optimization performance for RAC averaged over several trials."""
+
 import argparse
 from pathlib import Path
 from pennylane_kinesis.file_utilities import (
     get_files,
     read_json,
     datetime_now_string,
-    get_date_from_filename,
 )
 import numpy as np
 import matplotlib.pyplot as plt

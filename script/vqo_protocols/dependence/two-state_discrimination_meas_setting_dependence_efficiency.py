@@ -1,8 +1,10 @@
-import pennylane as qml
+"""
+Runs multiple two-state discrimination optimizations with different measurement settings for each
+to determine the dependence of the optimization on the measurement settings.
+"""
+
 from pennylane import numpy as qnp
-import qnetvo
 from matplotlib import pyplot as plt
-import sys
 import os
 import argparse
 import time
@@ -10,21 +12,6 @@ import numpy as np
 import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import datetime
-
-try:
-    # If you're running this on hardware that doesn't have the swabian timetagger library
-    # such as when you're doing numerics work, this import will break
-    from pennylane_kinesis.tomography_utilities import take_tomography_data
-except:
-    pass
-
-"""
-Runs multiple two-state discrimination optimizations with different step-sizes for each
-to determine the dependence of the optimization on the step-size.
-
-By default the script will run on hardware using 4 wave plates.
-"""
-
 
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length

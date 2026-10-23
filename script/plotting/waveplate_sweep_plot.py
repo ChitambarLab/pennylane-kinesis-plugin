@@ -1,10 +1,11 @@
+"""Plot optimization path on a 2D waveplate sweep."""
+
 import argparse
 from pennylane_kinesis import read_json, get_files
 import pennylane_kinesis as pk
 from pathlib import Path
 import numpy as np
 import pickle
-import pytz
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from mpl_toolkits.axes_grid1 import make_axes_locatable

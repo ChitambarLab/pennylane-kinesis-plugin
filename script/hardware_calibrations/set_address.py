@@ -1,3 +1,5 @@
+"""Set the address of the Elliptec mounts."""
+
 import elliptec
 import argparse
 import re

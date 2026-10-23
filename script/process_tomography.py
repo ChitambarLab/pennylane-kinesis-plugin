@@ -1,11 +1,10 @@
-import elliptec
-from pennylane_kinesis import swabian, read_config, ElliptecMotors, datetime_now_string, write_json
-import numpy as np
+"""Collect process tomography data."""
+
+from pennylane_kinesis import swabian, ElliptecMotors, datetime_now_string, write_json
 import threading
 
 from ThorlabsPM100 import ThorlabsPM100, USBTMC
 import time
-import pickle
 from tqdm import tqdm
 from pathlib import Path
 
@@ -26,7 +25,6 @@ NUM_MEASUREMENTS = 5
 
 def get_serial_no(usbtmc_device):
     return usbtmc_device.query("*IDN?").split(",")[2]
-
 
 class Meter:
     def __init__(self, swabian_mode, HV_meter=False):

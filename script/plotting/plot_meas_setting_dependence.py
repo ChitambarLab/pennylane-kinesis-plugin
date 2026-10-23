@@ -1,3 +1,5 @@
+"""Plot optimization performance for different settings of measurement waveplates for two-state discrimination."""
+
 import pennylane_kinesis as pk
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -7,7 +9,6 @@ from pennylane_kinesis.file_utilities import (
     get_files,
     read_json,
     datetime_now_string,
-    get_date_from_filename,
 )
 import numpy as np
 import matplotlib.pyplot as plt

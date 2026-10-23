@@ -1,3 +1,5 @@
+"""Test Elliptec mount rotation times."""
+
 import elliptec
 from pennylane_kinesis.file_utilities import read_config, winapi_path, datetime_now_string
 import time

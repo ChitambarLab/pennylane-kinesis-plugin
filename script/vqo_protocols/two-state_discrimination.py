@@ -1,14 +1,3 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import argparse
-import time
-import pennylane_kinesis as pk
-import cProfile
-from pstats import SortKey
-
 """
 Optimizes the state discrimination success probability for two states.
 
@@ -22,6 +11,12 @@ $ python script/two-state_discrimination.py numerics
 ```
 """
 
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import argparse
+import time
+import pennylane_kinesis as pk
+import cProfile
 
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length

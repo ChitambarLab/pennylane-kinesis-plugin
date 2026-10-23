@@ -1,8 +1,12 @@
-import pennylane as qml
+"""
+Runs multiple two-state discrimination optimizations with different step-sizes for each
+to determine the dependence of the optimization on the step-size.
+
+By default the script will run on hardware using 4 wave plates.
+"""
+
 from pennylane import numpy as qnp
-import qnetvo
 from matplotlib import pyplot as plt
-import sys
 import os
 import argparse
 import time
@@ -18,12 +22,7 @@ except:
     pass
 import datetime
 
-"""
-Runs multiple two-state discrimination optimizations with different step-sizes for each
-to determine the dependence of the optimization on the step-size.
 
-By default the script will run on hardware using 4 wave plates.
-"""
 
 
 def print_bar(msg):

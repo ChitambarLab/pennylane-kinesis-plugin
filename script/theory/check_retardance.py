@@ -1,11 +1,9 @@
+"""Simulate waveplate retardances."""
+
 import numpy as np
-import scipy as sp
-from pennylane_kinesis.operators import VariableHWPRotStage, VariableQWPRotStageA, VariableQWPRotStageB
 import matplotlib.pyplot as plt
 from qutip import Bloch
 from pathlib import Path
-
-# from qutip.ipynbtools import plot_animation
 import imageio
 
 

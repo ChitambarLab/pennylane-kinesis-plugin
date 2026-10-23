@@ -1,13 +1,3 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import argparse
-import time
-import pennylane_kinesis as pk
-from pennylane_kinesis.file_utilities import datetime_now_string
-
 """
 Optimizes the state discrimination success probability for two states.
 
@@ -20,6 +10,13 @@ Use the `two_wp` argument to run the script with fixed mneasurement waveplates.
 $ python script/two-state_discrimination.py numerics
 ```
 """
+
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import argparse
+import time
+import pennylane_kinesis as pk
+from pennylane_kinesis.file_utilities import datetime_now_string
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

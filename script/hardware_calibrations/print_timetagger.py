@@ -1,3 +1,5 @@
+"""Print the timetagger counts live (for manual alignment tasks)."""
+
 from pennylane_kinesis import swabian
 import argparse
 
