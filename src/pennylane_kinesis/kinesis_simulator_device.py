@@ -145,7 +145,10 @@ class KinesisSimulatorDevice(QubitDevice):
                 angles.append(angle * 180 / np.pi)
             elif operation.name == "VariableWPRotStage":
                 angle = operation.parameters[0]
-                if device_index.value == DeviceIndex.aQWP.value or device_index.value == DeviceIndex.bQWP.value:
+                if (
+                    device_index.value == DeviceIndex.aQWP.value
+                    or device_index.value == DeviceIndex.bQWP.value
+                ):
                     domain_period = self.qwp_domain_period
                 else:
                     domain_period = self.hwp_domain_period
@@ -189,8 +192,12 @@ class KinesisSimulatorDevice(QubitDevice):
         p1 = np.clip(np.trace(self._state @ one_state).real, a_min=1e-16, a_max=None)
 
         # Poisson(background counts /s) * background_ratio
-        zero_background_counts = int((np.random.poisson(self.background_counts[0]) * self.integration_time))
-        one_background_counts = int((np.random.poisson(self.background_counts[1]) * self.integration_time))
+        zero_background_counts = int(
+            (np.random.poisson(self.background_counts[0]) * self.integration_time)
+        )
+        one_background_counts = int(
+            (np.random.poisson(self.background_counts[1]) * self.integration_time)
+        )
 
         zero_incident_rate = p0 * np.sum(self.shot_rate)
         one_incident_rate = p1 * np.sum(self.shot_rate)
@@ -201,8 +208,12 @@ class KinesisSimulatorDevice(QubitDevice):
         crosstalk_zero_counts = int(np.random.poisson(crosstalk_zero_rate) * self.integration_time)
         crosstalk_one_counts = int(np.random.poisson(crosstalk_one_rate) * self.integration_time)
 
-        noise_counts_zero = int(np.random.poisson(zero_incident_rate * self.noise_percentage) * self.integration_time)
-        noise_counts_one = int(np.random.poisson(one_incident_rate * self.noise_percentage) * self.integration_time)
+        noise_counts_zero = int(
+            np.random.poisson(zero_incident_rate * self.noise_percentage) * self.integration_time
+        )
+        noise_counts_one = int(
+            np.random.poisson(one_incident_rate * self.noise_percentage) * self.integration_time
+        )
 
         # The counts are calculated as:
         # Poisson(rate at input of PBS * prob of measurement) * measurement time (= num_shots/shot_rate) + background + noise_counts

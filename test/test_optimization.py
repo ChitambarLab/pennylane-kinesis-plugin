@@ -116,7 +116,9 @@ class TestOptimization:
         filename = "test_test_cost_argument"
 
         # the eval cost uses fewer shots to distinguish itself from the grad cost
-        dev2 = qml.device("kinesis.simulator", shots=100, wires=[0], seed=2, background_counts=[0, 0])
+        dev2 = qml.device(
+            "kinesis.simulator", shots=100, wires=[0], seed=2, background_counts=[0, 0]
+        )
 
         # test the eval cost as projecting on to the 0/1 state
         @qml.qnode(dev2, diff_method="parameter-shift")
@@ -258,7 +260,9 @@ class TestScanTwoParamFn:
         x_range = np.arange(0, 1, 0.4)
         y_range = np.arange(0, 1, 0.3)
 
-        data_dict = pk.scan_two_param_fn(cost, x_range, y_range, filename=filename, filepath=tmp_dir)
+        data_dict = pk.scan_two_param_fn(
+            cost, x_range, y_range, filename=filename, filepath=tmp_dir
+        )
 
         saved_filename = tmp_dir + filename + ".json"
 
@@ -270,7 +274,9 @@ class TestScanTwoParamFn:
             data_dict["x_grid"],
             [[0.0, 0.4, 0.8], [0.0, 0.4, 0.8], [0.0, 0.4, 0.8], [0.0, 0.4, 0.8]],
         )
-        assert np.allclose(data_dict["y_grid"], [[0, 0, 0], [0.3, 0.3, 0.3], [0.6, 0.6, 0.6], [0.9, 0.9, 0.9]])
+        assert np.allclose(
+            data_dict["y_grid"], [[0, 0, 0], [0.3, 0.3, 0.3], [0.6, 0.6, 0.6], [0.9, 0.9, 0.9]]
+        )
         # z_grid holds shot-based probability estimates of qml.expval(qml.Projector(...))
         z_grid = np.array(data_dict["z_grid"])
         assert z_grid.shape == (4, 3)

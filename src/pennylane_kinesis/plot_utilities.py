@@ -120,7 +120,9 @@ def plot_trajectory_on_cost_contour(filename, scan_dict, opt_dict, background_sh
     print(f"Plot saved at {filename}")
 
 
-def plot_shot_dependence_comparison(hardware_filepath, numerics_filepath, shots_list, plot_filename):
+def plot_shot_dependence_comparison(
+    hardware_filepath, numerics_filepath, shots_list, plot_filename
+):
     datetime_str = datetime_now_string()
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
@@ -138,7 +140,9 @@ def plot_shot_dependence_comparison(hardware_filepath, numerics_filepath, shots_
         numerics_shots_filepath = numerics_filepath + "shots_" + str(shots) + "/"
 
         hardware_filenames = get_files(hardware_shots_filepath, r"[0-9]*_optimization_.*\.json")
-        numeric_filenames = get_files(numerics_shots_filepath, r"background_noise_optimization_.*\.json")
+        numeric_filenames = get_files(
+            numerics_shots_filepath, r"background_noise_optimization_.*\.json"
+        )
 
         hardware_opt_dicts = [read_json(filename) for filename in hardware_filenames]
         numeric_opt_dicts = [read_json(filename) for filename in numeric_filenames]
@@ -238,7 +242,9 @@ def plot_shot_dependence(
 
     color_id = 0
     for shots in shots_list:
-        shots_filepath = filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
+        shots_filepath = (
+            filepath + "shots_" + str(shots).replace(".", "_") + filepath_type + filepath_wp
+        )
         filenames = get_files(shots_filepath, r"[0-9]*_optimization_.*\.json")
         opt_dicts = [read_json(filename) for filename in filenames]
 
@@ -413,14 +419,18 @@ def plot_step_size_dependence(
         std_min_cost_vals = []
         for i in range(len(std_aggregate_data)):
             std_mean_cost_vals += [np.mean(std_aggregate_data[i])]
-            std_std_err_cost_vals += [np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))]
+            std_std_err_cost_vals += [
+                np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))
+            ]
             std_min_cost_vals += [np.min(std_aggregate_data[i])]
 
         adam_mean_cost_vals = []
         adam_std_err_cost_vals = []
         for i in range(len(adam_aggregate_data)):
             adam_mean_cost_vals += [np.mean(adam_aggregate_data[i])]
-            adam_std_err_cost_vals += [np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))]
+            adam_std_err_cost_vals += [
+                np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))
+            ]
 
         std_np_mean = np.array(std_mean_cost_vals)
         std_np_std_err = np.array(std_std_err_cost_vals)
@@ -582,14 +592,18 @@ def plot_step_size_dependence_convergence(
         std_min_cost_vals = []
         for i in range(len(std_aggregate_data)):
             std_mean_cost_vals += [np.mean(std_aggregate_data[i])]
-            std_std_err_cost_vals += [np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))]
+            std_std_err_cost_vals += [
+                np.std(std_aggregate_data[i]) / np.sqrt(len(std_aggregate_data[i]))
+            ]
             std_min_cost_vals += [np.min(std_aggregate_data[i])]
 
         adam_mean_cost_vals = []
         adam_std_err_cost_vals = []
         for i in range(len(adam_aggregate_data)):
             adam_mean_cost_vals += [np.mean(adam_aggregate_data[i])]
-            adam_std_err_cost_vals += [np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))]
+            adam_std_err_cost_vals += [
+                np.std(adam_aggregate_data[i]) / np.sqrt(len(adam_aggregate_data[i]))
+            ]
 
         std_np_mean = np.array(std_mean_cost_vals)
         min_val = np.min(std_np_mean)

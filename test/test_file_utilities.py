@@ -27,10 +27,13 @@ def tmp_dir_cleanup():
 
 
 def test_get_date_from_filename():
-    assert pk.file_utilities.get_date_from_filename(
-        """./data/state_discrimination/hardware_step_size_dependence/adagrad
+    assert (
+        pk.file_utilities.get_date_from_filename(
+            """./data/state_discrimination/hardware_step_size_dependence/adagrad
         /2024-07-09T19-43-05Z/step_size_0_1/hardware/four_wp/optimization_2024-05-31T12-12-12Z.json"""
-    ) == datetime.datetime(2024, 5, 31, 12, 12, 12, tzinfo=datetime.timezone.utc)
+        )
+        == datetime.datetime(2024, 5, 31, 12, 12, 12, tzinfo=datetime.timezone.utc)
+    )
 
 
 def test_tmp_dir(tmp_dir_cleanup):

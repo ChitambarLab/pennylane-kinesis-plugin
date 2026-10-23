@@ -57,7 +57,11 @@ def get_files(path, regex):
     return [
         os.path.join(path, f)
         for f in os.listdir(path)
-        if (f.endswith(".json") and os.path.isfile(os.path.join(path, f)) and bool(re.match(regex, f)))
+        if (
+            f.endswith(".json")
+            and os.path.isfile(os.path.join(path, f))
+            and bool(re.match(regex, f))
+        )
     ]
 
 

@@ -100,7 +100,9 @@ def two_state_discrimination(
 
     def arb_unitary_retardance(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(
+            settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP
+        )
 
     # Function to use for MeasureNode if we are not moving the measurement waveplates.
     def meas_fn(settings, wires):
@@ -112,12 +114,20 @@ def two_state_discrimination(
         HWPRotStage(settings[0], wires=wires[0:1])
 
     def meas_fn_retardance(settings, wires):
-        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(
+            settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP
+        )
+        VariableWPRotStage(
+            settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP
+        )
 
     def meas_fn_swapped_order_retardance(settings, wires):
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
-        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
+        VariableWPRotStage(
+            settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP
+        )
+        VariableWPRotStage(
+            settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP
+        )
 
     def noise_fn(settings, wires):
         kraus_ops = fiber_ops
@@ -143,7 +153,12 @@ def two_state_discrimination(
             "motors": motors,
             "test_mode": test_mode,
             "filepath": filepath,
-            "waveplate_order": [DeviceIndex.aHWP, DeviceIndex.aQWP, DeviceIndex.bQWP, DeviceIndex.bHWP],
+            "waveplate_order": [
+                DeviceIndex.aHWP,
+                DeviceIndex.aQWP,
+                DeviceIndex.bQWP,
+                DeviceIndex.bHWP,
+            ],
         }
 
     # Legacy code: old thorlabs rotator mounts:
@@ -169,7 +184,9 @@ def two_state_discrimination(
 
     else:
         data_path += "four_wp/"
-        meas_node = qnetvo.MeasureNode(num_in=1, wires=[0], ansatz_fn=meas_fn_swapped_order_retardance, num_settings=2)
+        meas_node = qnetvo.MeasureNode(
+            num_in=1, wires=[0], ansatz_fn=meas_fn_swapped_order_retardance, num_settings=2
+        )
 
     make_dir(data_path)
 
@@ -379,7 +396,8 @@ def qubit_dimensionality_witnessing(
         filepath=data_path,
         optimizer=optimizer,
         filename=filename_prefix + "optimization_" + datetime_str,
-        domain_periods=[hwp_period, qwp_period] * prep_num_in + [hwp_period, qwp_period] * meas_num_in,
+        domain_periods=[hwp_period, qwp_period] * prep_num_in
+        + [hwp_period, qwp_period] * meas_num_in,
     )
 
 
@@ -411,7 +429,9 @@ def rac(
 
     def arb_unitary_retardance(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(
+            settings[1], wires=wires[0], retardance=QWP_RETARDANCE_A, wp_type=WaveplateTypes.QWP
+        )
 
     # Function to use for MeasureNode if we are not moving the measurement waveplates.
     def meas_fn(settings, wires):
@@ -423,8 +443,12 @@ def rac(
         HWPRotStage(settings[0], wires=wires[0:1])
 
     def meas_fn_retardance(settings, wires):
-        VariableWPRotStage(settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP)
-        VariableWPRotStage(settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP)
+        VariableWPRotStage(
+            settings[0], wires=[wires[0]], retardance=HWP_RETARDANCE_B, wp_type=WaveplateTypes.HWP
+        )
+        VariableWPRotStage(
+            settings[1], wires=wires[0], retardance=QWP_RETARDANCE_B, wp_type=WaveplateTypes.QWP
+        )
 
     if numerics:
         data_path = pk.make_dir(filepath + "numerics/")
@@ -478,7 +502,11 @@ def rac(
     else:
         rac_ansatz = qnetvo.NetworkAnsatz(
             [qnetvo.PrepareNode(num_in=4, wires=[0], ansatz_fn=arb_unitary, num_settings=2)],
-            [qnetvo.MeasureNode(num_in=2, wires=[0], ansatz_fn=meas_fn_swapped_order, num_settings=2)],
+            [
+                qnetvo.MeasureNode(
+                    num_in=2, wires=[0], ansatz_fn=meas_fn_swapped_order, num_settings=2
+                )
+            ],
             dev_kwargs={
                 "name": dev_name,
                 "shot_rate": shot_rate,

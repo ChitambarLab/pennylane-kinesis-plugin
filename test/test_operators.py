@@ -20,7 +20,11 @@ class TestHWPRotStage:
         assert op.id == None
 
     def match_hwp_operator_matrix(self, theta):
-        return qml.RY(2 * theta, wires=[0]).matrix() @ qml.PauliZ(0).matrix() @ qml.RY(-2 * theta, wires=[0]).matrix()
+        return (
+            qml.RY(2 * theta, wires=[0]).matrix()
+            @ qml.PauliZ(0).matrix()
+            @ qml.RY(-2 * theta, wires=[0]).matrix()
+        )
 
     @pytest.mark.parametrize("theta", [theta for theta in np.arange(0, np.pi, 0.3)])
     def test_hwp_operator_computer_matrix(self, theta):
@@ -84,7 +88,11 @@ class TestQWPRotStage:
         assert op.id == None
 
     def match_qwp_operator_matrix(self, theta):
-        return qml.RY(2 * theta, wires=[0]).matrix() @ qml.S(0).matrix() @ qml.RY(-2 * theta, wires=[0]).matrix()
+        return (
+            qml.RY(2 * theta, wires=[0]).matrix()
+            @ qml.S(0).matrix()
+            @ qml.RY(-2 * theta, wires=[0]).matrix()
+        )
 
     @pytest.mark.parametrize("theta", [theta for theta in np.arange(0, np.pi, 0.3)])
     def test_qwp_operator_computer_matrix(self, theta):

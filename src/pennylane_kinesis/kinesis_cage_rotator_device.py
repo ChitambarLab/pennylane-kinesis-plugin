@@ -327,7 +327,9 @@ class KinesisCageRotatorDevice(QubitDevice):
                 1.5 * self.shots,
                 channels=[self.ttag_channel_reflect, self.ttag_channel_transmit],
             )
-            self.counter = TT.Countrate(self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit])
+            self.counter = TT.Countrate(
+                self.ttag, channels=[self.ttag_channel_reflect, self.ttag_channel_transmit]
+            )
             print(
                 "Started Swabian timetagger for channels: ",
                 self.ttag_channel_reflect,
@@ -349,7 +351,9 @@ class KinesisCageRotatorDevice(QubitDevice):
             self.counter.waitUntilFinished()
             self.shot_rate = self.counter.getData()  # Get average shot rate from the channel
             print("Shot rates:")
-            print(f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s")
+            print(
+                f"T rate: {self.shot_rate[0]:.2f} counts/s. R rate: {self.shot_rate[1]:.2f} counts/s"
+            )
             # self.shots is user input, calculate integration time based on shot rate from the detector
             self.integration_time = self.shots / (np.sum(self.shot_rate))
             print(f"Set integration time to: {self.integration_time:.5f} seconds.")
@@ -478,9 +482,13 @@ class KinesisCageRotatorDevice(QubitDevice):
             angle = op.parameters[0] * 360 / (2 * np.pi)
 
             if op.name == "HWPRotStage":
-                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 90)
+                self.time_rotation(
+                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 90
+                )
             elif op.name == "QWPRotStage":
-                self.time_rotation(self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 180)
+                self.time_rotation(
+                    self.device_move_to_angle, self.active_times, i, dev_list[i], angle % 180
+                )
             else:
                 print("Operation : ", op.name, ", is not supported")
 
@@ -498,7 +506,9 @@ class KinesisCageRotatorDevice(QubitDevice):
             iteration = 0
             while True:
                 if iteration == 0 and self.ttag_type == TimeTaggerType.SWABIAN:
-                    _ = self.ttag_stream.getData()  # Clear the buffer (it will return stored data otherwise)
+                    _ = (
+                        self.ttag_stream.getData()
+                    )  # Clear the buffer (it will return stored data otherwise)
                 time.sleep(self.integration_time)
                 iteration += 1
                 # Get data from UQD time tagger

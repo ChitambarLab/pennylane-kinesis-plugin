@@ -152,13 +152,17 @@ def optimize(
             opt_dict["opt_step_time"] += [float(new_time - curr_time)]
             curr_time = new_time
 
-        opt_dict["cost_vals"] += [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
+        opt_dict["cost_vals"] += (
+            [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
+        )
         if behavior_fn is not None:
             behavior_mat = behavior_fn(settings)
             opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
     except BaseException as err:
-        msg_template = "An exception of type {0} occurred during optimization step {1}. Arguments:\n{2!r}"
+        msg_template = (
+            "An exception of type {0} occurred during optimization step {1}. Arguments:\n{2!r}"
+        )
         message = msg_template.format(type(err).__name__, str(i), err.args)
         print(message)
 
@@ -170,7 +174,9 @@ def optimize(
     return opt_dict
 
 
-def scan_two_param_fn(fn, x_range, y_range, filename="", filepath="./", init_data_dict=None, **meta_kwargs):
+def scan_two_param_fn(
+    fn, x_range, y_range, filename="", filepath="./", init_data_dict=None, **meta_kwargs
+):
     """Scans function ``fn`` over two paramater ranges.
 
     All data is written to a JSON file upon completion. If an error occurs during the scan, then

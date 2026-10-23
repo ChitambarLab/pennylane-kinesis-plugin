@@ -32,7 +32,9 @@ def _setup_device(interface, analytic=False, domain_period=False):
             hwp_domain_period=hwp_domain_period,
         )
     else:
-        raise ValueError("interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'.")
+        raise ValueError(
+            "interface: '" + interface + "', unkown. Please use 'class' or 'pennylane'."
+        )
 
     return dev
 

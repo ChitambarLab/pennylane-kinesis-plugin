@@ -167,7 +167,9 @@ def take_tomography_data(
                         qpt_dict[measurement] += [meas_counts]
                         end_time = time.time()
                         print(f"Took {end_time - start_time} to collect {meas_state}{prep_state}.")
-                        print(f"Estimated time remaining: {((repetitions - i) * 36) * (end_time - start_time)}")
+                        print(
+                            f"Estimated time remaining: {((repetitions - i) * 36) * (end_time - start_time)}"
+                        )
     except KeyboardInterrupt:
         print("Quitting run and saving data")
         write_json(qpt_dict, dir + "qpt_data_ABORTED")
