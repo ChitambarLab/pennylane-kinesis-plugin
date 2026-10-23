@@ -13,6 +13,7 @@ import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 import datetime
 
+
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length
     bar = "#" * bar_length  # Generate the bar dynamically

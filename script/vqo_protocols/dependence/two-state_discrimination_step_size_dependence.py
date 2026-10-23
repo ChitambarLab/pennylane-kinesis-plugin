@@ -21,6 +21,7 @@ try:
 except:
     pass
 
+
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length
     bar = "#" * bar_length  # Generate the bar dynamically

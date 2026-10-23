@@ -150,7 +150,6 @@ class TestKinesisSimulatorDevice:
         ],
     )
     def test_device_apply(self, interface, ops, match):
-
         dev = _setup_device(interface)
         assert (dev._state == dev.init_state).all()
 

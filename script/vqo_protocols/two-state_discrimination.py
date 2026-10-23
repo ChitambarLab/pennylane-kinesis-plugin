@@ -18,6 +18,7 @@ import time
 import pennylane_kinesis as pk
 import cProfile
 
+
 def print_bar(msg):
     bar_length = len(msg) + 15  # Set the bar length to match the message length
     bar = "#" * bar_length  # Generate the bar dynamically
@@ -69,7 +70,7 @@ def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, prefi
     if args.two_wp:
         filename += "-twowp"
 
-    output_file = pk.winapi_path(folder + prefix+filename + ".png")
+    output_file = pk.winapi_path(folder + prefix + filename + ".png")
     plt.savefig(output_file)
     plt.close()
 
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         help="Number of shots to take.",
     )
 
-    parser.add_argument("--num_trials", default=40,type=int, help="number of trials to run.")
+    parser.add_argument("--num_trials", default=40, type=int, help="number of trials to run.")
 
     args = parser.parse_args()
 
@@ -175,7 +176,7 @@ if __name__ == "__main__":
             verbose=args.verbose,
             optimizer=args.optimizer,
             diff_method=args.diff,
-            filename_prefix=str(i)
+            filename_prefix=str(i),
         )
 
         end_time = time.time()
@@ -184,10 +185,12 @@ if __name__ == "__main__":
         print_bar(
             f"Took {time_taken} seconds to run VQO on two-state discrimination with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
         )
-        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i)+"_")
+        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i) + "_")
 
     if args.profile:
         prof.disable()
         prof.print_stats()
 
-    print(f"Finished two-state discrimination trials. Files written to \n{filepath}\nYou can use this path for the plotting script.")
+    print(
+        f"Finished two-state discrimination trials. Files written to \n{filepath}\nYou can use this path for the plotting script."
+    )

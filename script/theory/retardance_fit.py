@@ -7,6 +7,7 @@ import pickle
 import argparse
 from pathlib import Path
 
+
 def qwp_mat(theta, retardance=np.pi / 2):
     c = np.cos(theta)
     s = np.sin(theta)

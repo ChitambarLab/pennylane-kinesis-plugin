@@ -27,6 +27,7 @@ def move_to_angle(device, angle, offset_angle=0):
             print("Trying again...")
             time.sleep(0.01)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Manual alignment",

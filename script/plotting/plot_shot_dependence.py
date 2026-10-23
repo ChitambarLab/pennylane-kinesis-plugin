@@ -1,5 +1,5 @@
 """This script generates a plot showing the optimization precision as
-dependent upon the number of measured samples. Data for this plot is obtained 
+dependent upon the number of measured samples. Data for this plot is obtained
 using the `./script/vqo_protocols/dependence/two-state_discrimination_shot_dependence.py` script.
 """
 

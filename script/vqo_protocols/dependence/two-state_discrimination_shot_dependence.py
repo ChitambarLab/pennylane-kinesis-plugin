@@ -14,7 +14,6 @@ import pennylane_kinesis as pk
 from pennylane_kinesis.file_utilities import datetime_now_string
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Two state discrimination shot dependence.",

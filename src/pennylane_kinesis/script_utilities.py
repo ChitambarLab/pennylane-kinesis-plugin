@@ -92,7 +92,7 @@ def two_state_discrimination(
     :rtype: Dict
     """
     data_path = make_dir(filepath)
-    filename_prefix = filename_prefix+"_" if filename_prefix != "" else filename_prefix
+    filename_prefix = filename_prefix + "_" if filename_prefix != "" else filename_prefix
 
     def arb_unitary(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
@@ -219,7 +219,7 @@ def two_state_discrimination(
         optimizer=optimizer,
         background_rate=background_rate,
         shot_rate=shot_rate,
-        filename=filename_prefix+"optimization_" + datetime_str,
+        filename=filename_prefix + "optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * 2 + [hwp_period, qwp_period],
     )
     if not numerics:
@@ -294,7 +294,7 @@ def qubit_dimensionality_witnessing(
     :rtype: Dict
     """
     data_path = make_dir(filepath)
-    filename_prefix = filename_prefix+"_" if filename_prefix != "" else filename_prefix
+    filename_prefix = filename_prefix + "_" if filename_prefix != "" else filename_prefix
 
     def arb_unitary(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
@@ -378,7 +378,7 @@ def qubit_dimensionality_witnessing(
         verbose=verbose,
         filepath=data_path,
         optimizer=optimizer,
-        filename=filename_prefix+"optimization_" + datetime_str,
+        filename=filename_prefix + "optimization_" + datetime_str,
         domain_periods=[hwp_period, qwp_period] * prep_num_in + [hwp_period, qwp_period] * meas_num_in,
     )
 
@@ -403,7 +403,7 @@ def rac(
     filename_prefix="",
 ):
     data_path = make_dir(filepath)
-    filename_prefix = filename_prefix+"_" if filename_prefix != "" else filename_prefix
+    filename_prefix = filename_prefix + "_" if filename_prefix != "" else filename_prefix
 
     def arb_unitary(settings, wires):
         HWPRotStage(settings[0], wires=[wires[0]])
@@ -538,7 +538,7 @@ def rac(
         diff_method=diff_method,
         optimizer=optimizer,
         filepath=data_path,
-        filename=filename_prefix+"optimization_" + datetime_str,
+        filename=filename_prefix + "optimization_" + datetime_str,
         domain_periods=domain_periods,
     )
     if not numerics:

@@ -26,6 +26,7 @@ NUM_MEASUREMENTS = 5
 def get_serial_no(usbtmc_device):
     return usbtmc_device.query("*IDN?").split(",")[2]
 
+
 class Meter:
     def __init__(self, swabian_mode, HV_meter=False):
         self.swabian_mode = swabian_mode

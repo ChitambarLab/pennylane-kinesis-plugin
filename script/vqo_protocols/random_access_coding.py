@@ -283,7 +283,9 @@ if __name__ == "__main__":
             f"At this rate, it will take {time_remaining:.3f} seconds or {time_remaining / 60:.3f} minutes or {time_remaining / 3600:.3f} hours."
         )
 
-        plot_data(rac_opt_dict, args.rac_3, filepath, filename + ".png", prefix=str(i)+"_")
+        plot_data(rac_opt_dict, args.rac_3, filepath, filename + ".png", prefix=str(i) + "_")
         time.sleep(0.1)
 
-    print(f"Finished random access coding trials. Files written to \n{filepath}\nYou can use this path for the plotting script.")
+    print(
+        f"Finished random access coding trials. Files written to \n{filepath}\nYou can use this path for the plotting script."
+    )
