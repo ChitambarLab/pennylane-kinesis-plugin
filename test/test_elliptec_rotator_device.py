@@ -23,10 +23,10 @@ class TestElliptecMotors:
 
     def test_config_angles(self):
         global motors
-        assert float(motors.wp_details[0]["angle_offset"]) == 204.128
-        assert float(motors.wp_details[1]["angle_offset"]) == 191.734
-        assert float(motors.wp_details[2]["angle_offset"]) == 97.551
-        assert float(motors.wp_details[3]["angle_offset"]) == -23.635
+        assert float(motors.wp_details[0]["angle_offset"]) == 299.4017
+        assert float(motors.wp_details[1]["angle_offset"]) == 194.2695
+        assert float(motors.wp_details[2]["angle_offset"]) == 34.656
+        assert float(motors.wp_details[3]["angle_offset"]) == 357.175
 
 
 class TestElliptecRotatorDevice:

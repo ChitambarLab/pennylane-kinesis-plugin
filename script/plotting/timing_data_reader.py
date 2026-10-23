@@ -1,3 +1,5 @@
+"""Plot the rotation mount timing data to check active rotation stage times."""
+
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +9,6 @@ import pennylane_kinesis as pk
 from pathlib import Path
 from datetime import datetime
 
-date_after = datetime.strptime("2024-04-17T15-16-20Z", "%Y-%m-%dT%H-%M-%SZ")
 
 def plot_movements(timing_file):
     with open(timing_file, "rb") as f:
@@ -99,34 +100,24 @@ def plot_timing(timing_file):
                 facecolors="orange",
             )
 
-            title = "Active time of each rotation stage\n" + str(
-                timing_file.split("\\")[2].split(".")[0].split("Z")[0]
-            )
+            title = "Active time of each rotation stage\n" + str(timing_file.split("\\")[2].split(".")[0].split("Z")[0])
             ax.set_title(title)
-            ax.set_yticks(
-                [0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"]
-            )
+            ax.set_yticks([0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"])
             ax.set_xlabel("Time (s)")
 
-            Path(timing_file.rsplit("\\", 1)[0] + "/timing_files/").mkdir(
-                parents=True, exist_ok=True
-            )
+            Path(timing_file.rsplit("\\", 1)[0] + "/timing_files/").mkdir(parents=True, exist_ok=True)
             fig_path = (
-                timing_file.rsplit("\\", 1)[0]
-                + "/timing_files/"
-                + timing_file.split("\\")[-1].split(".")[0]
-                + ".png"
+                timing_file.rsplit("\\", 1)[0] + "/timing_files/" + timing_file.split("\\")[-1].split(".")[0] + ".png"
             )
             print("writing to file:" + fig_path)
             plt.savefig(fig_path, bbox_inches="tight")
             plt.close()
         diff = np.sum(run_times, axis=1) - np.sum(run_times_filtered, axis=1)
-        duty_cycle = np.sum(run_times, axis=1) / (
-            np.sum(off_times, axis=1) + np.sum(run_times, axis=1)
-        )
+        duty_cycle = np.sum(run_times, axis=1) / (np.sum(off_times, axis=1) + np.sum(run_times, axis=1))
 
         duty_cycles.append(duty_cycle)
         print("Duty cycle percentage:", np.sum(run_times, axis=1) / (np.sum(off_times, axis=1)))
+        print("Off times:", np.sum(off_times, axis=1))
 
     return total_time, duty_cycles
 
@@ -209,7 +200,7 @@ if __name__ == "__main__":
     directories = []
 
     if args.file:
-        plot_movements(args.file)
+        plot_timing(args.file)
         exit()
 
     step_sizes = []
@@ -236,18 +227,15 @@ if __name__ == "__main__":
 
     for directory in directories:
         for file in os.listdir(directory):
-            if ("timing_data" in file or "runtime" in file) and pk.file_utilities.get_date_from_filename(
-                file
-            ) >= date_after:
-                if file.endswith(".txt") and args.total_times:
-                    total_time_files.append(directory + file)
+            if "timing_data" in file:
                 if file.endswith(".pkl"):
                     pkl_files.append(directory + file)
+            if "runtime" in file:
+                if file.endswith(".txt"):
+                    total_time_files.append(directory + file)
     total_time_files = sorted(
         total_time_files,
-        key=lambda x: datetime.strptime(
-            x.split("/")[-1].split("Z")[0], "%Y-%m-%dT%H-%M-%S"
-        ).timestamp(),
+        key=lambda x: datetime.strptime(x.split("/")[-1].split("Z")[0], "%Y-%m-%dT%H-%M-%S").timestamp(),
     )
 
     if args.total_times:
@@ -255,12 +243,14 @@ if __name__ == "__main__":
         for total_time_file in total_time_files:
             with open(total_time_file, "r") as f:
                 total_time = f.read()
+                if total_time == "":
+                    continue
                 total_times.append(float(total_time))
 
         fig, ax = plt.subplots()
 
         if args.shot_dep:
-            labels = num_shots
+            labels = shots_list
         else:
             labels = step_sizes
 
@@ -278,7 +268,7 @@ if __name__ == "__main__":
             ax.legend(title="Number of Shots")
         else:
             ax.legend(title="Step Sizes")
-        ax.set_title("Total time of each optimization (parameter-shift, gradient-descent)")
+        ax.set_title("Total time of each optimization (parameter-shift, adagrad)")
         ax.set_xlabel("Optimization Run Number (Sequential)")
         ax.set_ylabel("Time (s)")
         print("writing total_times to", run_directory + "total_times.png")
@@ -310,7 +300,7 @@ if __name__ == "__main__":
         )
         ax.bar_label(bars, fmt="%.2f")
         ax.set_xticks([0.5, 1.5, 2.5, 3.5], labels=["Prep HWP", "Prep QWP", "Meas HWP", "Meas QWP"])
-        ax.set_title("Duty Cycle Average \n (parameter-shift, gradient-descent)")
+        ax.set_title("Duty Cycle Average \n (parameter-shift, adagrad)")
         ax.set_xlabel("Waveplate")
         ax.set_ylabel("Duty Cycle")
         path = pk.winapi_path(run_directory + "/duty_cycle" + date_of_run + ".png")

@@ -401,13 +401,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device + " to position " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device + " to position " + str(angle) + "\u00b0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_to(angle)  # Moves to position in degrees
             device.wait_for_stop()
-            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device_sn + " to position " + str(angle) + "\u00b0")
 
     def device_move_by_angle(self, device: Thorlabs.KinesisMotor, angle):
         """Rotates a device by the specified angle.
@@ -421,13 +421,13 @@ class KinesisCageRotatorDevice(QubitDevice):
         :returns: None
         """
         if self.test_mode:
-            print("Moved device S/N " + device + " by " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device + " by " + str(angle) + "\u00b0")
         else:
             device_info = device.get_device_info()
             device_sn = str(device_info.serial_no)
             device.move_by(angle)  # Moves by position in degrees
             device.wait_for_stop()
-            print("Moved device S/N " + device_sn + " by " + str(angle) + "\u00B0")
+            print("Moved device S/N " + device_sn + " by " + str(angle) + "\u00b0")
             print("Current position:", device.get_position())
 
     def disconnect(self):

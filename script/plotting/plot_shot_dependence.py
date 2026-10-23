@@ -1,11 +1,10 @@
-import pennylane_kinesis as pk
-from datetime import datetime
-import argparse
-
 """This script generates a plot showing the optimization precision as
-dependent upon the number of measured samples. Data for this plot is obtained 
+dependent upon the number of measured samples. Data for this plot is obtained
 using the `./script/vqo_protocols/dependence/two-state_discrimination_shot_dependence.py` script.
 """
+
+import pennylane_kinesis as pk
+import argparse
 
 filepath = "./data/state_discrimination/hardware_shot_dependence/parameter-shift/gradient-descent/2024-04-30T23-30-05Z/"
 shots_list = [10, 100, 1000, 10000, 100000]
@@ -67,8 +66,8 @@ if __name__ == "__main__":
         plot_filename=args.plot_filename,
         numerics=args.numerics,
         two_wp=args.two_wp,
-        add_background=True,
+        add_background=False,
         background=300,
         shot_rate=10000,
-        title="Number of Shots Vs.\nOptimization Performance \n(gradient-descent, \n parameter-shift, hardware)",
+        title=f"Number of Shots vs. Optimization Performance \n (adagrad, parameter-shift, {'two_wp' if args.two_wp else 'four_wp'})",
     )

@@ -1,6 +1,7 @@
 import pennylane as qml
 from pennylane import numpy as qnp
 import time
+import numpy as np
 
 from .file_utilities import datetime_now_string, tmp_dir, write_json
 
@@ -8,6 +9,8 @@ from .file_utilities import datetime_now_string, tmp_dir, write_json
 def optimize(
     grad_cost,
     init_settings,
+    device=None,
+    behavior_fn=None,
     num_steps=10,
     step_size=0.1,
     filepath="./",
@@ -16,6 +19,8 @@ def optimize(
     domain_periods=None,
     eval_cost=None,
     optimizer="gradient_descent",
+    background_rate=None,
+    shot_rate=None,
     verbose=True,
     **meta_kwargs,
 ):
@@ -90,6 +95,9 @@ def optimize(
             "domain_periods": domain_periods,
             "opt_step_time": [],
             "optimizer": optimizer,
+            "background_rate": [],
+            "shot_rate": [],
+            "behavior_mat": [],
             **meta_kwargs,
         }
     )
@@ -100,15 +108,26 @@ def optimize(
         opt = qml.MomentumOptimizer(stepsize=step_size)
     elif optimizer == "adagrad":
         opt = qml.AdagradOptimizer(stepsize=step_size)
+    elif optimizer == "spsa":
+        opt = qml.SPSAOptimizer(maxiter=num_steps)
+    elif optimizer == "rmsprop":
+        opt = qml.RMSPropOptimizer(stepsize=step_size)
+    elif optimizer == "qng":
+        opt = qml.QNGOptimizer(stepsize=step_size)
     else:
         opt = qml.GradientDescentOptimizer(stepsize=step_size)
     current_step = len(opt_dict["cost_vals"])
     settings = qnp.array(opt_dict["settings_history"][-1], requires_grad=True)
+    opt_dict["background_rate"] = background_rate
+    opt_dict["shot_rate"] = shot_rate
     try:
         curr_time = time.time()
         for i in range(current_step, num_steps):
             if verbose:
                 print("\n\nOptimization Step : ", i, "\n\n")
+            if behavior_fn is not None:
+                behavior_mat = behavior_fn(settings)
+                opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
             if eval_cost == None:
                 settings, cost_val = opt.step_and_cost(grad_cost, settings)
@@ -121,7 +140,6 @@ def optimize(
                     [settings[i] % domain_periods[i] for i in range(len(settings))],
                     requires_grad=True,
                 )
-
             opt_dict["settings_history"] += [settings.tolist()]
             opt_dict["cost_vals"] += [float(cost_val)]
 
@@ -137,6 +155,9 @@ def optimize(
         opt_dict["cost_vals"] += (
             [float(grad_cost(settings))] if eval_cost == None else [float(eval_cost(settings))]
         )
+        if behavior_fn is not None:
+            behavior_mat = behavior_fn(settings)
+            opt_dict["behavior_mat"] += [behavior_mat.tolist()]
 
     except BaseException as err:
         msg_template = (

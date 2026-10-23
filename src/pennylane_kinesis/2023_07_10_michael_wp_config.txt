@@ -1,5 +1,0 @@
-Device |	S/N |	Angle Offset (degrees) |	Qubit Name
-aHWP	27501110	68.3	prep_HWP
-aQWP	27002915	4.5	prep_QWP
-bHWP	27252048	178.8	proj_HWP
-bQWP	27501224	99.1	proj_QWP

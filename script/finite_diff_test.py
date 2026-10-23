@@ -1,13 +1,3 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import argparse
-import time
-import pennylane_kinesis as pk
-from pennylane_kinesis.file_utilities import datetime_now_string
-
 """
 Optimizes the state discrimination success probability for two states.
 
@@ -20,6 +10,13 @@ Use the `two_wp` argument to run the script with fixed mneasurement waveplates.
 $ python script/two-state_discrimination.py numerics
 ```
 """
+
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import argparse
+import time
+import pennylane_kinesis as pk
+from pennylane_kinesis.file_utilities import datetime_now_string
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -55,9 +52,7 @@ if __name__ == "__main__":
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
     parser.add_argument(
         "-s",
@@ -79,7 +74,7 @@ if __name__ == "__main__":
     state_disc_opt_dict = pk.two_state_discrimination(
         filepath="./data/two-state_discrimination/",
         shots=10000,
-        shot_rate=3000000,
+        shot_rate=[300000, 300000],
         two_wp=args.two_wp,
         numerics=args.numerics,
         step_size=args.step_size,

@@ -1,14 +1,3 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import argparse
-
-import pennylane_kinesis as pk
-import cProfile
-from pstats import SortKey
-
 """
 Optimizes the state discrimination success probability for two states.
 
@@ -22,8 +11,27 @@ $ python script/two-state_discrimination.py numerics
 ```
 """
 
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import argparse
+import time
+import pennylane_kinesis as pk
+import cProfile
 
-def plot_state_discrimination(state_disc_opt_dict, args, datetime=None):
+
+def print_bar(msg):
+    bar_length = len(msg) + 15  # Set the bar length to match the message length
+    bar = "#" * bar_length  # Generate the bar dynamically
+    padding = (len(bar) - len(msg)) // 2
+
+    formatted_msg = f"{'#' * padding}{msg}{'#' * (len(bar) - len(msg) - padding)}"
+
+    print(bar)
+    print(formatted_msg)
+    print(bar)
+
+
+def plot_state_discrimination(state_disc_opt_dict, args, folder, datetime, prefix):
     fig, (ax1, ax2) = plt.subplots(ncols=2)
 
     fig.suptitle("VQO of Two-State Discrimination")
@@ -55,31 +63,16 @@ def plot_state_discrimination(state_disc_opt_dict, args, datetime=None):
 
     plt.tight_layout()
 
-    filepath = "./data/two-state_discrimination/"
-    if args.numerics:
-        filepath += "numerics/"
-    else:
-        filepath += "hardware/"
-
-    if args.two_wp:
-        filepath += "two_wp/"
-    else:
-        filepath += "four_wp/"
-
-    filename = "two-state-discrimination"
+    filename = datetime + "two-state-discrimination"
     filename += "-" + str(args.step_size)
     if args.numerics:
         filename += "-numerics"
     if args.two_wp:
         filename += "-twowp"
 
-    if datetime is None:
-        datetime_str = pk.datetime_now_string()
-    else:
-        datetime_str = datetime
-
-    output_file = pk.winapi_path(filepath + datetime_str + filename + ".png")
+    output_file = pk.winapi_path(folder + prefix + filename + ".png")
     plt.savefig(output_file)
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -102,42 +95,102 @@ if __name__ == "__main__":
         action="store_true",
         help="If using the simulator backend.",
     )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
+
+    parser.add_argument("-s", "--step_size", default=0.2, type=float, help="Step size to use.")
+
+    parser.add_argument("--num_steps", default=60, type=int, help="Num steps to use per optimization.")
+
     parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
+        "--background",
+        default=[300, 100],
+        nargs="+",
+        type=int,
+        help="Number of background counts, one per channel.",
     )
 
-    parser.add_argument("-s", "--step_size", default=0.08, help="Step size to use.")
+    parser.add_argument("--profile", default=False, action="store_true", help="Profile the code.")
 
-    parser.add_argument("-p", "--plot", default=None, help="Only plot given filename, do not run")
+    parser.add_argument(
+        "-d",
+        "--diff",
+        default="parameter-shift",
+        help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
+    )
 
-    parser.add_argument("--num_steps", default=20, help="Num steps to use per optimization.")
+    parser.add_argument(
+        "-o",
+        "--optimizer",
+        default="adagrad",
+        help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
+    )
+
+    parser.add_argument(
+        "--shots",
+        default=10000,
+        type=int,
+        help="Number of shots to take.",
+    )
+
+    parser.add_argument("--num_trials", default=40, type=int, help="number of trials to run.")
 
     args = parser.parse_args()
 
-    if not args.plot:
+    filepath = "./data/two-state_discrimination/"
+
+    if args.numerics:
+        filepath += "numerics/"
+    else:
+        filepath += "hardware/"
+
+    if args.two_wp:
+        filepath += "two_wp/"
+    else:
+        filepath += "four_wp/"
+
+    datetime = pk.datetime_now_string()
+    filepath += datetime + "/"
+
+    if args.profile:
         prof = cProfile.Profile()
         print("Starting Profiler")
         prof.enable()
+
+    print(f"Starting two-state discrimination trials. Files will be written to {filepath}")
+
+    for i in range(args.num_trials):
+        print_bar(f"Starting trial {i} out of {args.num_trials}")
+
+        datetime = pk.datetime_now_string()
+
+        start_time = time.time()
         state_disc_opt_dict = pk.two_state_discrimination(
-            filepath="./data/two-state_discrimination/",
+            filepath=filepath,
             shots=10000,
-            shot_rate=3000000,
+            shot_rate=[300000, 300000],
+            background_counts=args.background,
             two_wp=args.two_wp,
             numerics=args.numerics,
             step_size=float(args.step_size),
             num_steps=int(args.num_steps),
             verbose=args.verbose,
+            optimizer=args.optimizer,
+            diff_method=args.diff,
+            filename_prefix=str(i),
         )
+
+        end_time = time.time()
+        time_taken = end_time - start_time
+
+        print_bar(
+            f"Took {time_taken} seconds to run VQO on two-state discrimination with {args.optimizer} and {args.diff} with step size {str(args.step_size)}."
+        )
+        plot_state_discrimination(state_disc_opt_dict, args, filepath, datetime, str(i) + "_")
+
+    if args.profile:
         prof.disable()
         prof.print_stats()
-        plot_state_discrimination(state_disc_opt_dict, args)
-    else:
-        print(args.plot)
-        datetime_str = args.plot.split("\\")[-1].split("_")[1].split(".")[0]
-        print(datetime_str)
-        opt_dict = pk.read_json(pk.winapi_path(args.plot))
-        plot_state_discrimination(opt_dict, args, datetime_str)
 
-    """
-    Plotting
-    """
+    print(
+        f"Finished two-state discrimination trials. Files written to \n{filepath}\nYou can use this path for the plotting script."
+    )

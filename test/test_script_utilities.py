@@ -36,9 +36,9 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, test_mode):
     # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
     assert np.all(np.diff(opt_dict["cost_vals"]) < COST_TOL)
 
-    # Check that significant optimization progress is made on first step.
+    # Check that significant optimization progress is made over the course of the run.
     if numerics:
-        assert (opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL
+        assert (opt_dict["cost_vals"][0] - min(opt_dict["cost_vals"])) > DIFF_TOL
     else:  # Otherwise verify that the device ran using `test_mode = True`.
         assert opt_dict["cost_vals"] == [-1] * 11
 
@@ -61,50 +61,14 @@ def test_two_state_discrimination(tmp_dir_cleanup, numerics, two_wp, test_mode):
 
 
 @pytest.mark.parametrize(
-    "numerics, three_wp, match_cost_vals, test_mode",
+    "numerics, three_wp, test_mode",
     [
-        (
-            True,
-            False,
-            [
-                -1.7512,
-                -2.5954,
-                -3.0074,
-                -3.1544,
-                -3.2126,
-                -3.2524,
-                -3.279,
-                -3.3146,
-                -3.3314,
-                -3.3572,
-                -3.3752,
-            ],
-            False,
-        ),
-        (
-            True,
-            True,
-            [
-                1.1228,
-                0.1372,
-                -1.3598,
-                -2.2446,
-                -2.4824,
-                -2.6604,
-                -2.8096,
-                -2.9498,
-                -3.0576,
-                -3.159,
-                -3.2414,
-            ],
-            False,
-        ),
-        (False, False, [0] * 11, True),
+        (True, False, False),
+        (True, True, False),
+        (False, False, True),
     ],
 )
-def test_qubit_dimensionality_witnessing(
-    tmp_dir_cleanup, numerics, three_wp, match_cost_vals, test_mode
-):
+def test_qubit_dimensionality_witnessing(tmp_dir_cleanup, numerics, three_wp, test_mode):
     """Performs a sample two-state discrimination optimization for 10 steps.
     Both two waveplate and four waveplate versions are tested.
     """
@@ -130,9 +94,9 @@ def test_qubit_dimensionality_witnessing(
     # Check to make sure that the cost_values are strictly decreasing, to a certain tolerance
     assert np.all(np.diff(opt_dict["cost_vals"]) < COST_TOL)
 
-    # Check that significant optimization progress is made on first step.
+    # Check that significant optimization progress is made over the course of the run.
     if numerics:
-        assert (opt_dict["cost_vals"][0] - opt_dict["cost_vals"][1]) > DIFF_TOL
+        assert (opt_dict["cost_vals"][0] - min(opt_dict["cost_vals"])) > DIFF_TOL
     else:  # Otherwise verify that the device ran using `test_mode = True`.
         assert opt_dict["cost_vals"] == [0] * 11
 

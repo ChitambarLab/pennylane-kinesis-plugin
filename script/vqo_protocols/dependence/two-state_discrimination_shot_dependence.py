@@ -1,20 +1,18 @@
-import pennylane as qml
-from pennylane import numpy as qnp
-import qnetvo
-from matplotlib import pyplot as plt
-import sys
-import os
-import argparse
-import time
-import pennylane_kinesis as pk
-from pennylane_kinesis.file_utilities import datetime_now_string
-
 """
 Runs multiple two-state discrimination optimizations with different numbers of shots for each
 to determine the dependence of the optimization on the step-size.
 
 By default the script will run on hardware using 4 wave plates.
 """
+
+from pennylane import numpy as qnp
+from matplotlib import pyplot as plt
+import os
+import argparse
+import time
+import pennylane_kinesis as pk
+from pennylane_kinesis.file_utilities import datetime_now_string
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -40,10 +38,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--optimizer",
-        default="gradient-descent",
+        default="adagrad",
         help="Optimizer to use.\n Can be: 'gradient-descent' 'adam', 'momentum' or 'adagrad'",
     )
-    
+
     parser.add_argument(
         "-d",
         "--diff",
@@ -51,9 +49,7 @@ if __name__ == "__main__":
         help="Gradient method to use. Can be: 'parameter-shift' or 'finite-diff'",
     )
 
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="More verbose output."
-    )
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="More verbose output.")
 
     parser.add_argument(
         "-s",
@@ -66,6 +62,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shots_list",
         nargs="+",
+        type=int,
         default=[100, 1000, 10000, 100000],
     )
 
@@ -92,13 +89,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--background_counts",
-        default=5,
+        default=[300, 100],
+        nargs="+",
         type=int,
-        help="Background counts for the experiment.",
+        help="Background counts for the experiment, one per channel.",
     )
     args = parser.parse_args()
 
-    filepath = "./data/state_discrimination"
+    filepath = "./data/two-state_discrimination"
     if args.numerics:
         filepath += "/numerics_shot_dependence/"
     else:

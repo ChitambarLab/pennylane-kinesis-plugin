@@ -1,0 +1,171 @@
+"""Collect process tomography data."""
+
+from pennylane_kinesis import swabian, ElliptecMotors, datetime_now_string, write_json
+import threading
+
+from ThorlabsPM100 import ThorlabsPM100, USBTMC
+import time
+from tqdm import tqdm
+from pathlib import Path
+
+ports = [f"/dev/ttyUSB{i}" for i in range(3)]
+
+# These are serial numbers for other power meter consoles in the lab:
+# "P0037258"
+# "P0027639"
+
+# Currently used power meters for collection
+# If you use two meters (HV_meter = True), then this should have two meters
+power_meters = ["P0025560"]
+
+
+NUM_SHOTS = 100000
+NUM_MEASUREMENTS = 5
+
+
+def get_serial_no(usbtmc_device):
+    return usbtmc_device.query("*IDN?").split(",")[2]
+
+
+class Meter:
+    def __init__(self, swabian_mode, HV_meter=False):
+        self.swabian_mode = swabian_mode
+        self.HV_meter = HV_meter
+        H_meter = None
+        V_meter = None
+        if swabian_mode:
+            self.counter = swabian.Counter(shots=None, integration_time=1)
+            self.counter.detector_setup()
+        else:
+            list_check = [0, 1] if HV_meter else [0]
+            insts = [USBTMC(device=f"/dev/usbtmc{x}") for x in list_check]
+            for inst in insts:
+                print(inst.query("*IDN?"))
+                if get_serial_no(inst) == power_meters[0]:
+                    H_meter = ThorlabsPM100(inst=inst)
+                elif get_serial_no(inst) == power_meters[1]:
+                    V_meter = ThorlabsPM100(inst=inst)
+
+            self.H_meter = H_meter
+            self.V_meter = V_meter
+
+    def get_counts(self):
+        counts = None
+
+        if self.swabian_mode:
+            counts = self.counter.get_counts()
+        else:
+            if self.HV_meter:
+                counts = (self.H_meter.read, self.V_meter.read)
+            else:
+                counts = (self.H_meter.read, 0)
+        return counts
+
+    def set_integration_time(self, time):
+        if self.swabian_mode:
+            self.counter.set_integration_time(time)
+
+
+def move_to_angle(device, angle, offset_angle):
+    angle_ret = None
+    while angle_ret is None:
+        angle_ret = device.set_angle(
+            (angle + offset_angle) % 360
+        )  # This will block until the device reaches the desired angle
+        if angle_ret is None:
+            print(
+                "Angle return is None when setting",
+                device.info["Serial No."],
+                "to ",
+                angle,
+            )
+            print("Trying again...")
+            time.sleep(0.01)
+
+
+def parallel_set_angles(rotators, angles, offsets):
+    threads = []
+    for i, angle in enumerate(angles):
+        x = threading.Thread(target=move_to_angle, args=(rotators[i], angle, offsets[i]))
+        threads.append(x)
+        x.start()
+
+    for i, thread in enumerate(threads):
+        thread.join()
+
+
+if __name__ == "__main__":
+    motors = ElliptecMotors()
+    rotators = [motors.prep_hwp, motors.prep_qwp, motors.meas_hwp, motors.meas_qwp]
+    background_angles = [motors.wp_details[i]["background_angle"] for i in range(len(rotators))]
+    zero_offsets = [motors.wp_details[i]["angle_offset"] for i in range(len(rotators))]
+
+    for rotator in rotators:
+        print("Homing Rotators")
+        rotator.home()
+    parallel_set_angles(rotators, [0, 0, 0, 0], zero_offsets)
+
+    print("background angles are", background_angles)
+
+    start_timedate = datetime_now_string()
+
+    states_names = ["H", "V", "D", "A", "R", "L"]
+    prep_states_dict = {
+        "H": [0, 0],
+        "V": [45, 0],
+        "D": [22.5, 45],
+        "A": [67.5, 45],
+        "R": [0, 135],
+        "L": [0, 45],
+    }
+    meas_states_dict = {
+        "H": [0, 0],
+        "V": [45, 0],
+        "D": [22.5, 45],
+        "A": [67.5, 45],
+        "R": [0, 45],
+        "L": [0, 135],
+    }
+
+    prep_states = [prep_states_dict[state] for state in states_names]
+    meas_states = [meas_states_dict[state] for state in states_names]
+
+    qpt_dict = {}
+    qpt_dict["shots"] = NUM_SHOTS
+    qpt_dict["num_reps"] = NUM_MEASUREMENTS
+    meter = Meter(swabian_mode=False)
+
+    aoi = "45"
+    glass = False
+
+    if glass:
+        folder = f"./data/process_tomography/SAMPLE_3_28MM_GLASS/{aoi}_aoi_{start_timedate}"
+    else:
+        folder = f"./data/process_tomography/SAMPLE_3_28MM_AR/{aoi}_aoi_{start_timedate}"
+
+    folder = f"./data/process_tomography/SAMPLE_3_28MM_AR/air_{start_timedate}"
+    Path(folder).mkdir(parents=True, exist_ok=True)
+
+    # Collect tomography data
+
+    try:
+        for i in tqdm(range(NUM_MEASUREMENTS), leave=False):
+            for prep_state in tqdm(states_names, leave=False):
+                for meas_state in tqdm(states_names, leave=False):
+                    prep_angles = prep_states_dict[prep_state]
+                    meas_angles = meas_states_dict[meas_state]
+                    angles = prep_angles + meas_angles
+                    measurement = prep_state + meas_state
+                    if measurement not in qpt_dict:
+                        qpt_dict[measurement] = []
+
+                    parallel_set_angles(rotators, angles, zero_offsets)
+
+                    meas_counts = meter.get_counts()
+                    qpt_dict[measurement] += [meas_counts]
+    except KeyboardInterrupt:
+        print("Quitting run and saving data")
+        write_json(qpt_dict, str(folder) + "/" + "qpt_data_ABORTED")
+        exit()
+
+    write_json(qpt_dict, str(folder) + "/" + "qpt_data")
